@@ -46,8 +46,10 @@ function requirement_wp_domain_work_plugin() {
 function error_requirement_wp_domain_work_plugin() {
 	global $_error_messages;
 	foreach ( $_error_messages as $msg ) {
-		echo '<div class="message error">' . "\n";
-		echo __( '<p>' . $msg . '</p>' ) . "\n";
-		echo '</div>' . "\n";
+		?>
+<div class="message error">
+  <p><?= __( $msg ) ?></p>
+</div>
+		<?php
 	}
 }

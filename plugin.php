@@ -21,11 +21,9 @@ if ( !requirement_wp_domain_work_plugin() ) {
 }
 
 /**
- *
+ * Include utility file
  */
-require_once dirname( __FILE__ ) . '/class/wp-domain-work.php';
-register_activation_hook( __FILE__, 'WP_Domain_Work::activation' );
-register_deactivation_hook( __FILE__, 'WP_Domain_Work::deactivation' );
+require_once __DIR__ . '/inc/utility.php';
 
 /**
  * include classloader class
@@ -39,12 +37,27 @@ require_once __DIR__ . '/lib/ClassLoader.php';
 # ClassLoader::register( 'module',    __DIR__ . '/class' );
 # ClassLoader::register( 'property',  __DIR__ . '/class' );
 # ClassLoader::register( 'service',   __DIR__ . '/class' );
-# ClassLoader::register( 'wordpress', __DIR__ . '/class' );
+ClassLoader::register( 'wordpress', __DIR__ . '/class' );
 
 /**
- * include utility file
+ * Include plugin initializing file
  */
-# require_once __DIR__ . '/inc/utility.php';
+require_once __DIR__ . '/class/wp-domain-work.php';
+
+/**
+ * Plugin activation & deactivation
+ */
+register_activation_hook( __FILE__, 'WP_Domain_Work::activation' );
+# register_deactivation_hook( __FILE__, 'WP_Domain_Work::deactivation' );
+
+/**
+ * Plugin init
+ */
+WP_Domain_Work::init();
+
+if ( is_admin() ) {
+	WP_Domain_Work::settings_page();
+}
 
 /**
  * Initializing domains directory, if activated
