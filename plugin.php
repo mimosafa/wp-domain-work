@@ -40,7 +40,7 @@ require_once __DIR__ . '/lib/ClassLoader.php';
 ClassLoader::register( 'wordpress', __DIR__ . '/class' );
 
 /**
- * Include plugin initializing file
+ * Include plugin file
  */
 require_once __DIR__ . '/class/wp-domain-work.php';
 

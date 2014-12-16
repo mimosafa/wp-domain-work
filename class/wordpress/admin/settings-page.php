@@ -5,11 +5,6 @@ namespace wordpress\admin;
 class settings_page {
 
 	/**
-	 * @var array
-	 */
-	private $pages = [];
-
-	/**
 	 * Capability of read settings page
 	 *
 	 * @var string
@@ -25,6 +20,11 @@ class settings_page {
 	 * @var integer
 	 */
 	private $position = null;
+
+	/**
+	 * @var array
+	 */
+	private $pages = [];
 
 	/**
 	 * arrays for function's arguments
@@ -48,6 +48,18 @@ class settings_page {
 	}
 
 	/**
+	 * Set icon_url
+	 *
+	 * @param  string $icon_url
+	 * @return (void)
+	 */
+	public function icon_url( $icon_url ) {
+		if ( $icon_url && is_string( $icon_url ) ) {
+			$this -> icon_url = $icon_url;
+		}
+	}
+
+	/**
 	 * Set position in admin menu
 	 *
 	 * @param  integer $position
@@ -57,6 +69,13 @@ class settings_page {
 		if ( $position && $int = absint( $position ) ) {
 			$this -> position = $int;
 		}
+	}
+
+	/**
+	 *
+	 */
+	public function page( $menu_slug, $page_title = '', $menu_title = '' ) {
+		//
 	}
 
 	/**
@@ -76,6 +95,8 @@ class settings_page {
 	 * 
 	 */
 	public function add_pages() {
+
+		global $menu, $admin_page_hooks, $_registered_pages, $_parent_pages;
 
 		/**
 		 * pages
@@ -132,6 +153,11 @@ class settings_page {
 				}
 			}
 		}
+		
+		_var_dump( $menu );
+		_var_dump( $admin_page_hooks );
+		_var_dump( $_registered_pages );
+		_var_dump( $_parent_pages );
 
 	}
 

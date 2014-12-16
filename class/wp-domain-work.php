@@ -22,7 +22,12 @@ class WP_Domain_Work {
 		/**
 		 *
 		 */
-		'level' => 'wp_domain_work_core_installed_hierarchy_level_on_server',
+		'home_level' => 'wp_domain_work_home_url_hierarchy_level',
+
+		/**
+		 *
+		 */
+		'site_level' => 'wp_domain_work_site_url_hierarchy_level',
 
 		/**
 		 *
@@ -106,9 +111,16 @@ class WP_Domain_Work {
 
 	private static function get_option( $string ) {
 		if ( !$string || !array_key_exists( $string, self::$options ) ) {
-			return;
+			return false;
 		}
 		return \get_option( self::get_option_key( $string ) );
+	}
+
+	private static function update_option( $string, $value ) {
+		if ( !$string || !array_key_exists( $string, self::$options ) ) {
+			return false;
+		}
+		return \update_option( self::get_option_key( $string ), $value );
 	}
 
 	/**
@@ -123,7 +135,7 @@ class WP_Domain_Work {
 	 */
 	public static function activation() {
 		$instance = self::get_instance();
-		$instance -> installed_hierarchy_level();
+		$instance -> installed_level();
 	}
 
 	/**
@@ -140,7 +152,6 @@ class WP_Domain_Work {
 		$instance = self::get_instance();
 		if ( is_admin() ) {
 			$instance::$error = new \WP_Error();
-			$instance -> use_domains();
 			$instance -> permalink_structure();
 			if ( $instance::$error -> get_error_code() ) {
 				add_action( 'admin_notices', [ $instance, 'notice' ] );
@@ -151,19 +162,17 @@ class WP_Domain_Work {
 	/**
 	 * Set wordpress core installed level
 	 *
-	 * @todo  installed hierarchy level in admin
+	 * @uses wordpress\installed_level
 	 */
-	private function installed_hierarchy_level() {
-		$key = self::get_option_key( 'level' );
-		if ( false === get_option( $key ) ) {
-			$path = str_replace( $_SERVER['DOCUMENT_ROOT'], '', $_SERVER['SCRIPT_FILENAME'] );
-			$array = explode( '/', trim( $path, '/' ) );
-			for ( $i = 0; $i < count( $array ); $i++ ) {
-				if ( 'index.php' === $array[$i] || 'wp-admin' === $array[$i] ) {
-					break;
-				}
-			}
-			update_option( $key, $i );
+	private function installed_level() {
+		$levelGetter = new \wordpress\installed_level();
+		if ( false === self::get_option( 'home_level' ) ) {
+			$homeLevel = $levelGetter -> get_level( 'home' );
+			self::update_option( 'home_level', $homeLevel );
+		}
+		if ( false === self::get_option( 'site_level' ) ) {
+			$siteLevel = $levelGetter -> get_level( 'site' );
+			self::update_option( 'site_level', $siteLevel );
 		}
 	}
 
@@ -204,6 +213,8 @@ class WP_Domain_Work {
 
 	/**
 	 * Plugin setting page
+	 *
+	 * @uses wordpress\admin\settings_page
 	 */
 	public static function settings_page() {
 		$class = 'wordpress\admin\settings_page';
