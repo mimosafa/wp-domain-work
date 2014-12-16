@@ -60,12 +60,6 @@ class WP_Domain_Work {
 							'label' => 'Active',
 							'option_name' => 'wp_dct_domains_dir_activation',
 						],
-					],
-				],
-				'theme-debug' => [
-					'title' => 'Debug Settings',
-					'description' => 'Some debuging option for developers.',
-					'fields' => [
 						'display-settings-error' => [
 							'title' => 'Display Error in Frontend',
 							'description' => 'If checked, errors will be displayed in frontend. (Hooked @<code>wp_footer</code>)',
@@ -73,6 +67,12 @@ class WP_Domain_Work {
 							'label' => 'Display',
 							'option_name' => 'wp_dct_display_settings_error_in_frontend',
 						]
+					],
+				],
+				'theme-debug' => [
+					'title' => 'Debug Settings',
+					'description' => 'Some debuging option for developers.',
+					'fields' => [
 					],
 				],
 			],
@@ -217,12 +217,13 @@ class WP_Domain_Work {
 	 * @uses wordpress\admin\settings_page
 	 */
 	public static function settings_page() {
-		$class = 'wordpress\admin\settings_page';
-		if ( class_exists( $class ) ) {
-			$pages = new $class();
-			//$pages -> position( 62 );
-			$pages -> init( self::$pages );
-		}
+		$settingsPage = new \wordpress\admin\settings_page();
+		$settingsPage
+		-> page( 'wp-domain-work', 'WP Domain Work' )
+		-> section( 'default-setting' )
+		-> field( 'plugin-activation', 'checkbox', self::get_option_key( 'use_domains' ) )
+		-> init();
+		_var_dump( $settingsPage );
 	}
 
 }

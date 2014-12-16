@@ -24,7 +24,15 @@ class settings_page {
 	/**
 	 * @var array
 	 */
-	private $pages = [];
+	private $page = [];
+
+	/**
+	 * argument caches
+	 *
+	 * @var array
+	 */
+	private static $section = [];
+	private static $field   = [];
 
 	/**
 	 * arrays for function's arguments
@@ -72,16 +80,105 @@ class settings_page {
 	}
 
 	/**
-	 *
+	 * @return object WP_Domain_Work
 	 */
 	public function page( $menu_slug, $page_title = '', $menu_title = '' ) {
-		//
+		if ( !$menu_slug || !is_string( $menu_slug ) ) {
+			return;
+		}
+		$arg =& $this -> page;
+		$arg['menu_slug'] = $menu_slug;
+		if ( $page_title && is_string( $page_title ) ) {
+			$arg['page_title'] = $page_title;
+		}
+		if ( $menu_title && is_string( $menu_title ) ) {
+			$arg['menu_title'] = $menu_title;
+		}
+		$arg['sections']   = [];
+		return $this;
+	}
+
+	/**
+	 * @return object WP_Domain_Work
+	 */
+	public function section( $section_id, $section_title = '', $description = '' ) {
+		/**
+		 * static $field cache init
+		 */
+		if ( !empty( self::$field ) ) {
+			self::$section['fields'][] = self::$field;
+			self::$field = [];
+		}
+		/**
+		 * static $section cache init
+		 */
+		if ( !empty( self::$section ) ) {
+			$this -> page['sections'][] = self::$section;
+			self::$section = [];
+		}
+		if ( !$section_id || !is_string( $section_id ) ) {
+			return $this;
+		}
+		self::$section['section_id'] = $section_id;
+		if ( !$section_title || !is_string( $section_title ) ) {
+			$section_title = ucwords( trim( str_replace( [ '-', '_' ], ' ', $section_id ) ) );
+		}
+		self::$section['title'] = $section_title;
+		if ( $description ) {
+			self::$section['description'] = $description;
+		}
+		self::$section['fields'] = [];
+		return $this;
+	}
+
+	/**
+	 * @return object WP_Domain_Work
+	 */
+	public function field( $field_id, $callback, $option_name = '', $field_title = '', $args = [] ) {
+		/**
+		 * static $field cache init
+		 */
+		if ( !empty( self::$field ) ) {
+			self::$section['fields'][] = self::$field;
+			self::$field = [];
+		}
+		if ( !$field_id || !is_string( $field_id ) ) {
+			return $this;
+		}
+		if ( !method_exists( $this, $callback ) && !is_callable( $callback ) ) {
+			return $this;
+		}
+		self::$field['field_id'] = $field_id;
+		self::$field['callback'] = $callback;
+		if ( $option_name ) {
+			self::$field['option_name'] = $option_name;
+		}
+		if ( !$field_title || !is_string( $field_title ) ) {
+			$field_title = ucwords( trim( str_replace( [ '-', '_' ], ' ', $field_id ) ) );
+		}
+		self::$field['title'] = $field_title;
+		return $this;
 	}
 
 	/**
 	 *
 	 */
 	public function init( $arg = [] ) {
+		/**
+		 * static $field cache init
+		 */
+		if ( !empty( self::$field ) ) {
+			self::$section['fields'][] = self::$field;
+			self::$field = [];
+		}
+		/**
+		 * static $section cache init
+		 */
+		if ( !empty( self::$section ) ) {
+			$this -> page['sections'][] = self::$section;
+			self::$section = [];
+		}
+		/*
 		if ( $arg && is_array( $arg ) && !\utility\is_vector( $arg ) ) {
 			$this -> pages = $arg;
 		}
@@ -89,14 +186,13 @@ class settings_page {
 			add_action( 'admin_menu', [ $this, 'add_pages' ] );
 			add_action( 'admin_init', [ $this, 'add_settings' ] );
 		}
+		*/
 	}
 
 	/**
 	 * 
 	 */
 	public function add_pages() {
-
-		global $menu, $admin_page_hooks, $_registered_pages, $_parent_pages;
 
 		/**
 		 * pages
@@ -108,7 +204,7 @@ class settings_page {
 			if ( array_key_exists( 'page_title', $page_args ) ) {
 				$page_title = esc_html( $page_args['page_title'] );
 			} else {
-				$page_title = ucfirst( trim( str_replace( [ '-', '_', '/', '.php' ], ' ', $menu_slug ) ) );
+				$page_title = ucwords( trim( str_replace( [ '-', '_', '/', '.php' ], ' ', $menu_slug ) ) );
 			}
 
 			/**
@@ -153,7 +249,7 @@ class settings_page {
 				}
 			}
 		}
-		
+
 		_var_dump( $menu );
 		_var_dump( $admin_page_hooks );
 		_var_dump( $_registered_pages );
