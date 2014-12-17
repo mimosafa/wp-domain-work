@@ -236,6 +236,7 @@ class WP_Domain_Work {
 		-> description( 'TEST' )
 		-> section( 'plugin-activation' )
 		-> description( 'PPPPppluggggggiinn' )
+		-> field( 'use-domains', 'checkbox', '', self::get_option_key( 'use_domains' ) )
 		-> field( 'aaa-bbb', 'test_field' )
 		-> init();
 	}

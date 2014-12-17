@@ -194,21 +194,26 @@ class settings_page {
 		if ( !$fields || !$menu_slug || !is_array( $fields ) ) {
 			return;
 		}
+		$option_group = 'group_' . $menu_slug;
 		foreach ( $fields as $field ) {
 			if ( !array_key_exists( 'id', $field ) || !array_key_exists( 'callback', $field ) ) {
 				continue;
 			}
 			$id = $field['id'];
-			unset( $field['id'] );
 			$callback = $field['callback'];
-			unset( $field['callback'] );
 			if ( array_key_exists( 'title', $field ) ) {
 				$title = $field['title'];
-				unset( $field['title'] );
 			} else {
 				$title = ucwords( str_replace( [ '-', '_' ], ' ', $id ) );
 			}
 			$this -> fields[] = [ $id, $title, $callback, $menu_slug, $section_id, $field ];
+			if ( array_key_exists( 'option_name', $field ) ) {
+				$sanitize = array_key_exists( 'sanitize', $field ) && ( method_exists( $this, $field['sanitize'] ) || is_callable( $field['sanitize'] ) )
+					? $field['sanitize']
+					: ''
+				;
+				$this -> settings[] = [ $option_group, $field['option_name'], $sanitize ];
+			}
 		}
 	}
 
@@ -467,11 +472,9 @@ class settings_page {
 			return $this;
 		}
 		$this -> callback( $callback );
-		/*
 		if ( $option_name ) {
 			self::$field['option_name'] = $option_name;
 		}
-		*/
 		if ( $field_title && is_string( $field_title ) ) {
 			self::$field['title'] = $field_title;
 		}
@@ -518,6 +521,8 @@ class settings_page {
 	 *
 	 */
 	public function checkbox( $array ) {
+		var_dump( $array );
+		/*
 		$args = $this -> pages[$array['menu_slug']];
 		if ( array_key_exists( 'section_id', $array ) ) {
 			$args = $args['sections'][$array['section_id']];
@@ -538,6 +543,7 @@ class settings_page {
           <?php } ?>
         </fieldset>
 		<?php
+		*/
 	}
 
 	public function test_field( $array ) {
