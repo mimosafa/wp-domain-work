@@ -22,22 +22,30 @@ class WP_Domain_Work {
 		/**
 		 *
 		 */
-		'home_level' => 'wp_domain_work_home_url_hierarchy_level',
+		'home_level' => [
+			'key' => 'wp_domain_work_home_url_hierarchy_level',
+		],
 
 		/**
 		 *
 		 */
-		'site_level' => 'wp_domain_work_site_url_hierarchy_level',
+		'site_level' => [
+			'key' => 'wp_domain_work_site_url_hierarchy_level',
+		],
 
 		/**
 		 *
 		 */
-		'use_domains' => 'wp_domain_work_domains_dir_activation',
+		'use_domains' => [
+			'key' => 'wp_domain_work_domains_dir_activation',
+		],
 
 		/**
 		 *
 		 */
-		'domains_dir' => 'wp_domain_work_domains_directory_path',
+		'domains_dir' => [
+			'key' => 'wp_domain_work_domains_directory_path',
+		],
 
 	];
 
@@ -104,12 +112,16 @@ class WP_Domain_Work {
 	 */
 	public static function get_option_key( $string = '' ) {
 		if ( $string ) {
-			return array_key_exists( $string, self::$options ) ? self::$options[$string] : null;
+			return array_key_exists( $string, self::$options ) ? self::$options[$string]['key'] : null;
 		}
-		return self::$options;
+		$return = [];
+		foreach ( self::$options as $option ) {
+			$return[] = $option['key'];
+		}
+		return $return;
 	}
 
-	private static function get_option( $string ) {
+	private static function get_option_value( $string ) {
 		if ( !$string || !array_key_exists( $string, self::$options ) ) {
 			return false;
 		}
@@ -127,7 +139,7 @@ class WP_Domain_Work {
 	 * @return bool
 	 */
 	public static function use_domains() {
-		return !!self::get_option( 'use_domains' );
+		return !!self::get_option_value( 'use_domains' );
 	}
 
 	/**
@@ -166,11 +178,11 @@ class WP_Domain_Work {
 	 */
 	private function installed_level() {
 		$levelGetter = new \wordpress\installed_level();
-		if ( false === self::get_option( 'home_level' ) ) {
+		if ( false === self::get_option_value( 'home_level' ) ) {
 			$homeLevel = $levelGetter -> get_level( 'home' );
 			self::update_option( 'home_level', $homeLevel );
 		}
-		if ( false === self::get_option( 'site_level' ) ) {
+		if ( false === self::get_option_value( 'site_level' ) ) {
 			$siteLevel = $levelGetter -> get_level( 'site' );
 			self::update_option( 'site_level', $siteLevel );
 		}
@@ -180,7 +192,7 @@ class WP_Domain_Work {
 	 *
 	 */
 	private function permalink_structure() {
-		if ( !self::get_option( 'use_domains' ) ) {
+		if ( !self::get_option_value( 'use_domains' ) ) {
 			return;
 		}
 		$key = 'permalink_structure';
@@ -204,7 +216,7 @@ class WP_Domain_Work {
 			?>
   <div class="message error">
     <p>
-      <b><?= esc_html_e( $msg ) ?></b> <?= esc_html_e( $data[0] ) ?>
+      <b><?= esc_html( $msg ) ?></b> <?= esc_html( $data[0] ) ?>
     </p>
   </div>
 			<?php
