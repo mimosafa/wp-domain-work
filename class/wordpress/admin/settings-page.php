@@ -9,17 +9,25 @@ namespace wordpress\admin;
 class settings_page {
 
 	/**
-	 * Settings page structure
+	 * Top level page
+	 *
+	 * @var string
+	 */
+	private $toplevel;
+
+	/**
+	 * Pages structure argument
 	 *
 	 * @var array
 	 */
-	private $page = [];
+	private $pages = [];
 
 	/**
 	 * Argument caches
 	 *
 	 * @var array
 	 */
+	private static $page;
 	private static $section;
 	private static $field;
 
@@ -53,14 +61,38 @@ class settings_page {
 	 *
 	 * @return $this
 	 */
-	public function init() {
+	public function init( $page = null, $page_title = null, $menu_title = null ) {
 		$this -> init_field();
 		$this -> init_section();
-		if ( $this -> page ) {
+		if ( $page ) {
+			$this -> page( $page, $page_title, $menu_title );
+		}
+		return $this;
+	}
+
+	/**
+	 * Output settings page
+	 *
+	 * @access public
+	 */
+	public function done() {
+		$this -> init();
+		if ( $this -> pages ) {
 			add_action( 'admin_menu', [ $this, 'add_page' ] );
 			add_action( 'admin_init', [ $this, 'add_settings' ] );
-			//_var_dump( $this -> page );
 		}
+	}
+
+	/**
+	 * Initialize static cache $page
+	 *
+	 * @access private
+	 */
+	private function init_page() {
+		if ( !empty( self::$page ) ) {
+			$this -> pages[] = self::$page;
+		}
+		self::$page = [];
 	}
 
 	/**
@@ -70,11 +102,11 @@ class settings_page {
 	 */
 	private function init_section() {
 		if ( !empty( self::$section ) ) {
-			if ( $this -> page ) {
-				if ( !array_key_exists( 'sections', $this -> page ) ) {
-					$this -> page['sections'] = [];
+			if ( $this -> pages ) {
+				if ( !array_key_exists( 'sections', $this -> pages ) ) {
+					$this -> pages['sections'] = [];
 				}
-				$this -> page['sections'][] = self::$section;
+				$this -> pages['sections'][] = self::$section;
 			}
 		}
 		self::$section = [];
@@ -92,6 +124,11 @@ class settings_page {
 					self::$section['fields'] = [];
 				}
 				self::$section['fields'][] = self::$field;
+			} else if ( $this -> pages ) {
+				if ( !array_key_exists( 'fields', $this -> pages ) ) {
+					$this -> fields['fields'] = [];
+				}
+				$this -> pages['fields'][] = self::$field;
 			}
 		}
 		self::$field = [];
@@ -103,18 +140,18 @@ class settings_page {
 	 * @access public
 	 */
 	public function add_page() {
-		if ( !doing_action( 'admin_menu' ) || !$this -> page || !array_key_exists( 'page', $this -> page ) ) {
+		if ( !doing_action( 'admin_menu' ) || !$this -> pages || !array_key_exists( 'page', $this -> pages ) ) {
 			return;
 		}
 		global $admin_page_hooks;
 
-		extract( $this -> page ); // $page must be generated.
+		extract( $this -> pages ); // $page must be generated.
 
-		if ( !isset( $page_title ) ) {
-			$page_title = ucwords( trim( str_replace( [ '-', '_', '/', '.php' ], ' ', $page ) ) );
+		if ( !isset( $title ) ) {
+			$title = ucwords( trim( str_replace( [ '-', '_', '/', '.php' ], ' ', $page ) ) );
 		}
 		if ( !isset( $menu_title ) ) {
-			$menu_title = $page_title;
+			$menu_title = $title;
 		}
 		if ( !isset( $capability ) ) {
 			$capability = 'manage_options';
@@ -131,14 +168,14 @@ class settings_page {
 			if ( !isset( $position ) ) {
 				$position = null;
 			}
-			add_menu_page( $page_title, $menu_title, $capability, $page, $callback, $icon_url, $position );
+			add_menu_page( $title, $menu_title, $capability, $page, $callback, $icon_url, $position );
 
 		} else {
 
 			if ( !isset( $sub_page ) ) {
 				return; // throw error
 			}
-			add_submenu_page( $page, $page_title, $menu_title, $capability, $sub_page, $callback );
+			add_submenu_page( $page, $title, $menu_title, $capability, $sub_page, $callback );
 
 		}
 
@@ -264,20 +301,23 @@ class settings_page {
 	/**
 	 * (Required) Set top level menu page
 	 *
-	 * @access public
+	 * @access private
 	 *
 	 * @param  string $page (optional) if empty 'options.php' set
 	 * @param  string $page_title (optional)
 	 * @param  string $menu_title (optional)
 	 * @return $this
 	 */
-	public function page( $page = null, $page_title = null, $menu_title = null ) {
-		if ( $this -> page ) {
-			return; // error: you must initialize instance
+	private function page( $page = null, $page_title = null, $menu_title = null ) {
+		if ( !$page ) {
+			$page = 'options.php';
 		}
-		$this -> page['page'] = $page && is_string( $page ) ? $page : 'options.php';
+		if ( !is_string( $page ) ) {
+			return; // error
+		}
+		$this -> pages['page'] = $page;
 		if ( $page_title ) {
-			$this -> page_title( $page_title );
+			$this -> title( $page_title );
 		}
 		if ( $menu_title ) {
 			$this -> menu_title( $menu_title );
@@ -298,7 +338,7 @@ class settings_page {
 	 */
 	public function sub_page( $sub_page, $page_title = null, $menu_title = null ) {
 		if ( $sub_page && is_string( $sub_page ) ) {
-			$this -> page['sub_page'] = $sub_page;
+			$this -> pages['sub_page'] = $sub_page;
 		}
 		if ( $page_title ) {
 			$this -> page_title( $page_title );
@@ -310,22 +350,26 @@ class settings_page {
 	}
 
 	/**
-	 * Set page title
+	 * Set title (for page, section, field)
 	 *
 	 * @access public
 	 *
 	 * @param  string $title
 	 * @return $this
 	 */
-	public function page_title( $page_title ) {
-		if ( $page_title && is_string( $page_title ) ) {
-			$this -> page['page_title'] = $page_title;
+	public function title( $title ) {
+		if ( !$title || !is_string( $title ) ) {
+			return;
 		}
+		if ( !$cache =& $this -> get_cache() ) {
+			return;
+		}
+		$cache['title'] = $title;
 		return $this;
 	}
 
 	/**
-	 * Set menu title
+	 * Set menu title (for page only)
 	 *
 	 * @access public
 	 *
@@ -334,7 +378,7 @@ class settings_page {
 	 */
 	public function menu_title( $menu_title ) {
 		if ( $menu_title && is_string( $menu_title ) ) {
-			$this -> page['menu_title'] = $menu_title;
+			$this -> pages['menu_title'] = $menu_title;
 		}
 		return $this;
 	}
@@ -349,7 +393,7 @@ class settings_page {
 	 */
 	public function capability( $capability ) {
 		if ( $capability && is_string( $capability ) ) {
-			$this -> page['capability'] = $capability;
+			$this -> pages['capability'] = $capability;
 		}
 		return $this;
 	}
@@ -362,7 +406,7 @@ class settings_page {
 	 */
 	public function icon_url( $icon_url ) {
 		if ( $icon_url && is_string( $icon_url ) ) {
-			$this -> page['icon_url'] = $icon_url;
+			$this -> pages['icon_url'] = $icon_url;
 		}
 		return $this;
 	}
@@ -375,7 +419,7 @@ class settings_page {
 	 */
 	public function position( $position ) {
 		if ( $position && $int = absint( $position ) ) {
-			$this -> page['position'] = $int;
+			$this -> pages['position'] = $int;
 		}
 		return $this;
 	}
@@ -394,13 +438,7 @@ class settings_page {
 		if ( !$text || !is_string( $text ) ) {
 			return;
 		}
-		if ( self::$field ) {
-			$cache =& self::$field;
-		} else if ( self::$section ) {
-			$cache =& self::$section;
-		} else if ( $this -> page ) {
-			$cache =& $this -> page;
-		} else {
+		if ( !$cache =& $this -> get_cache() ) {
 			return;
 		}
 		$desc = !$esc ? $text : esc_html( $text );
@@ -424,17 +462,26 @@ class settings_page {
 		if ( !method_exists( $this, $callback ) && !is_callable( $callback ) ) {
 			return;
 		}
-		if ( self::$field ) {
-			$cache =& self::$field;
-		} else if ( self::$section ) {
-			$cache =& self::$section;
-		} else if ( $this -> page ) {
-			$cache =& $this -> page;
-		} else {
+		if ( !$cache =& $this -> get_cache() ) {
 			return;
 		}
 		$cache['callback'] = method_exists( $this, $callback ) ? [ $this, $callback ] : $callback;
 		return $this;
+	}
+
+	/**
+	 * Return var references cache
+	 *
+	 * @return references
+	 */
+	private function &get_cache() {
+		if ( self::$field ) {
+			return self::$field;
+		} else if ( self::$section ) {
+			return self::$section;
+		} else if ( $this -> pages ) {
+			return $this -> pages;
+		}
 	}
 
 	/**
@@ -488,13 +535,13 @@ class settings_page {
 	 */
 	public function page_body() {
 		$menu_slug = $_GET['page'];
-		$h2 = esc_html( $this -> page['page_title'] );
+		$h2 = esc_html( $this -> pages['title'] );
 		$optionGroup = 'group_' . $menu_slug;
 		?>
 <div class="wrap">
   <h2><?= $h2 ?></h2>
-  <?php if ( array_key_exists( 'description', $this -> page ) ) { ?>
-  <?= $this -> page['description'] ?>
+  <?php if ( array_key_exists( 'description', $this -> pages ) ) { ?>
+  <?= $this -> pages['description'] ?>
   <?php } ?>
   <form method="post" action="options.php">
     <?php settings_fields( $optionGroup ); ?>

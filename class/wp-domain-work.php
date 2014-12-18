@@ -230,15 +230,15 @@ class WP_Domain_Work {
 	 */
 	public static function settings_page() {
 		$page = new \wordpress\admin\settings_page();
-		$page
-		-> page( 'wp-domain-work', 'WP Domain Work Setting' )
+		$page -> init( 'wp-domain-work' )
+		-> title( 'WP Domain Work Setting' )
 		-> menu_title( 'Domains' )
 		-> description( 'TEST' )
-		-> section( 'plugin-activation' )
-		-> description( 'PPPPppluggggggiinn' )
-		-> field( 'use-domains', 'checkbox', '', self::get_option_key( 'use_domains' ) )
-		-> field( 'aaa-bbb', 'test_field' )
-		-> init();
+			-> section( 'plugin-activation' )
+			-> description( 'PPPPppluggggggiinn' )
+				-> field( 'use-domains', 'checkbox', '', self::get_option_key( 'use_domains' ) )
+				-> field( 'aaa-bbb', 'test_field' )
+		-> done();
 	}
 
 }
