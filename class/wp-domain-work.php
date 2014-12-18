@@ -229,15 +229,16 @@ class WP_Domain_Work {
 	 * @uses wordpress\admin\settings_page
 	 */
 	public static function settings_page() {
-		$page = new \wordpress\admin\settings_page();
-		$page -> init( 'wp-domain-work' )
-		-> title( 'WP Domain Work Setting' )
-		-> menu_title( 'Domains' )
-		-> description( 'TEST' )
+		/**
+		 * Get instance settings page generator
+		 */
+		$instance1 = new \wordpress\admin\settings_page();
+
+		$instance1
+		-> init( 'wp-domain-work', 'WP Domain Work Setting', 'Domain' )
 			-> section( 'plugin-activation' )
-			-> description( 'PPPPppluggggggiinn' )
-				-> field( 'use-domains', 'checkbox', '', self::get_option_key( 'use_domains' ) )
-				-> field( 'aaa-bbb', 'test_field' )
+				-> field( 'use-domains' )
+				-> option_name( self::get_option_key( 'use_domains' ), 'checkbox', [ 'label' => 'Activate' ] )
 		-> done();
 	}
 
