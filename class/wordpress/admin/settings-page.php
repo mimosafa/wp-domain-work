@@ -73,7 +73,7 @@ class settings_page {
 	 *
 	 * @access public
 	 *
-	 * @return $this
+	 * @return object self
 	 */
 	public function init( $page = null, $page_title = null, $menu_title = null ) {
 		$this -> init_page();
@@ -102,9 +102,7 @@ class settings_page {
 	 * @access private
 	 */
 	private function init_page() {
-		$this -> init_field();
 		$this -> init_section();
-		#_var_dump( self::$page );
 		if ( !empty( self::$page ) ) {
 			$this -> pages[] = self::$page;
 		}
@@ -143,7 +141,7 @@ class settings_page {
 				self::$section['fields'][] = self::$field;
 			} else if ( self::$page ) {
 				if ( !array_key_exists( 'fields', self::$page ) ) {
-					$this -> fields['fields'] = [];
+					self::$page['fields'] = [];
 				}
 				self::$page['fields'][] = self::$field;
 			}
@@ -154,7 +152,7 @@ class settings_page {
 	/**
 	 * Add pages (run in action hook 'admin_menu')
 	 *
-	 * @access public
+	 * @access private
 	 */
 	public function add_pages() {
 		if ( !doing_action( 'admin_menu' ) || !$this -> pages ) {
@@ -169,6 +167,10 @@ class settings_page {
 	 * Add page
 	 *
 	 * @access private
+	 *
+	 * @param  array $page_arg
+	 * @param  string $toplevel
+	 * @return void
 	 */
 	private function add_page( $page_arg, $toplevel ) {
 		if ( !array_key_exists( 'page', $page_arg ) ) {
@@ -233,11 +235,15 @@ class settings_page {
 			unset( $page_arg['sections'] ); // Optimize vars
 		}
 
-		/*
+		/**
+		 * fields
+		 */
 		if ( isset( $fields ) && $fields ) {
-			$this -> add_fields( $fields, $page );
+			foreach ( $fields as $field ) {
+				$this -> add_field( $field, $page );
+			}
+			unset( $page_arg['fields'] ); // Optimize vars
 		}
-		*/
 
 		/**
 		 * Cache argument for callback method
@@ -249,6 +255,10 @@ class settings_page {
 	 * Add section
 	 *
 	 * @access private
+	 *
+	 * @param  array $section
+	 * @param  string $menu_slug
+	 * @return void
 	 */
 	private function add_section( $section, $menu_slug ) {
 		if ( !array_key_exists( 'id', $section ) ) {
@@ -287,6 +297,11 @@ class settings_page {
 	 * Add & set field
 	 *
 	 * @access private
+	 *
+	 * @param  array $field
+	 * @param  string $menu_slug
+	 * @param  string $section_id (optional)
+	 * @return void
 	 */
 	private function add_field( $field, $menu_slug, $section_id = '' ) {
 		if ( !array_key_exists( 'id', $field ) || !array_key_exists( 'callback', $field ) ) {
@@ -314,8 +329,13 @@ class settings_page {
 
 	/**
 	 * Setting sections & fields method (run in action hook 'admin_init')
+	 *
+	 * @access private
 	 */
 	public function add_settings() {
+		if ( !doing_action( 'admin_init' ) || !$this -> pages ) {
+			return;
+		}
 		foreach ( $this -> sections as $section_arg ) {
 			call_user_func_array( 'add_settings_section', $section_arg );
 		}
@@ -335,7 +355,7 @@ class settings_page {
 	 * @param  string $page (optional) if empty 'options.php' set
 	 * @param  string $page_title (optional)
 	 * @param  string $menu_title (optional)
-	 * @return $this
+	 * @return object self
 	 */
 	private function page( $page = null, $page_title = null, $menu_title = null ) {
 		if ( !$page ) {
@@ -362,7 +382,9 @@ class settings_page {
 	 *
 	 * @access public
 	 *
-	 * @return $this
+	 * @param  string $section_id (required)
+	 * @param  string $section_title (optional) if blank, string made from section_id. if want to hide set empty string ''.
+	 * @return object self
 	 */
 	public function section( $section_id, $section_title = null ) {
 		$this -> init_section();
@@ -371,18 +393,18 @@ class settings_page {
 			return;
 		}
 		self::$section['id'] = $section_id;
-		if ( $section_title && is_string( $section_title ) ) {
+		if ( null !== $section_title && is_string( $section_title ) ) {
 			self::$section['title'] = $section_title;
 		}
 		return $this;
 	}
 
 	/**
-	 * Set field
+	 * Set field (for only field)
 	 *
 	 * @access public
 	 *
-	 * @return $this
+	 * @return object self
 	 */
 	public function field( $field_id, $field_title = null ) {
 		$this -> init_field();
@@ -398,27 +420,20 @@ class settings_page {
 	}
 
 	/**
-	 * Set field's option & callback
+	 * Set field's option & callback (for only field)
 	 *
 	 * @access public
 	 *
-	 * @return $this
+	 * @return object self
 	 */
 	public function option_name( $option_name, $callback, $callback_args = [] ) {
 		if ( !self::$field || !$option_name || !is_string( $option_name ) ) {
 			return; // error
 		}
-		if ( !$this -> callback( $callback ) ) {
+		if ( !$this -> callback( $callback, $callback_args ) ) {
 			return;
 		}
 		self::$field['option_name'] = $option_name;
-		if ( $callback_args ) {
-			foreach ( $callback_args as $key => $val ) {
-				if ( !array_key_exists( $key, self::$field ) ) {
-					self::$field[$key] = $val;
-				}
-			}
-		}
 		return $this;
 	}
 
@@ -428,7 +443,7 @@ class settings_page {
 	 * @access public
 	 *
 	 * @param  string $title
-	 * @return $this
+	 * @return object self
 	 */
 	public function title( $title ) {
 		if ( !$title || !is_string( $title ) ) {
@@ -447,7 +462,7 @@ class settings_page {
 	 * @access public
 	 *
 	 * @param  string $title
-	 * @return $this
+	 * @return object self
 	 */
 	public function menu_title( $menu_title ) {
 		if ( $menu_title && is_string( $menu_title ) ) {
@@ -462,7 +477,7 @@ class settings_page {
 	 * @access public
 	 *
 	 * @param  string $capability
-	 * @return $this
+	 * @return object self
 	 */
 	public function capability( $capability ) {
 		if ( $capability && is_string( $capability ) ) {
@@ -475,7 +490,7 @@ class settings_page {
 	 * Set icon_url (for only top level page)
 	 *
 	 * @param  string $icon_url
-	 * @return $this
+	 * @return object self
 	 */
 	public function icon_url( $icon_url ) {
 		if ( $icon_url && is_string( $icon_url ) ) {
@@ -488,7 +503,7 @@ class settings_page {
 	 * Set position in admin menu (for only top level page)
 	 *
 	 * @param  integer $position
-	 * @return $this
+	 * @return object self
 	 */
 	public function position( $position ) {
 		if ( $position && $int = absint( $position ) ) {
@@ -504,21 +519,23 @@ class settings_page {
 	 * @access public
 	 *
 	 * @param  string $text
-	 * @param  bool   $esc
-	 * @return $this|(void)
+	 * @param  bool   $wrap_p
+	 * @return object self|(void)
 	 */
-	public function description( $text, $wrap_p = true , $esc = false ) {
+	public function description( $text, $wrap_p = true ) {
 		if ( !$text || !is_string( $text ) ) {
 			return;
 		}
 		if ( !$cache =& $this -> get_cache() ) {
 			return;
 		}
-		$desc = !$esc ? $text : esc_html( $text );
-		if ( $wrap_p ) {
-			$desc = '<p>' . $desc . '</p>';
+		$format = $wrap_p ? '<p>%s</p>' : '%s';
+		if ( !array_key_exists( 'description', $cache ) ) {
+			$cache['description'] = sprintf( $format, $text );
+		} else {
+			$format = "\n{$format}";
+			$cache['description'] .= sprintf( $format, $text );
 		}
-		$cache['description'] = $desc;
 		return $this;
 	}
 
@@ -529,9 +546,9 @@ class settings_page {
 	 * @access public
 	 *
 	 * @param  string $callback
-	 * @return $this|(void)
+	 * @return object self|(void)
 	 */
-	public function callback( $callback ) {
+	public function callback( $callback, $callback_args = [] ) {
 		if ( !method_exists( $this, $callback ) && !is_callable( $callback ) ) {
 			return;
 		}
@@ -539,25 +556,14 @@ class settings_page {
 			return;
 		}
 		$cache['callback'] = method_exists( $this, $callback ) ? [ $this, $callback ] : $callback;
+		if ( $callback_args ) {
+			foreach ( $callback_args as $key => $val ) {
+				if ( !array_key_exists( $key, $cache ) ) {
+					$cache[$key] = $val;
+				}
+			}
+		}
 		return $this;
-	}
-
-	/**
-	 *
-	 */
-	public function argument( $key, $value ) {
-		if ( !$key || !is_string( $key ) ) {
-			return;
-		}
-		if ( !$cache =& $this -> get_cache() ) {
-			return;
-		}
-		if ( array_key_exists( $key, $cache ) ) {
-			return $this;
-		}
-		if ( method_exists( $this, $key ) ) {
-
-		}
 	}
 
 	/**
@@ -592,6 +598,7 @@ class settings_page {
   <?php } ?>
   <form method="post" action="options.php">
     <?php settings_fields( $option_group ); ?>
+    <?php do_settings_fields( $menu_slug, '' ); ?>
     <?php do_settings_sections( $menu_slug ); ?>
     <?php submit_button(); ?>
   </form>
