@@ -206,12 +206,18 @@ class WP_Domain_Work {
 		$instance = new \wordpress\admin\settings_page();
 
 		$instance
-		-> init( 'wp-domain-work', 'WP Domain Work Settings', 'Domains' )
+		-> init( 'wp-domain-work', 'WP Domain Work Settings', 'WP Domain Work' )
 			-> section( 'default-setting' )
 				-> field( 'plugin-activation' )
 				-> option_name( self::get_option_key( 'use_domains' ), 'checkbox', [ 'label' => 'Activate' ] )
 				-> description( '' )
 		;
+
+		if ( self::use_domains() ) {
+			$instance
+			-> init( 'wp-domains', 'Your Domains' )
+			;
+		}
 
 		$instance -> done();
 	}
