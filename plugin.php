@@ -55,10 +55,6 @@ register_activation_hook( __FILE__, 'WP_Domain_Work::activation' );
  */
 WP_Domain_Work::init();
 
-if ( is_admin() ) {
-	WP_Domain_Work::settings_page();
-}
-
 /**
  * Initializing domains directory, if activated
  */

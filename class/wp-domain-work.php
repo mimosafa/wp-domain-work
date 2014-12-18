@@ -20,79 +20,41 @@ class WP_Domain_Work {
 	private static $options = [
 
 		/**
-		 *
+		 * @access private
 		 */
 		'home_level' => [
 			'key' => 'wp_domain_work_home_url_hierarchy_level',
 		],
 
 		/**
-		 *
+		 * @access private
 		 */
 		'site_level' => [
 			'key' => 'wp_domain_work_site_url_hierarchy_level',
 		],
 
 		/**
+		 * Plugin activation
 		 *
+		 * @access public
 		 */
 		'use_domains' => [
 			'key' => 'wp_domain_work_domains_dir_activation',
 		],
 
-		/**
-		 *
-		 */
-		'domains_dir' => [
-			'key' => 'wp_domain_work_domains_directory_path',
-		],
-
 	];
 
 	/**
-	 * page structure
-	 * 
-	 * @var array
+	 * Singleton
 	 */
-	private static $pages = [
-		'wp-dct-settinds' => [
-			'page_title' => 'WP Domain Work Plugin Settings',
-			'menu_title' => 'WP Domain Work',
-			'sections' => [
-				'theme-core' => [
-					'title' => 'Theme Core Settings',
-					'fields' => [
-						'domains-activation' => [
-							'title' => 'Domains Directory',
-							'callback' => 'checkbox',
-							'label' => 'Active',
-							'option_name' => 'wp_dct_domains_dir_activation',
-						],
-						'display-settings-error' => [
-							'title' => 'Display Error in Frontend',
-							'description' => 'If checked, errors will be displayed in frontend. (Hooked @<code>wp_footer</code>)',
-							'callback' => 'checkbox',
-							'label' => 'Display',
-							'option_name' => 'wp_dct_display_settings_error_in_frontend',
-						]
-					],
-				],
-				'theme-debug' => [
-					'title' => 'Debug Settings',
-					'description' => 'Some debuging option for developers.',
-					'fields' => [
-					],
-				],
-			],
-		],
-	];
-
 	private function __construct() {
 		// nothing!
 	}
 
 	/**
 	 * Get instance
+	 *
+	 * @access public
 	 *
 	 * @return WP_Domain_Work
 	 */
@@ -105,9 +67,11 @@ class WP_Domain_Work {
 	}
 
 	/**
-	 * Get plugin's option keys
+	 * Get plugin's option key
 	 *
-	 * @param  string $string
+	 * @access public
+	 *
+	 * @param  string $string (optional) if blank return all option keys
 	 * @return string
 	 */
 	public static function get_option_key( $string = '' ) {
@@ -121,6 +85,14 @@ class WP_Domain_Work {
 		return $return;
 	}
 
+	/**
+	 * Get plugin's option value
+	 *
+	 * @access public
+	 *
+	 * @param  string $string
+	 * @return string
+	 */
 	private static function get_option_value( $string ) {
 		if ( !$string || !array_key_exists( $string, self::$options ) ) {
 			return false;
@@ -128,6 +100,14 @@ class WP_Domain_Work {
 		return \get_option( self::get_option_key( $string ) );
 	}
 
+	/**
+	 * Update plugin's option
+	 *
+	 * @access public
+	 *
+	 * @param  string $string
+	 * @return (bool)
+	 */
 	private static function update_option( $string, $value ) {
 		if ( !$string || !array_key_exists( $string, self::$options ) ) {
 			return false;
@@ -158,16 +138,25 @@ class WP_Domain_Work {
 	}
 
 	/**
-	 * Plugin initializing
+	 * Plugin init
 	 */
 	public static function init() {
-		$instance = self::get_instance();
 		if ( is_admin() ) {
-			$instance::$error = new \WP_Error();
-			$instance -> permalink_structure();
-			if ( $instance::$error -> get_error_code() ) {
+			self::$error = new \WP_Error();
+			self::permalink_structure();
+
+			/**
+			 * Catch error
+			 */
+			if ( self::$error -> get_error_code() ) {
+				$instance = self::get_instance();
 				add_action( 'admin_notices', [ $instance, 'notice' ] );
 			}
+
+			/**
+			 * Settings page in admin menu
+			 */
+			self::settings_page();
 		}
 	}
 
@@ -191,7 +180,7 @@ class WP_Domain_Work {
 	/**
 	 *
 	 */
-	private function permalink_structure() {
+	private static function permalink_structure() {
 		if ( !self::get_option_value( 'use_domains' ) ) {
 			return;
 		}
@@ -203,6 +192,28 @@ class WP_Domain_Work {
 				[ '"WP Domain Work" plugin require customized permalink structure.' ]
 			);
 		}
+	}
+
+	/**
+	 * Plugin setting page
+	 *
+	 * @uses wordpress\admin\settings_page
+	 */
+	public static function settings_page() {
+		/**
+		 * Get instance settings page generator
+		 */
+		$instance = new \wordpress\admin\settings_page();
+
+		$instance
+		-> init( 'wp-domain-work', 'WP Domain Work Settings', 'Domains' )
+			-> section( 'default-setting' )
+				-> field( 'plugin-activation' )
+				-> option_name( self::get_option_key( 'use_domains' ), 'checkbox', [ 'label' => 'Activate' ] )
+				-> description( '' )
+		;
+
+		$instance -> done();
 	}
 
 	/**
@@ -221,25 +232,6 @@ class WP_Domain_Work {
   </div>
 			<?php
 		}
-	}
-
-	/**
-	 * Plugin setting page
-	 *
-	 * @uses wordpress\admin\settings_page
-	 */
-	public static function settings_page() {
-		/**
-		 * Get instance settings page generator
-		 */
-		$instance1 = new \wordpress\admin\settings_page();
-
-		$instance1
-		-> init( 'wp-domain-work', 'WP Domain Work Setting', 'Domain' )
-			-> section( 'plugin-activation' )
-				-> field( 'use-domains' )
-				-> option_name( self::get_option_key( 'use_domains' ), 'checkbox', [ 'label' => 'Activate' ] )
-		-> done();
 	}
 
 }
