@@ -590,6 +590,13 @@ class settings_page {
 		$menu_slug = $_GET['page'];
 		$arg = self::$callback_args[$menu_slug];
 		$option_group = 'group_' . $menu_slug;
+		/**
+		 * @see http://wpcj.net/354
+		 */
+		global $parent_file;
+		if ( $parent_file !== 'options-general.php' ) {
+			require ABSPATH . 'wp-admin/options-head.php';
+		}
 		?>
 <div class="wrap">
   <h2><?= $arg['title'] ?></h2>
