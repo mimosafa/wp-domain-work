@@ -168,7 +168,10 @@ class WP_Domain_Work {
 		 */
 		if ( self::get_option_value( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
 			new \service\Domains();
-			new \service\router();
+			if ( self::get_option_value( 'home_level' ) !== false
+				&& self::get_option_value( 'site_level' ) !== false ) {
+				new \service\router();
+			}
 		}
 
 		/**
