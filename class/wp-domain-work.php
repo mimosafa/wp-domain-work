@@ -23,6 +23,7 @@ class WP_Domain_Work {
 		 */
 		'home_level' => [
 			'key' => 'wp_domain_work_home_url_hierarchy_level',
+			'value_type' => 'integer',
 		],
 
 		/**
@@ -32,6 +33,7 @@ class WP_Domain_Work {
 		 */
 		'site_level' => [
 			'key' => 'wp_domain_work_site_url_hierarchy_level',
+			'value_type' => 'integer',
 		],
 
 		/**
@@ -41,6 +43,25 @@ class WP_Domain_Work {
 		 */
 		'use_domains' => [
 			'key' => 'wp_domain_work_domains_dir_activation',
+			'value_type' => 'boolean',
+		],
+
+		/**
+		 * 除外する domain
+		 *
+		 * @access public
+		 */
+		'excepted_domains' => [
+			'key' => 'wp_domain_work_domains_excepted_domains',
+		],
+
+		/**
+		 * Domains directory path
+		 *
+		 * @access private
+		 */
+		'registered_domains' => [
+			'key' => 'wp_domain_work_registered_domains',
 		],
 
 	];
@@ -101,7 +122,7 @@ class WP_Domain_Work {
 	 * @param  string $string
 	 * @return (bool)
 	 */
-	private static function update_option( $string, $value ) {
+	public static function update_option( $string, $value ) {
 		if ( !$string || !array_key_exists( $string, self::$options ) ) {
 			return false;
 		}

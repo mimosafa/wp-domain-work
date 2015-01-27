@@ -132,7 +132,6 @@ class router {
 				/**
 				 * wp-admin
 				 */
-				$this -> _is_admin = true;
 				$this -> adminDispatch();
 
 			} else if ( $topPath ) {
