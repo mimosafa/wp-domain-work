@@ -43,7 +43,7 @@ ClassLoader::register( 'mimosafa',  __DIR__ . '/lib' );
  * Plugin activation & deactivation
  */
 register_activation_hook( __FILE__, 'WP_Domain_Work::activation' );
-# register_deactivation_hook( __FILE__, 'WP_Domain_Work::deactivation' );
+register_deactivation_hook( __FILE__, 'WP_Domain_Work::deactivation' );
 
 /**
  * Plugin init

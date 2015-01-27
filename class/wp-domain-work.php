@@ -81,6 +81,13 @@ class WP_Domain_Work {
 	/**
 	 *
 	 */
+	private static $private_options = [
+		'home_level', 'site_level', 'domains', 'class_loaders', 'functions_files',
+	];
+
+	/**
+	 *
+	 */
 	public static function activation() {
 		self::installed_level();
 	}
@@ -89,7 +96,7 @@ class WP_Domain_Work {
 	 *
 	 */
 	public static function deactivation() {
-		//
+		self::delete_private_options();
 	}
 
 	/**
@@ -186,6 +193,20 @@ class WP_Domain_Work {
 		if ( false === self::get_option_value( 'site_level' ) ) {
 			$siteLevel = $levelGetter -> get_level( 'site' );
 			self::update_option( 'site_level', $siteLevel );
+		}
+	}
+
+	/**
+	 * Delete some private options
+	 *
+	 * @access private
+	 */
+	private static function delete_private_options() {
+		foreach ( self::$private_options as $string ) {
+			$key = self::get_option_key( $string );
+			if ( $key ) {
+				\delete_option( $key );
+			}
 		}
 	}
 
