@@ -135,8 +135,7 @@ class WP_Domain_Work {
 		 * Catch error
 		 */
 		if ( self::$error -> get_error_code() ) {
-			$instance = self::get_instance();
-			add_action( 'admin_notices', [ $instance, 'notice' ] );
+			add_action( 'admin_notices', 'WP_Domain_Work::notice' );
 		}
 	}
 
@@ -205,7 +204,7 @@ class WP_Domain_Work {
 	/**
 	 * Show error message
 	 */
-	public function notice() {
+	public static function notice() {
 		$codes = self::$error -> get_error_codes();
 		foreach ( $codes as $code ) {
 			$msg  = self::$error -> get_error_message( $code );
