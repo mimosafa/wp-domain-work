@@ -11,11 +11,9 @@ Domain Path: /languages
 */
 
 /**
- * Include version check file
+ * System version check
  */
 require_once dirname( __FILE__ ) . '/inc/version.php';
-
-// version check !
 if ( !requirement_wp_domain_work_plugin() ) {
 	return;
 }
@@ -26,23 +24,19 @@ if ( !requirement_wp_domain_work_plugin() ) {
 require_once __DIR__ . '/inc/utility.php';
 
 /**
- * include classloader class
+ * include classloader file
  */
 require_once __DIR__ . '/lib/ClassLoader.php';
 
 /**
  * Register classloader
  */
+ClassLoader::register( null, __DIR__ . '/class', ClassLoader::FILENAME_STRTOLOWER | ClassLoader::UNDERBAR_AS_HYPHEN );
 # ClassLoader::register( 'admin',     __DIR__ . '/class' );
 # ClassLoader::register( 'module',    __DIR__ . '/class' );
 # ClassLoader::register( 'property',  __DIR__ . '/class' );
 # ClassLoader::register( 'service',   __DIR__ . '/class' );
-ClassLoader::register( 'wordpress', __DIR__ . '/class' );
-
-/**
- * Include plugin file
- */
-require_once __DIR__ . '/class/wp-domain-work.php';
+ClassLoader::register( 'wordpress', __DIR__ . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
 
 /**
  * Plugin activation & deactivation

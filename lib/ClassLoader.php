@@ -11,10 +11,15 @@ class ClassLoader {
 	/**
 	 * Defined flags
 	 *
+	 * 0. (default)
+	 *    - ex: 'Model_Class' -> 'Model_Class.php'
 	 * 1. FILENAME_STRTOLOWER
 	 *    - Class name string to lower case for file name
-	 *    - ex: 'ModelClass' -> 'modelclass.php'
-	 * 2. UNDERBAR_AS_DIR_SEP
+	 *    - ex: 'Model_Class' -> 'model_class.php'
+	 * 2. UNDERBAR_AS_HYPHEN
+	 *    - '_' in class name replace to '-'
+	 *    - ex: 'Model_Class' -> 'Model-Class.php'
+	 * 4. UNDERBAR_AS_DIR_SEP
 	 *    - '_' in class name replace to '/' for directory separator
 	 *    - ex: 'Model_Class' -> 'Model/Class.php'
 	 *
@@ -22,7 +27,8 @@ class ClassLoader {
 	 *  -> http://qiita.com/mpyw/items/ce626976ec4dc07dfec2#1-2)
 	 */
 	const FILENAME_STRTOLOWER = 1;
-	const UNDERBAR_AS_DIR_SEP = 2;
+	const UNDERBAR_AS_HYPHEN  = 2;
+	const UNDERBAR_AS_DIR_SEP = 4;
 
 	/**
 	 * Supplied flag
@@ -61,7 +67,7 @@ class ClassLoader {
 	 * @param  int $flag
 	 * @return (void)
 	 */
-	private function __construct( $ns, $path, $flag ) {
+	private function __construct( $ns, $path, $flag = null ) {
 		$this -> _namespace = $ns;
 		$this -> _includePath = realpath( $path );
 
@@ -88,7 +94,7 @@ class ClassLoader {
 	}
 
 	/**
-	 * @access protected
+	 * @access public
 	 *
 	 * @param  string $className
 	 */
@@ -104,23 +110,33 @@ class ClassLoader {
 				$namespace = substr( $className, 0, $lastNsPos );
 				$className = substr( $className, $lastNsPos + 1 );
 
-				/**
-				 * Analys flag 'FILENAME_STRTOLOWER'
-				 */
-				if ( self::FILENAME_STRTOLOWER & $this -> flag ) {
-					$className = strtolower( $className );
-				}
-
 				$fileName = str_replace( $sep, '/', $namespace ) . '/';
 			}
 
 			/**
-			 * Analys flag 'UNDERBAR_AS_DIR_SEP'
+			 * Analys flag 'FILENAME_STRTOLOWER'
 			 */
-			$replace = self::UNDERBAR_AS_DIR_SEP & $this -> flag ? '/' : '-';
+			if ( self::FILENAME_STRTOLOWER & $this -> flag ) {
+				$className = strtolower( $className );
+			}
 
-			$fileName .= str_replace( '_', $replace, $className ) . '.php';
+			/**
+			 * Analys flag 'UNDERBAR_AS_HYPHEN' or 'UNDERBAR_AS_DIR_SEP'
+			 */
+			if ( self::UNDERBAR_AS_HYPHEN & $this -> flag ) {
+				$replace = '-';
+			} else if ( self::UNDERBAR_AS_DIR_SEP & $this -> flag ) {
+				$replace = '/';
+			}
+
+			if ( isset( $replace ) ) {
+				$fileName .= str_replace( '_', $replace, $className );
+			} else {
+				$fileName .= $className;
+			}
+			$fileName .= '.php';
 			$filePath = $this -> _includePath . '/' . $fileName;
+
 			if ( file_exists( $filePath ) ) {
 				require $filePath;
 			}
