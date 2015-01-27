@@ -77,7 +77,7 @@ class int_permalink {
 	 */
 	public function set_permalink( $url, $post ) {
 		if ( empty( self::$post_types ) ) {
-			return;
+			return $url;
 		}
 		global $wp_rewrite;
 		$post = get_post( $post );
