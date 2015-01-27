@@ -183,7 +183,7 @@ class WP_Domain_Work {
 		/**
 		 * Get instance settings page generator
 		 */
-		$instance = new \wordpress\admin\settings_page();
+		$instance = new \wordpress\admin\plugin\settings_page();
 
 		$instance
 		-> init( 'wp-domain-work', 'WP Domain Work Settings', 'WP Domain Work' )
