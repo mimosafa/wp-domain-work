@@ -58,11 +58,11 @@ class router {
 	];
 
 	/**
-	 *
+	 * @uses WP_Domain_Work
 	 */
 	public function __construct() {
 		if ( !is_admin() ) {
-			$this -> _lebel = \WP_Domain_Work::get_option_value( 'home_level' );
+			$this -> _level = \WP_Domain_Work::get_option_value( 'home_level' );
 		} else {
 			$this -> _level = \WP_Domain_Work::get_option_value( 'site_level' );
 			$this -> _is_admin = true;
