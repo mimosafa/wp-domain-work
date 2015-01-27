@@ -53,7 +53,7 @@ class meta_box_inner {
 		/**
 		 * DOM creater from php array (, and json).
 		 */
-		require_once TEMPLATEPATH . '/lib/mimosafa/Decoder.php';
+		#require_once TEMPLATEPATH . '/lib/mimosafa/Decoder.php';
 		self::$decoder = new \mimosafa\Decoder();
 
 		$this -> form_style();

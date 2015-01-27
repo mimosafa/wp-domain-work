@@ -5,21 +5,20 @@
 class WP_Domain_Work {
 
 	/**
-	 * @var WP_Domain_Work
-	 */
-	private static $instance = null;
-
-	/**
 	 * @var WP_Error
 	 */
 	private static $error = null;
 
 	/**
+	 * WP Domain Work plugin's options
+	 *
 	 * @var array
 	 */
 	private static $options = [
 
 		/**
+		 * Hierarchy level of home_url
+		 *
 		 * @access private
 		 */
 		'home_level' => [
@@ -27,6 +26,8 @@ class WP_Domain_Work {
 		],
 
 		/**
+		 * Hierarchy level of WordPress installed directory (site_url) for wp-admin
+		 *
 		 * @access private
 		 */
 		'site_level' => [
@@ -45,25 +46,17 @@ class WP_Domain_Work {
 	];
 
 	/**
-	 * Singleton
+	 *
 	 */
-	private function __construct() {
-		// nothing!
+	public static function activation() {
+		self::installed_level();
 	}
 
 	/**
-	 * Get instance
 	 *
-	 * @access public
-	 *
-	 * @return WP_Domain_Work
 	 */
-	public static function get_instance() {
-		if ( null === self::$instance ) {
-			$cl = __CLASS__;
-			self::$instance = new $cl();
-		}
-		return self::$instance;
+	public static function deactivation() {
+		//
 	}
 
 	/**
@@ -116,47 +109,34 @@ class WP_Domain_Work {
 	}
 
 	/**
-	 * @return bool
-	 */
-	public static function use_domains() {
-		return !!self::get_option_value( 'use_domains' );
-	}
-
-	/**
-	 *
-	 */
-	public static function activation() {
-		$instance = self::get_instance();
-		$instance -> installed_level();
-	}
-
-	/**
-	 *
-	 */
-	public static function deactivation() {
-		//
-	}
-
-	/**
 	 * Plugin init
 	 */
 	public static function init() {
-		if ( is_admin() ) {
-			self::$error = new \WP_Error();
-			self::permalink_structure();
+		self::$error = new \WP_Error();
 
-			/**
-			 * Catch error
-			 */
-			if ( self::$error -> get_error_code() ) {
-				$instance = self::get_instance();
-				add_action( 'admin_notices', [ $instance, 'notice' ] );
-			}
+		if ( is_admin() ) {
+			self::permalink_structure();
 
 			/**
 			 * Settings page in admin menu
 			 */
 			self::settings_page();
+		}
+
+		/**
+		 * init services
+		 */
+		if ( self::get_option_value( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
+			new \service\domain\init();
+			new \service\router();
+		}
+
+		/**
+		 * Catch error
+		 */
+		if ( self::$error -> get_error_code() ) {
+			$instance = self::get_instance();
+			add_action( 'admin_notices', [ $instance, 'notice' ] );
 		}
 	}
 
@@ -165,7 +145,7 @@ class WP_Domain_Work {
 	 *
 	 * @uses wordpress\installed_level
 	 */
-	private function installed_level() {
+	private static function installed_level() {
 		$levelGetter = new \wordpress\installed_level();
 		if ( false === self::get_option_value( 'home_level' ) ) {
 			$homeLevel = $levelGetter -> get_level( 'home' );
@@ -213,7 +193,7 @@ class WP_Domain_Work {
 				-> description( '' )
 		;
 
-		if ( self::use_domains() ) {
+		if ( self::get_option_value( 'use_domains' ) ) {
 			$instance
 			-> init( 'wp-domains', 'Your Domains' )
 			;
