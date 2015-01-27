@@ -8,9 +8,9 @@ namespace service;
 class router {
 
 	/**
-	 * Hierarchical level that WordPress is installed
-	 * (This is stored in option table as 'wordpress_installed_hierarchy_lebel_on_server')
-	 * 0 if installed server under root
+	 * Hierarchical level WordPress path
+	 *
+	 * @see wp-domain-work/class/wp-domain-work.php
 	 *
 	 * @var int
 	 */
@@ -61,7 +61,12 @@ class router {
 	 *
 	 */
 	public function __construct() {
-		$this -> _level = get_option( 'wp_dct_wordpress_installed_hierarchy_lebel_on_server' );
+		if ( !is_admin() ) {
+			$this -> _lebel = \WP_Domain_Work::get_option_value( 'home_level' );
+		} else {
+			$this -> _level = \WP_Domain_Work::get_option_value( 'site_level' );
+			$this -> _is_admin = true;
+		}
 		$this -> decomposeUri();
 		$this -> dispatch();
 		if ( $this -> _hook !== '' ) {
@@ -97,8 +102,9 @@ class router {
 	 * Query stringの分解
 	 */
 	private function decomposeQueryString() {
-		if ( !$q_str = $_SERVER['QUERY_STRING'] )
+		if ( !$q_str = $_SERVER['QUERY_STRING'] ) {
 			return;
+		}
 		$q_arr = explode( '&', $q_str );
 		foreach ( $q_arr as $str ) {
 			$q = explode( '=', $str );

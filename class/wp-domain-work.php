@@ -86,7 +86,7 @@ class WP_Domain_Work {
 	 * @param  string $string
 	 * @return string
 	 */
-	private static function get_option_value( $string ) {
+	public static function get_option_value( $string ) {
 		if ( !$string || !array_key_exists( $string, self::$options ) ) {
 			return false;
 		}
