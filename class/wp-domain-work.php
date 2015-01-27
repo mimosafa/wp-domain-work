@@ -56,12 +56,24 @@ class WP_Domain_Work {
 		],
 
 		/**
-		 * Domains directory path
-		 *
 		 * @access private
 		 */
-		'registered_domains' => [
+		'domains' => [
 			'key' => 'wp_domain_work_registered_domains',
+		],
+
+		/**
+		 * @access private
+		 */
+		'class_loaders' => [
+			'key' => 'wp_domain_work_domain_class_loaders',
+		],
+
+		/**
+		 * @access private
+		 */
+		'functions_files' => [
+			'key' => 'wp_domain_work_domain_functions_files',
 		],
 
 	];

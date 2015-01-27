@@ -21,7 +21,7 @@ class Domains {
 
 	/**
 	 */
-	private $classloaders = [];
+	private $class_loaders = [];
 
 	/**
 	 */
@@ -100,7 +100,7 @@ class Domains {
 	/**
 	 */
 	private function init( $force_scan ) {
-		if ( $force_scan || !\WP_Domain_Work::get_option_value( 'registered_domains' ) ) {
+		if ( $force_scan || !\WP_Domain_Work::get_option_value( 'domains' ) ) {
 			// wp-content/domains
 			$this -> directories[] = \WP_CONTENT_DIR . '/' . self::DOMAINS_DIR_NAME;
 			// wp-content/themes/your-parent-theme/domains
@@ -111,6 +111,29 @@ class Domains {
 				self::$_excepted = array_merge( $excepted_domains, self::$_excepted );
 			}
 			$this -> scan_directories();
+
+			/**
+			 * update options
+			 */
+			if ( $this -> domains ) {
+				\WP_Domain_Work::update_option( 'domains', $this -> domains );
+				\WP_Domain_Work::update_option( 'class_loaders', $this -> class_loaders );
+				\WP_Domain_Work::update_option( 'functions_files', $this -> functions_files );
+			}
+		} else {
+			$this -> domains = \WP_Domain_Work::get_option_value( 'domains' );
+			$this -> class_loaders = \WP_Domain_Work::get_option_value( 'class_loaders' );
+			$this -> functions_files = \WP_Domain_Work::get_option_value( 'functions_files' );
+		}
+
+		if ( $this -> domains ) {
+			$this -> classify_domains(); // -----------------------yet
+		}
+		if ( $this -> class_loaders ) {
+			$this -> register_class_loaders(); // -----------------------yet
+		}
+		if ( $this -> functions_files ) {
+			$this -> include_functions_files(); // -----------------------yet
 		}
 	}
 
@@ -120,10 +143,12 @@ class Domains {
 		$done = '';
 
 		/**
-		 * Outer loop (wp-content/domains -> parent theme dir -> child theme dir)
+		 * Outer loop (*1)
+		 * 1. wp-content/domains
+		 * 2. wp-content/themes/your-parent-theme/domains (parent theme)
+		 * 3. wp-content/themes/your-child-theme/domains (child theme)
 		 */
 		foreach ( $this -> directories as $path ) {
-
 			/**
 			 * Outer loop will be end in first loop, if TEMPLATEPATH equals STYLESHEETPATH
 			 */
@@ -144,7 +169,6 @@ class Domains {
 			 * Inner loop
 			 */
 			foreach ( $dir as $fileinfo ) {
-
 				if ( $fileinfo -> isDot() || !$fileinfo -> isDir() ) {
 					continue;
 				}
@@ -161,7 +185,17 @@ class Domains {
 					continue;
 				}
 
-				// *1
+				/**
+				 * (*2) クラスのオートローダーとヘルパー関数が定義されたファイル (functions.php)
+				 * - ディレクトリーループ (*1)で 2巡目以降のみを対象。
+				 * - あとに読み込んだローダー、ファイルを優先したいので、array_unshiftで配列の先頭に追加する。
+				 */
+				if ( array_key_exists( $domain, $this -> domains ) ) {
+					array_unshift( $this -> classloaders[$domain], $path );
+					if ( $functions_path = self::returnReadableFilePath( $fileinfo, 'functions.php' ) ) {
+						array_unshift( $this -> functions_files, $functions_path );
+					}
+				}
 
 				/**
 				 * Retrieve metadata from properties.php
@@ -181,12 +215,70 @@ class Domains {
 					array_merge( $this -> domains[$domain], $property );
 				}
 
-				// *2
-
+				/**
+				 * クラスのオートローダーとヘルパー関数が定義されたファイル (functions.php)
+				 * - (*2) 以外が対象
+				 */
+				if ( !array_key_exists( $domain, $this -> domains ) ) {
+					$this -> classloaders[$domain][] = $path;
+					if ( $functions_path = self::returnReadableFilePath( $fileinfo, 'functions.php' ) ) {
+						array_unshift( $this -> functions_files, $functions_path );
+					}
+				}
 			}
-
 			$done = $path;
+		}
+	}
 
+	/**
+	 */
+	private function classify_domains() {
+		foreach ( $this -> domains as $domain => $array ) {
+			if ( 'Custom Post Type' === $array['register'] ) {
+				$this -> post_type_setting( $domain, $array );
+			} elseif ( 'Custom Taxonomy' === $array['register'] ) {
+				$this -> taxonomy_setting( $domain, $array );
+			} elseif ( 'Custom Endpoint' === $array['register'] ) {
+				$this -> endpoint_setting( $domain, $array );
+			} else {
+				unset( $this -> domains[$domain] );
+			}
+		}
+	}
+
+	/**
+	 */
+	private function post_type_setting( $domain, Array $array ) {
+		//
+	}
+
+	/**
+	 */
+	private function taxonomy_setting( $domain, Array $array ) {
+		//
+	}
+
+	/**
+	 */
+	private function endpoint_setting( $domain, Array $array ) {
+		//
+	}
+
+	/**
+	 */
+	private function register_class_loaders() {
+		foreach ( $this -> class_loaders as $domain => $somePath ) {
+			foreach ( $somePath as $path ) {
+				\ClassLoader::register( $domain, $path, ClassLoader::UNDERBAR_AS_HYPHEN );
+			}
+		}
+	}
+
+	/**
+	 */
+	private function include_functions_files() {
+		foreach ( $this -> functions_files as $files ) {
+			require_once $files;
 		}
 	}
 
