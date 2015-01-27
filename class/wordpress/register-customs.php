@@ -11,12 +11,12 @@ class register_customs {
 	/**
 	 * @var array
 	 */
-	private $_post_types = [];
+	private static $_post_types = [];
 
 	/**
 	 * @var array
 	 */
-	private $_taxonomies = [];
+	private static $_taxonomies = [];
 
 	/*
 	private static $_cpt_labels = [];
@@ -24,15 +24,28 @@ class register_customs {
 	*/
 
 	/**
+	 */
+	protected function __construct() {
+		$this -> init();
+	}
+
+	/**
+	 * 
+	 */
+	public static function getInstance() {
+		static $instance;
+		if ( null === $instance ) {
+			$instance = new self();
+		}
+		return $instance;
+	}
+
+	/**
 	 * @access public
 	 */
-	public function init() {
-		if ( !empty( $this -> _post_types ) ) {
-			add_action( 'init', [ $this, 'register_post_type' ], 1 );
-		}
-		if ( !empty( $this -> _taxonomies ) ) {
-			add_action( 'init', [ $this, 'register_taxonomy' ], 1 );
-		}
+	private function init() {
+		add_action( 'init', [ $this, 'register_post_type' ], 1 );
+		add_action( 'init', [ $this, 'register_taxonomy' ], 1 );
 	}
 
 	/**
@@ -49,7 +62,7 @@ class register_customs {
 			'label'     => $label,
 			'options'   => $options
 		];
-		$this -> _post_types[] = $cpt;
+		self::$_post_types[] = $cpt;
 	}
 
 	/**
@@ -67,7 +80,7 @@ class register_customs {
 			'post_types' => $post_types,
 			'options'    => $options
 		];
-		$this -> _taxonomies[] = $ct;
+		self::$_taxonomies[] = $ct;
 	}
 
 	/**
@@ -77,7 +90,10 @@ class register_customs {
 	 * @access public
 	 */
 	public function register_post_type() {
-		foreach ( $this -> _post_types as $pt ) {
+		if ( empty( self::$_post_types ) ) {
+			return;
+		}
+		foreach ( self::$_post_types as $pt ) {
 			$pt['options']['label'] = $pt['label'];
 			if ( !empty( $this -> _taxonomies ) ) {
 				$taxonomies = [];
@@ -92,7 +108,7 @@ class register_customs {
 					);
 				}
 			}
-			register_post_type( $pt['post_type'], $pt['options'] );
+			\register_post_type( $pt['post_type'], $pt['options'] );
 		}
 	}
 
@@ -103,9 +119,12 @@ class register_customs {
 	 * @access public
 	 */
 	public function register_taxonomy() {
-		foreach ( $this -> _taxonomies as $tx ) {
+		if ( empty( self::$_taxonomies ) ) {
+			return;
+		}
+		foreach ( self::$_taxonomies as $tx ) {
 			$tx['options']['label'] = $tx['label'];
-			register_taxonomy( $tx['taxonomy'], $tx['post_types'], $tx['options'] );
+			\register_taxonomy( $tx['taxonomy'], $tx['post_types'], $tx['options'] );
 		}
 	}
 

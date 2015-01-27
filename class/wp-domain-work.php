@@ -160,7 +160,7 @@ class WP_Domain_Work {
 		 * init services
 		 */
 		if ( self::get_option_value( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
-			new \service\domain\init();
+			new \service\Domains();
 			new \service\router();
 		}
 

@@ -32,10 +32,10 @@ require_once __DIR__ . '/lib/ClassLoader.php';
  * Register classloader
  */
 ClassLoader::register( null, __DIR__ . '/class', ClassLoader::FILENAME_STRTOLOWER | ClassLoader::UNDERBAR_AS_HYPHEN );
+ClassLoader::register( 'service', __DIR__ . '/class', ClassLoader::FILENAME_STRTOLOWER );
 # ClassLoader::register( 'admin',     __DIR__ . '/class' );
 ClassLoader::register( 'module',    __DIR__ . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
 ClassLoader::register( 'property',  __DIR__ . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
-ClassLoader::register( 'service',   __DIR__ . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
 ClassLoader::register( 'wordpress', __DIR__ . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
 ClassLoader::register( 'mimosafa',  __DIR__ . '/lib' );
 

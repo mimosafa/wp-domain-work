@@ -120,6 +120,7 @@ class Domains {
 				\WP_Domain_Work::update_option( 'class_loaders', $this -> class_loaders );
 				\WP_Domain_Work::update_option( 'functions_files', $this -> functions_files );
 			}
+			add_action( 'init', function() { flush_rewrite_rules(); }, 99 );
 		} else {
 			$this -> domains = \WP_Domain_Work::get_option_value( 'domains' );
 			$this -> class_loaders = \WP_Domain_Work::get_option_value( 'class_loaders' );
@@ -127,13 +128,13 @@ class Domains {
 		}
 
 		if ( $this -> domains ) {
-			$this -> classify_domains(); // -----------------------yet
+			$this -> classify_domains();
 		}
 		if ( $this -> class_loaders ) {
-			$this -> register_class_loaders(); // -----------------------yet
+			$this -> register_class_loaders();
 		}
 		if ( $this -> functions_files ) {
-			$this -> include_functions_files(); // -----------------------yet
+			$this -> include_functions_files();
 		}
 	}
 
@@ -190,8 +191,8 @@ class Domains {
 				 * - ディレクトリーループ (*1)で 2巡目以降のみを対象。
 				 * - あとに読み込んだローダー、ファイルを優先したいので、array_unshiftで配列の先頭に追加する。
 				 */
-				if ( array_key_exists( $domain, $this -> domains ) ) {
-					array_unshift( $this -> classloaders[$domain], $path );
+				if ( array_key_exists( $domain, $this -> class_loaders ) ) {
+					array_unshift( $this -> class_loaders[$domain], $path );
 					if ( $functions_path = self::returnReadableFilePath( $fileinfo, 'functions.php' ) ) {
 						array_unshift( $this -> functions_files, $functions_path );
 					}
@@ -219,8 +220,8 @@ class Domains {
 				 * クラスのオートローダーとヘルパー関数が定義されたファイル (functions.php)
 				 * - (*2) 以外が対象
 				 */
-				if ( !array_key_exists( $domain, $this -> domains ) ) {
-					$this -> classloaders[$domain][] = $path;
+				if ( !array_key_exists( $domain, $this -> class_loaders ) ) {
+					$this -> class_loaders[$domain][] = $path;
 					if ( $functions_path = self::returnReadableFilePath( $fileinfo, 'functions.php' ) ) {
 						array_unshift( $this -> functions_files, $functions_path );
 					}
@@ -249,7 +250,74 @@ class Domains {
 	/**
 	 */
 	private function post_type_setting( $domain, Array $array ) {
-		//
+		/**
+		 * Name (slug)
+		 */
+		$post_type = ( array_key_exists( 'post_type', $array ) )
+			? esc_html( $array['post_type'] )
+			: esc_html( $domain )
+		;
+
+		/**
+		 * Label
+		 */
+		$label = ( array_key_exists( 'name', $array ) )
+			? esc_html( $array['name'] )
+			: ucwords( str_replace( '_', ' ', $post_type ) )
+		;
+
+		/**
+		 * Options (rewrite, capability_type, )
+		 */
+		
+		/**
+		 * Rewrite slug
+		 */
+		$opt = [ 'rewrite' => [ 'slug' => $domain ] ];
+
+		/**
+		 * Capability type
+		 */
+		/*
+		if ( array_key_exists( 'capability_type', $array ) ) {
+			$cap_type = array_map( function( $var ) {
+				return trim( $var );
+			}, explode( ',', $array['capability_type'] ) );
+			if ( 2 === count( $cap_type ) ) {
+				$opt['capability_type'] = $cap_type;
+				$opt['map_meta_cap'] = true
+
+				if ( null === self::$roles ) {
+					self::$roles = new \wordpress\roles();
+				}
+				self::$roles -> add_cap( $cap_type );
+			}
+		}
+		*/
+
+		/**
+		 * Merge default setting to each post type setting
+		 */
+		$opt = \utility\md_array_merge( $opt, $this -> _cpt_option );
+
+		/**
+		 * Get instance \wordpress\register_customs
+		 */
+		$registerCustoms = \wordpress\register_customs::getInstance();
+		$registerCustoms -> add_post_type( $post_type, $label, $opt );
+
+		/**
+		 * 
+		 */
+		if ( array_key_exists( 'rewrite', $array ) && 'ID' === $array['rewrite'] ) {
+
+			/**
+			 * Get instance \wordpress\int_permalink
+			 */
+			$intPermalink = \wordpress\int_permalink::getInstance();
+			$intPermalink -> set( $post_type );
+
+		}
 	}
 
 	/**
@@ -269,7 +337,7 @@ class Domains {
 	private function register_class_loaders() {
 		foreach ( $this -> class_loaders as $domain => $somePath ) {
 			foreach ( $somePath as $path ) {
-				\ClassLoader::register( $domain, $path, ClassLoader::UNDERBAR_AS_HYPHEN );
+				\ClassLoader::register( $domain, $path, \ClassLoader::UNDERBAR_AS_HYPHEN );
 			}
 		}
 	}
