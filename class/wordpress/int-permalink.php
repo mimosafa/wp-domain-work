@@ -6,6 +6,7 @@ namespace wordpress;
  * Rewrite slug to post_id for custom post types.
  */
 class int_permalink {
+	use \singleton;
 
 	/**
 	 * Post types
@@ -18,17 +19,6 @@ class int_permalink {
 	 */
 	protected function __construct() {
 		$this -> init();
-	}
-
-	/**
-	 * 
-	 */
-	public static function getInstance() {
-		static $instance;
-		if ( null === $instance ) {
-			$instance = new self();
-		}
-		return $instance;
 	}
 
 	/**

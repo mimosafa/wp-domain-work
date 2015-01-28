@@ -5,8 +5,10 @@ namespace wordpress;
 /**
  * WordPress custom post type & custom taxonomy settings wrapper class
  *
+ * @uses \singleton
  */
 class register_customs {
+	use \singleton;
 
 	/**
 	 * @var array
@@ -27,17 +29,6 @@ class register_customs {
 	 */
 	protected function __construct() {
 		$this -> init();
-	}
-
-	/**
-	 * 
-	 */
-	public static function getInstance() {
-		static $instance;
-		if ( null === $instance ) {
-			$instance = new self();
-		}
-		return $instance;
 	}
 
 	/**
