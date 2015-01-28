@@ -6,22 +6,17 @@ namespace wordpress;
  * @see http://firegoby.jp/archives/5309
  */
 class create_endpoints {
+	use \singleton;
 
 	/**
 	 *
 	 */
-	private $endpoints = [];
+	private static $endpoints = [];
 
 	/**
-	 * @access public
-	 *
-	 * @param  string $endpoint (required)
 	 */
-	public function set( $endpoint ) {
-		if ( !$endpoint || !is_string( $endpoint ) ) {
-			return;
-		}
-		$this -> endpoints[] = $endpoint;
+	protected function __construct() {
+		$this -> init();
 	}
 
 	/**
@@ -33,10 +28,22 @@ class create_endpoints {
 	}
 
 	/**
+	 * @access public
+	 *
+	 * @param  string $endpoint (required)
+	 */
+	public function set( $endpoint ) {
+		if ( !$endpoint || !is_string( $endpoint ) ) {
+			return;
+		}
+		self::$endpoints[] = $endpoint;
+	}
+
+	/**
 	 *
 	 */
 	public function add_rewrite_endpoints() {
-		if ( empty( $this -> endpoints ) ) {
+		if ( empty( self::$endpoints ) ) {
 			return;
 		}
 
@@ -46,7 +53,7 @@ class create_endpoints {
 		global $wp_rewrite;
 		$rules = $wp_rewrite -> wp_rewrite_rules();
 
-		foreach ( $this -> endpoints as $endpoint ) {
+		foreach ( self::$endpoints as $endpoint ) {
 			/**
 			 * エンドポイントが既に DBのオプションテーブルに書き込まれていれば continue
 			 *
@@ -64,8 +71,8 @@ class create_endpoints {
 	 *
 	 */
 	public function add_query_vars( $vars ) {
-		if ( !empty( $this -> endpoints ) ) {
-			foreach ( $this -> endpoints as $endpoint ) {
+		if ( !empty( self::$endpoints ) ) {
+			foreach ( self::$endpoints as $endpoint ) {
 				$vars[] = $endpoint;
 			}
 		}

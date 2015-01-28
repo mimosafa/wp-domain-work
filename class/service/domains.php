@@ -329,7 +329,9 @@ class Domains {
 	/**
 	 */
 	private function endpoint_setting( $domain, Array $array ) {
-		//
+		// ~ some settings from $array, but yet...
+		$createEndpoints = \wordpress\create_endpoints::getInstance();
+		$createEndpoints -> set( $domain );
 	}
 
 	/**
