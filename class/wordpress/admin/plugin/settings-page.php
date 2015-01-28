@@ -199,7 +199,11 @@ class settings_page {
 			$page_arg['capability'] = $capability;
 		}
 		if ( !isset( $callback ) ) {
-			$callback = [ $this, 'page_body' ];
+			if ( ( isset( $sections ) && $sections ) || ( isset( $fields ) && $fields ) ) {
+				$callback = [ $this, 'page_body' ];
+			} else {
+				$callback = [ $this, 'page_plane_body' ];
+			}
 		} else {
 			unset( $page_arg['callback'] ); // Optimize vars
 		}
@@ -540,6 +544,21 @@ class settings_page {
 	}
 
 	/**
+	 *
+	 */
+	public function html( $html ) {
+		if ( !$cache =& $this -> get_cache() ) {
+			return;
+		}
+		if ( !array_key_exists( 'html', $cache ) ) {
+			$cache['html'] = $html;
+		} else {
+			$cache['html'] .= sprintf( "\n%s", $html );
+		}
+		return $this;
+	}
+
+	/**
 	 * Set callback function
 	 * Callback will be contained initialized cache(field, section, page) before calling this method
 	 *
@@ -586,7 +605,7 @@ class settings_page {
 	}
 
 	/**
-	 * Drow page html
+	 * Drow default page html (if has form)
 	 * 
 	 * @return (void)
 	 */
@@ -613,6 +632,27 @@ class settings_page {
     <?php do_settings_sections( $menu_slug ); ?>
     <?php submit_button(); ?>
   </form>
+</div>
+		<?php
+	}
+
+	/**
+	 * Drow default page html (if not has form)
+	 * 
+	 * @return (void)
+	 */
+	public function page_plane_body() {
+		$menu_slug = $_GET['page'];
+		$arg = self::$callback_args[$menu_slug];
+		?>
+<div class="wrap">
+  <h2><?= $arg['title'] ?></h2>
+  <?php if ( array_key_exists( 'description', $arg ) ) { ?>
+  <?= $arg['description'] ?>
+  <?php } ?>
+  <?php if ( array_key_exists( 'html', $arg ) ) { ?>
+  <?= $arg['html'] ?>
+  <?php } ?>
 </div>
 		<?php
 	}
