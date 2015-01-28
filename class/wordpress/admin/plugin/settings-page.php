@@ -549,13 +549,17 @@ class settings_page {
 	 * @return object self|(void)
 	 */
 	public function callback( $callback, $callback_args = [] ) {
-		if ( !method_exists( $this, $callback ) && !is_callable( $callback ) ) {
+		if (
+			( is_array( $callback ) && ( count( $callback ) !== 2 || !is_callable( $callback ) ) )
+			&& ( !method_exists( $this, $callback ) && !is_callable( $callback ) )
+		) {
 			return;
 		}
+
 		if ( !$cache =& $this -> get_cache() ) {
 			return;
 		}
-		$cache['callback'] = method_exists( $this, $callback ) ? [ $this, $callback ] : $callback;
+		$cache['callback'] = is_callable( $callback ) ? $callback : [ $this, $callback ];
 		if ( $callback_args ) {
 			foreach ( $callback_args as $key => $val ) {
 				if ( !array_key_exists( $key, $cache ) ) {
