@@ -3,6 +3,7 @@
  *
  */
 class WP_Domain_Work {
+	use \singleton;
 
 	/**
 	 * @var WP_Error
@@ -86,6 +87,12 @@ class WP_Domain_Work {
 	];
 
 	/**
+	 */
+	protected function __construct() {
+		//
+	}
+
+	/**
 	 *
 	 */
 	public static function activation() {
@@ -152,10 +159,11 @@ class WP_Domain_Work {
 	 * Plugin init
 	 */
 	public static function init() {
+		$wpdw = self::getInstance();
 		self::$error = new \WP_Error();
 
 		if ( is_admin() ) {
-			self::permalink_structure();
+			$wpdw -> permalink_structure();
 
 			/**
 			 * Settings page in admin menu
@@ -178,7 +186,7 @@ class WP_Domain_Work {
 		 * Catch error
 		 */
 		if ( self::$error -> get_error_code() ) {
-			add_action( 'admin_notices', 'WP_Domain_Work::notice' );
+			add_action( 'admin_notices', [ $wpdw, 'notice' ] );
 		}
 	}
 
@@ -216,12 +224,12 @@ class WP_Domain_Work {
 	/**
 	 *
 	 */
-	private static function permalink_structure() {
+	private function permalink_structure() {
 		if ( !self::get_option_value( 'use_domains' ) ) {
 			return;
 		}
 		$key = 'permalink_structure';
-		if ( !get_option( $key ) ) {
+		if ( !\get_option( $key ) ) {
 			self::$error -> add(
 				$key,
 				'Set the permalink to something other than the default.',
@@ -261,7 +269,7 @@ class WP_Domain_Work {
 	/**
 	 * Show error message
 	 */
-	public static function notice() {
+	public function notice() {
 		$codes = self::$error -> get_error_codes();
 		foreach ( $codes as $code ) {
 			$msg  = self::$error -> get_error_message( $code );
