@@ -192,9 +192,9 @@ class Domains {
 				 * - あとに読み込んだローダー、ファイルを優先したいので、array_unshiftで配列の先頭に追加する。
 				 */
 				if ( array_key_exists( $domain, $this -> class_loaders ) ) {
-					array_unshift( $this -> class_loaders[$domain], $path );
+					array_unshift( $this -> class_loaders[$domain], self::remove_path_prefix( $path ) );
 					if ( $functions_path = self::returnReadableFilePath( $fileinfo, 'functions.php' ) ) {
-						array_unshift( $this -> functions_files, $functions_path );
+						array_unshift( $this -> functions_files, self::remove_path_prefix( $functions_path ) );
 					}
 				}
 
@@ -221,9 +221,9 @@ class Domains {
 				 * - (*2) 以外が対象
 				 */
 				if ( !array_key_exists( $domain, $this -> class_loaders ) ) {
-					$this -> class_loaders[$domain][] = $path;
+					$this -> class_loaders[$domain][] = self::remove_path_prefix( $path );
 					if ( $functions_path = self::returnReadableFilePath( $fileinfo, 'functions.php' ) ) {
-						array_unshift( $this -> functions_files, $functions_path );
+						array_unshift( $this -> functions_files, self::remove_path_prefix( $functions_path ) );
 					}
 				}
 			}
@@ -337,6 +337,7 @@ class Domains {
 	private function register_class_loaders() {
 		foreach ( $this -> class_loaders as $domain => $somePath ) {
 			foreach ( $somePath as $path ) {
+				$path = self::add_path_prefix( $path );
 				\ClassLoader::register( $domain, $path, \ClassLoader::UNDERBAR_AS_HYPHEN );
 			}
 		}
@@ -345,8 +346,8 @@ class Domains {
 	/**
 	 */
 	private function include_functions_files() {
-		foreach ( $this -> functions_files as $files ) {
-			require_once $files;
+		foreach ( $this -> functions_files as $file ) {
+			require_once self::add_path_prefix( $file );
 		}
 	}
 
@@ -365,6 +366,34 @@ class Domains {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * add wp-content directory's path to path string
+	 *
+	 * @access private
+	 *
+	 * @param  string $path
+	 * @return string
+	 */
+	private static function add_path_prefix( $path ) {
+		return \WP_CONTENT_DIR . $path;
+	}
+
+	/**
+	 * remove wp-content directory's path from path string
+	 *
+	 * @access private
+	 *
+	 * @param  string $path
+	 * @return string
+	 */
+	private static function remove_path_prefix( $path ) {
+		static $start = null;
+		if ( null === $start ) {
+			$start = strlen( \WP_CONTENT_DIR );
+		}
+		return substr( $path, $start );
 	}
 
 }
