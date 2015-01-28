@@ -181,8 +181,9 @@ class Router {
 				//_var_dump( $ns );
 				break;
 		}
-		if ( '' === $this -> _hook )
+		if ( '' === $this -> _hook ) {
 			$this -> _hook = 'load-' . $string;
+		}
 	}
 
 	/**

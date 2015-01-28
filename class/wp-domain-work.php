@@ -100,10 +100,13 @@ class WP_Domain_Work {
 	}
 
 	/**
-	 *
+	 * @todo need flush_rewrite_rules and remove_cap() ?
 	 */
 	public static function deactivation() {
 		self::delete_private_options();
+		/*
+		flush_rewrite_rules();
+		*/
 	}
 
 	/**
@@ -168,7 +171,7 @@ class WP_Domain_Work {
 			/**
 			 * Settings page in admin menu
 			 */
-			self::settings_page();
+			$wpdw -> settings_page();
 		}
 
 		/**
@@ -243,23 +246,38 @@ class WP_Domain_Work {
 	 *
 	 * @uses wordpress\admin\settings_page
 	 */
-	public static function settings_page() {
+	public function settings_page() {
 		/**
 		 * Get instance settings page generator
 		 */
 		$instance = new \wordpress\admin\plugin\settings_page();
 
+		$top_page_desc = <<<EOF
+This is awesome plugin!
+EOF;
+
 		$instance
 		-> init( 'wp-domain-work', 'WP Domain Work Settings', 'WP Domain Work' )
+			-> description( $top_page_desc )
 			-> section( 'default-setting' )
-				-> field( 'plugin-activation' )
-				-> option_name( self::get_option_key( 'use_domains' ), 'checkbox', [ 'label' => 'Activate' ] )
-				-> description( '' )
+				-> field( 'domains-activation' )
+				-> option_name( self::get_option_key( 'use_domains' ), 'checkbox', [ 'label' => 'Use domains' ] )
 		;
+
+		if ( !self::get_option_value( 'use_domains' ) ) {
+			$instance
+				-> description( 'ドメインディレクトリーを有効にする場合はチェックを入れてください' )
+			;
+		} else {
+			$instance
+				-> description( 'ドメインディレクトリーは有効です' )
+			;
+		}
 
 		if ( self::get_option_value( 'use_domains' ) ) {
 			$instance
 			-> init( 'wp-domains', 'Your Domains' )
+				-> html( '<pre>' . var_export( self::get_option_value( 'domains' ), true ) . '<pre>' )
 			;
 		}
 
