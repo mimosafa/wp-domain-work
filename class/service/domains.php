@@ -338,7 +338,12 @@ class Domains {
 		foreach ( $this -> class_loaders as $domain => $somePath ) {
 			foreach ( $somePath as $path ) {
 				$path = self::add_path_prefix( $path );
-				\ClassLoader::register( $domain, $path, \ClassLoader::UNDERBAR_AS_HYPHEN );
+				if ( is_readable( $path ) ) {
+					\ClassLoader::register( $domain, $path, \ClassLoader::UNDERBAR_AS_HYPHEN );
+				} else {
+					new self( true );
+					break 2;
+				}
 			}
 		}
 	}
@@ -347,7 +352,13 @@ class Domains {
 	 */
 	private function include_functions_files() {
 		foreach ( $this -> functions_files as $file ) {
-			require_once self::add_path_prefix( $file );
+			$file = self::add_path_prefix( $file );
+			if ( file_exists( $file ) ) {
+				require_once $file;
+			} else {
+				new self( true );
+				break;
+			}
 		}
 	}
 
