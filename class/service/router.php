@@ -5,7 +5,7 @@ namespace service;
 /**
  *
  */
-class router {
+class Router {
 
 	/**
 	 * Hierarchical level WordPress path

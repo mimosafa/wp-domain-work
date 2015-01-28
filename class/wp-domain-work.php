@@ -178,7 +178,7 @@ class WP_Domain_Work {
 			new \service\Domains();
 			if ( self::get_option_value( 'home_level' ) !== false
 				&& self::get_option_value( 'site_level' ) !== false ) {
-				new \service\router();
+				new \service\Router();
 			}
 		}
 
