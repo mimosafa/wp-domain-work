@@ -68,23 +68,23 @@ if ( !requirement_wp_domain_work_plugin() ) {
 /**
  * Include utility file
  */
-require_once __DIR__ . '/inc/utility.php';
+require_once dirname( __FILE__ ) . '/inc/utility.php';
 
 /**
  * include classloader file
  */
-require_once __DIR__ . '/lib/ClassLoader.php';
+require_once dirname( __FILE__ ) . '/lib/ClassLoader.php';
 
 /**
  * Register classloader
  */
-ClassLoader::register( null, __DIR__ . '/class', ClassLoader::FILENAME_STRTOLOWER | ClassLoader::UNDERBAR_AS_HYPHEN );
-ClassLoader::register( 'service', __DIR__ . '/class', ClassLoader::FILENAME_STRTOLOWER );
+ClassLoader::register( null, dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_STRTOLOWER | ClassLoader::UNDERBAR_AS_HYPHEN );
+ClassLoader::register( 'service', dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_STRTOLOWER );
 # ClassLoader::register( 'admin',     __DIR__ . '/class' );
-ClassLoader::register( 'module',    __DIR__ . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
-ClassLoader::register( 'property',  __DIR__ . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
-ClassLoader::register( 'wordpress', __DIR__ . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
-ClassLoader::register( 'mimosafa',  __DIR__ . '/lib' );
+ClassLoader::register( 'module',    dirname( __FILE__ ) . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
+ClassLoader::register( 'property',  dirname( __FILE__ ) . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
+ClassLoader::register( 'wordpress', dirname( __FILE__ ) . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
+ClassLoader::register( 'mimosafa',  dirname( __FILE__ ) . '/lib' );
 
 /**
  * Plugin activation & deactivation
