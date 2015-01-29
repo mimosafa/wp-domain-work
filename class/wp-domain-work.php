@@ -205,16 +205,20 @@ EOF;
 				-> field( 'domains-activation' )
 				-> option_name( $this -> get_option_key( 'use_domains' ), 'checkbox', [ 'label' => 'Use domains' ] )
 		;
-
 		if ( !$this -> get_option( 'use_domains' ) ) {
 			$_PAGE
-				-> description( 'ドメインディレクトリーを有効にする場合はチェックを入れてください' )
+					-> description( 'ドメインディレクトリーを有効にする場合はチェックを入れてください' )
 			;
 		} else {
 			$_PAGE
-				-> description( 'ドメインディレクトリーは有効です' )
+					-> description( 'ドメインディレクトリーは有効です' )
 			;
 		}
+		$_PAGE
+				-> field( 'force-directories-search' )
+				-> html( '<p>Hello!</p>' )
+				-> html( 'World', true )
+		;
 
 		if ( $this -> get_option( 'use_domains' ) ) {
 			$_PAGE

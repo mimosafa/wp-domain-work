@@ -308,15 +308,19 @@ class settings_page {
 	 * @return void
 	 */
 	private function add_field( $field, $menu_slug, $section_id = '' ) {
-		if ( !array_key_exists( 'id', $field ) || !array_key_exists( 'callback', $field ) ) {
+		if ( !array_key_exists( 'id', $field ) ) {
 			return;
 		}
-		extract( $field ); // $id & $callback must be generated
-		unset( $field['callback'] ); // Optimize vars
+		extract( $field ); // $id must be generated
 
 		if ( !isset( $title ) ) {
 			$title = ucwords( str_replace( [ '-', '_' ], ' ', $id ) );
 			$field['title'] = $title;
+		}
+		if ( !isset( $callback ) ) {
+			$callback = [ $this, 'field_body' ];
+		} else {
+			unset( $field['callback'] ); // Optimize vars
 		}
 		if ( isset( $option_name ) ) {
 			$option_group = 'group_' . $menu_slug;
@@ -549,17 +553,19 @@ class settings_page {
 	 * @access public
 	 *
 	 * @param  string $html
-	 * @param  bool   $under_the_form
+	 * @param  boolean $wrap_div (optional) if true wrap $html by 'div'
 	 * @return object self|(void)
 	 */
-	public function html( $html, $suffix = false ) {
+	public function html( $html, $wrap_div = false ) {
 		if ( !$cache =& $this -> get_cache() ) {
 			return;
 		}
+		$format = !$wrap_div ? '%s' : '<div>%s</div>';
 		if ( !array_key_exists( 'html', $cache ) ) {
-			$cache['html'] = $html;
+			$cache['html'] = sprintf( $format, $html );
 		} else {
-			$cache['html'] .= sprintf( "\n%s", $html );
+			$format = "\n{$format}";
+			$cache['html'] .= sprintf( $format, $html );
 		}
 		return $this;
 	}
@@ -679,6 +685,22 @@ class settings_page {
 		if ( array_key_exists( 'html', $arg ) ) {
 			?>
       <?= $arg['html'] ?>
+			<?php
+		}
+	}
+
+	/**
+	 * 
+	 */
+	public function field_body( $arg ) {
+		if ( array_key_exists( 'description', $arg ) ) {
+			?>
+        <?= $arg['description'] ?>
+			<?php
+		}
+		if ( array_key_exists( 'html', $arg ) ) {
+			?>
+        <?= $arg['html'] ?>
 			<?php
 		}
 	}
