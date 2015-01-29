@@ -100,14 +100,19 @@ class Domains {
 	/**
 	 */
 	private function init( $force_scan ) {
-		if ( $force_scan || !\WP_Domain_Work::get_option_value( 'domains' ) ) {
+		/**
+		 * Get instance plugin class
+		 */
+		$_WPDW = \WP_Domain_Work::getInstance();
+
+		if ( $force_scan || !$_WPDW::get_domains() ) {
 			// wp-content/domains
 			$this -> directories[] = \WP_CONTENT_DIR . '/' . self::DOMAINS_DIR_NAME;
 			// wp-content/themes/your-parent-theme/domains
-			$this -> directories[] = get_template_directory()   . '/' . self::DOMAINS_DIR_NAME;
+			$this -> directories[] = get_template_directory() . '/' . self::DOMAINS_DIR_NAME;
 			// wp-content/themes/your-child-theme/domains
 			$this -> directories[] = get_stylesheet_directory() . '/' . self::DOMAINS_DIR_NAME;
-			if ( $excepted_domains = \WP_Domain_Work::get_option_value( 'excepted_domains' ) ) {
+			if ( $excepted_domains = $_WPDW::get_excepted_domains() ) {
 				self::$_excepted = array_merge( $excepted_domains, self::$_excepted );
 			}
 			$this -> scan_directories();
@@ -116,15 +121,15 @@ class Domains {
 			 * update options
 			 */
 			if ( $this -> domains ) {
-				\WP_Domain_Work::update_option( 'domains', $this -> domains );
-				\WP_Domain_Work::update_option( 'class_loaders', $this -> class_loaders );
-				\WP_Domain_Work::update_option( 'functions_files', $this -> functions_files );
+				$_WPDW::update_domains( $this -> domains );
+				$_WPDW::update_class_loaders( $this -> class_loaders );
+				$_WPDW::update_functions_files( $this -> functions_files );
 			}
 			add_action( 'init', function() { flush_rewrite_rules(); }, 99 );
 		} else {
-			$this -> domains = \WP_Domain_Work::get_option_value( 'domains' );
-			$this -> class_loaders = \WP_Domain_Work::get_option_value( 'class_loaders' );
-			$this -> functions_files = \WP_Domain_Work::get_option_value( 'functions_files' );
+			$this -> domains = $_WPDW::get_domains();
+			$this -> class_loaders = $_WPDW::get_class_loaders();
+			$this -> functions_files = $_WPDW::get_functions_files();
 		}
 
 		if ( $this -> domains ) {

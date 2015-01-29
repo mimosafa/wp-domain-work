@@ -41,52 +41,77 @@ class WP_Domain_Work {
 	}
 
 	/**
-	 * Get plugin's option key
-	 *
 	 * @access public
+	 */
+	public static function __callStatic( $name, $args ) {
+		$_WPDW = self::getInstance();
+		if ( 'get_' === substr( $name, 0, 4 ) ) {
+			array_unshift( $args, substr( $name, 4 ) );
+			return call_user_func_array( [ $_WPDW, 'get_option' ], $args );
+		} else if ( 'update_' === substr( $name, 0, 7 ) ) {
+			array_unshift( $args, substr( $name, 7 ) );
+			return call_user_func_array( [ $_WPDW, 'update_option' ], $args );
+		} else {
+			// throw error
+		}
+	}
+
+	/**
+	 * Get row option key, saved in wp-options table
 	 *
-	 * @param  string $string (optional) if blank return all option keys
+	 * @access private
+	 *
+	 * @param  string $option
 	 * @return string
 	 */
-	public static function get_option_key( $string = '' ) {
-		if ( $string ) {
-			return array_key_exists( $string, self::$options ) ? self::$options[$string]['key'] : null;
-		}
-		$return = [];
-		foreach ( self::$options as $option ) {
-			$return[] = $option['key'];
-		}
-		return $return;
+	private function get_option_key( $option ) {
+		return array_key_exists( $option, self::$option_keys ) ? self::$option_keys[$option] : false;
 	}
 
 	/**
 	 * Get plugin's option value
 	 *
-	 * @access public
+	 * @access private
 	 *
-	 * @param  string $string
-	 * @return string
+	 * @param  string $option
+	 * @return mixed
 	 */
-	public static function get_option_value( $string ) {
-		if ( !$string || !array_key_exists( $string, self::$options ) ) {
-			return false;
+	private function get_option( $option, $default = false ) {
+		if ( !array_key_exists( $option, self::$option_keys ) ) {
+			return; // throw error
 		}
-		return \get_option( self::get_option_key( $string ) );
+		return \get_option( self::$option_keys[$option], $default );
 	}
 
 	/**
 	 * Update plugin's option
 	 *
-	 * @access public
+	 * @access private
 	 *
-	 * @param  string $string
-	 * @return (bool)
+	 * @param  string $option
+	 * @param  mixed
+	 * @return boolean
 	 */
-	public static function update_option( $string, $value ) {
-		if ( !$string || !array_key_exists( $string, self::$options ) ) {
+	private function update_option( $option, $newvalue ) {
+		if ( !array_key_exists( $option, self::$option_keys ) ) {
 			return false;
 		}
-		return \update_option( self::get_option_key( $string ), $value );
+		return \update_option( self::$option_keys[$option], $newvalue );
+	}
+
+	/**
+	 * Delete plugin's option
+	 *
+	 * @access private
+	 *
+	 * @param  string $option
+	 * @return boolean
+	 */
+	private function delete_option( $option ) {
+		if ( !array_key_exists( $option, self::$option_keys ) ) {
+			return false;
+		}
+		return \delete_option( self::$option_keys[$option] );
 	}
 
 	/**
@@ -130,28 +155,16 @@ class WP_Domain_Work {
 	 * @uses wordpress\installed_level
 	 */
 	private static function installed_level() {
-		$levelGetter = new \wordpress\installed_level();
-		if ( false === self::get_option_value( 'home_level' ) ) {
-			$homeLevel = $levelGetter -> get_level( 'home' );
-			self::update_option( 'home_level', $homeLevel );
-		}
-		if ( false === self::get_option_value( 'site_level' ) ) {
-			$siteLevel = $levelGetter -> get_level( 'site' );
-			self::update_option( 'site_level', $siteLevel );
-		}
-	}
+		$_WPDW = self::getInstance();
+		$level = new \wordpress\installed_level();
 
-	/**
-	 * Delete some private options
-	 *
-	 * @access private
-	 */
-	private static function delete_private_options() {
-		foreach ( self::$private_options as $string ) {
-			$key = self::get_option_key( $string );
-			if ( $key ) {
-				\delete_option( $key );
-			}
+		if ( false === $_WPDW -> get_option( 'home_level' ) ) {
+			$homeLevel = $level -> get_level( 'home' );
+			$_WPDW -> update_option( 'home_level', $homeLevel );
+		}
+		if ( false === $_WPDW -> get_option( 'site_level' ) ) {
+			$siteLevel = $level -> get_level( 'site' );
+			$_WPDW -> update_option( 'site_level', $siteLevel );
 		}
 	}
 
@@ -159,13 +172,12 @@ class WP_Domain_Work {
 	 *
 	 */
 	private function permalink_structure() {
-		if ( !self::get_option_value( 'use_domains' ) ) {
+		if ( !$this -> get_option( 'use_domains' ) ) {
 			return;
 		}
-		$key = 'permalink_structure';
-		if ( !\get_option( $key ) ) {
+		if ( !\get_option( 'permalink_structure' ) ) {
 			self::$error -> add(
-				$key,
+				'permalink_structure',
 				'Set the permalink to something other than the default.',
 				[ '"WP Domain Work" plugin require customized permalink structure.' ]
 			);
@@ -181,38 +193,38 @@ class WP_Domain_Work {
 		/**
 		 * Get instance settings page generator
 		 */
-		$instance = new \wordpress\admin\plugin\settings_page();
+		$_PAGE = new \wordpress\admin\plugin\settings_page();
 
 		$top_page_desc = <<<EOF
 This is awesome plugin!
 EOF;
 
-		$instance
+		$_PAGE
 		-> init( 'wp-domain-work', 'WP Domain Work Settings', 'WP Domain Work' )
 			-> description( $top_page_desc )
 			-> section( 'default-setting' )
 				-> field( 'domains-activation' )
-				-> option_name( self::get_option_key( 'use_domains' ), 'checkbox', [ 'label' => 'Use domains' ] )
+				-> option_name( $this -> get_option_key( 'use_domains' ), 'checkbox', [ 'label' => 'Use domains' ] )
 		;
 
-		if ( !self::get_option_value( 'use_domains' ) ) {
-			$instance
+		if ( !$this -> get_option( 'use_domains' ) ) {
+			$_PAGE
 				-> description( 'ドメインディレクトリーを有効にする場合はチェックを入れてください' )
 			;
 		} else {
-			$instance
+			$_PAGE
 				-> description( 'ドメインディレクトリーは有効です' )
 			;
 		}
 
-		if ( self::get_option_value( 'use_domains' ) ) {
-			$instance
+		if ( $this -> get_option( 'use_domains' ) ) {
+			$_PAGE
 			-> init( 'wp-domains', 'Your Domains' )
-				-> html( '<pre>' . var_export( self::get_option_value( 'domains' ), true ) . '<pre>' )
+				-> html( '<pre>' . var_export( $this -> get_option( 'domains' ), true ) . '<pre>' )
 			;
 		}
 
-		$instance -> done();
+		$_PAGE -> done();
 	}
 
 	/**

@@ -61,10 +61,15 @@ class Router {
 	 * @uses WP_Domain_Work
 	 */
 	public function __construct() {
+		/**
+		 * Get instance plugin class
+		 */
+		$_WPDW = \WP_Domain_Work::getInstance();
+
 		if ( !is_admin() ) {
-			$this -> _level = \WP_Domain_Work::get_option_value( 'home_level' );
+			$this -> _level = $_WPDW::get_home_level();
 		} else {
-			$this -> _level = \WP_Domain_Work::get_option_value( 'site_level' );
+			$this -> _level = $_WPDW::get_site_level();
 			$this -> _is_admin = true;
 		}
 		$this -> decomposeUri();

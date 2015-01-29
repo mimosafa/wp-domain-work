@@ -116,7 +116,7 @@ trait admin {
 		 *
 		 * @var array
 		 */
-		$setting = \WP_Domain_Work::get_option_value( 'domains' )[$this -> domain];
+		$setting = \WP_Domain_Work::get_domains()[$this -> domain];
 
 		/**
 		 * Identify 'post_type' or 'taxonomy'
