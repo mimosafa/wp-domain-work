@@ -544,9 +544,15 @@ class settings_page {
 	}
 
 	/**
+	 * Set html contents
 	 *
+	 * @access public
+	 *
+	 * @param  string $html
+	 * @param  bool   $under_the_form
+	 * @return object self|(void)
 	 */
-	public function html( $html ) {
+	public function html( $html, $suffix = false ) {
 		if ( !$cache =& $this -> get_cache() ) {
 			return;
 		}
@@ -626,6 +632,9 @@ class settings_page {
   <?php if ( array_key_exists( 'description', $arg ) ) { ?>
   <?= $arg['description'] ?>
   <?php } ?>
+  <?php if ( array_key_exists( 'html', $arg ) ) { ?>
+  <?= $arg['html'] ?>
+  <?php } ?>
   <form method="post" action="options.php">
     <?php settings_fields( $option_group ); ?>
     <?php do_settings_fields( $menu_slug, '' ); ?>
@@ -665,6 +674,11 @@ class settings_page {
 		if ( array_key_exists( 'description', $arg ) ) {
 			?>
       <?= $arg['description'] ?>
+			<?php
+		}
+		if ( array_key_exists( 'html', $arg ) ) {
+			?>
+      <?= $arg['html'] ?>
 			<?php
 		}
 	}
