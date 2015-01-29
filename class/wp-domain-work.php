@@ -15,81 +15,12 @@ class WP_Domain_Work {
 	 *
 	 * @var array
 	 */
-	private static $options = [
-
-		/**
-		 * Hierarchy level of home_url
-		 *
-		 * @access private
-		 */
-		'home_level' => [
-			'key' => 'wp_domain_work_home_url_hierarchy_level',
-			'value_type' => 'integer',
-		],
-
-		/**
-		 * Hierarchy level of WordPress installed directory (site_url) for wp-admin
-		 *
-		 * @access private
-		 */
-		'site_level' => [
-			'key' => 'wp_domain_work_site_url_hierarchy_level',
-			'value_type' => 'integer',
-		],
-
-		/**
-		 * Plugin activation
-		 *
-		 * @access public
-		 */
-		'use_domains' => [
-			'key' => 'wp_domain_work_domains_dir_activation',
-			'value_type' => 'boolean',
-		],
-
-		/**
-		 * 除外する domain
-		 *
-		 * @access public
-		 */
-		'excepted_domains' => [
-			'key' => 'wp_domain_work_domains_excepted_domains',
-		],
-
-		/**
-		 * @access private
-		 */
-		'domains' => [
-			'key' => 'wp_domain_work_registered_domains',
-		],
-
-		/**
-		 * @access private
-		 */
-		'class_loaders' => [
-			'key' => 'wp_domain_work_domain_class_loaders',
-		],
-
-		/**
-		 * @access private
-		 */
-		'functions_files' => [
-			'key' => 'wp_domain_work_domain_functions_files',
-		],
-
-	];
-
-	/**
-	 *
-	 */
-	private static $private_options = [
-		'home_level', 'site_level', 'domains', 'class_loaders', 'functions_files',
-	];
+	private static $option_keys;
 
 	/**
 	 */
 	protected function __construct() {
-		//
+		self::$option_keys = $GLOBALS['wp_domain_work_plugin_option_keys'];
 	}
 
 	/**
@@ -103,10 +34,10 @@ class WP_Domain_Work {
 	 * @todo need flush_rewrite_rules and remove_cap() ?
 	 */
 	public static function deactivation() {
-		self::delete_private_options();
-		/*
-		flush_rewrite_rules();
-		*/
+		$delOpts = [ 'home_level', 'site_level', 'domains', 'class_loaders', 'functions_files' ];
+		foreach ( $delOpts as $option ) {
+			self::delete_option( $option );
+		}
 	}
 
 	/**

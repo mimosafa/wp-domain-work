@@ -10,6 +10,53 @@ Text Domain: wp-domain-work
 Domain Path: /languages
 */
 
+$GLOBALS['wp_domain_work_plugin_option_keys'] = array(
+
+		/**
+		 * Hierarchy level of home_url
+		 *
+		 * @access private
+		 */
+		'home_level' => 'wp_domain_work_home_url_hierarchy_level',
+
+		/**
+		 * Hierarchy level of WordPress installed directory (site_url) for wp-admin
+		 *
+		 * @access private
+		 */
+		'site_level' => 'wp_domain_work_site_url_hierarchy_level',
+
+		/**
+		 * Plugin activation
+		 *
+		 * @access public
+		 */
+		'use_domains' => 'wp_domain_work_domains_dir_activation',
+
+		/**
+		 * 除外する domain
+		 *
+		 * @access public
+		 */
+		'excepted_domains' => 'wp_domain_work_domains_excepted_domains',
+
+		/**
+		 * @access private
+		 */
+		'domains' => 'wp_domain_work_registered_domains',
+
+		/**
+		 * @access private
+		 */
+		'class_loaders' => 'wp_domain_work_domain_class_loaders',
+
+		/**
+		 * @access private
+		 */
+		'functions_files' => 'wp_domain_work_domain_functions_files',
+
+);
+
 /**
  * System version check
  */
