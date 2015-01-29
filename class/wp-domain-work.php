@@ -8,7 +8,7 @@ class WP_Domain_Work {
 	/**
 	 * @var WP_Error
 	 */
-	private static $error = null;
+	private static $error;
 
 	/**
 	 * WP Domain Work plugin's options
@@ -118,25 +118,24 @@ class WP_Domain_Work {
 	 * Plugin init
 	 */
 	public static function init() {
-		$wpdw = self::getInstance();
+		$_WPDW = self::getInstance();
 		self::$error = new \WP_Error();
 
 		if ( is_admin() ) {
-			$wpdw -> permalink_structure();
+			$_WPDW -> permalink_structure();
 
 			/**
 			 * Settings page in admin menu
 			 */
-			$wpdw -> settings_page();
+			$_WPDW -> settings_page();
 		}
 
 		/**
 		 * init services
 		 */
-		if ( self::get_option_value( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
+		if ( $_WPDW -> get_option( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
 			new \service\Domains();
-			if ( self::get_option_value( 'home_level' ) !== false
-				&& self::get_option_value( 'site_level' ) !== false ) {
+			if ( $_WPDW -> get_option( 'home_level' ) !== false && $_WPDW -> get_option( 'site_level' ) !== false ) {
 				new \service\Router();
 			}
 		}
@@ -145,7 +144,7 @@ class WP_Domain_Work {
 		 * Catch error
 		 */
 		if ( self::$error -> get_error_code() ) {
-			add_action( 'admin_notices', [ $wpdw, 'notice' ] );
+			add_action( 'admin_notices', [ $_WPDW, 'notice' ] );
 		}
 	}
 
