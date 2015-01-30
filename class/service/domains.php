@@ -349,6 +349,14 @@ class Domains {
 					\ClassLoader::register( $domain, $path, \ClassLoader::UNDERBAR_AS_HYPHEN );
 				} else {
 					new self( true );
+					add_action( 'admin_init', function() {
+						add_settings_error(
+							'wp-domain-work',
+							'domain-dir-removed',
+							'1 or more domain directories are deleted. You shoud do "Force Directories Search".',
+							'error'
+						);
+					} );
 					break 2;
 				}
 			}
@@ -364,6 +372,14 @@ class Domains {
 				require_once $file;
 			} else {
 				new self( true );
+					add_action( 'admin_init', function() {
+						add_settings_error(
+							'wp-domain-work',
+							'function-file-removed',
+							'1 or more domain\'s functions.php are deleted. You shoud do "Force Directories Search".',
+							'error'
+						);
+					} );
 				break;
 			}
 		}

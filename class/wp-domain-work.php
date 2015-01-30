@@ -176,7 +176,9 @@ class WP_Domain_Work {
 					foreach ( $old_value as $old => $old_arg ) {
 						$msg .= '"' . $old . '" is removed. ';
 					}
-					add_settings_error( 'wp-domain-work', 'update-domains', $msg, 'updated' );
+					if ( function_exists( 'add_settings_error' ) ) {
+						add_settings_error( 'wp-domain-work', 'update-domains', $msg, 'updated' );
+					}
 				}
 				break;
 			case $this -> get_option_key( 'class_loaders' ) :
