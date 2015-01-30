@@ -21,6 +21,11 @@ class WP_Domain_Work {
 	 */
 	protected function __construct() {
 		self::$option_keys = $GLOBALS['wp_domain_work_plugin_option_keys'];
+
+		/**
+		 * add filters & actions
+		 */
+		add_filter( 'pre_update_option', [ $this, 'pre_update_option' ], 10, 3 );
 	}
 
 	/**
@@ -112,6 +117,25 @@ class WP_Domain_Work {
 			return false;
 		}
 		return \delete_option( self::$option_keys[$option] );
+	}
+
+	/**
+	 * @access private
+	 */
+	public function pre_update_option( $value, $option, $old_value ) {
+		switch ( $option ) {
+			/**
+			 * forcibly scan domain directories
+			 */
+			case $this -> get_option_key( 'force_dir_scan' ) :
+				if ( $value ) {
+					new service\Domains( true );
+				}
+				$value = $old_value; // never saved on wp-options table
+				break;
+		}
+
+		return $value;
 	}
 
 	/**
@@ -216,8 +240,7 @@ EOF;
 		}
 		$_PAGE
 				-> field( 'force-directories-search' )
-				-> html( '<p>Hello!</p>' )
-				-> html( 'World', true )
+				-> option_name( $this -> get_option_key( 'force_dir_scan' ), 'checkbox' )
 		;
 
 		if ( $this -> get_option( 'use_domains' ) ) {

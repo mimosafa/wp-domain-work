@@ -55,6 +55,14 @@ $GLOBALS['wp_domain_work_plugin_option_keys'] = array(
 		 */
 		'functions_files' => 'wp_domain_work_domain_functions_files',
 
+		/**
+		 * This option key is nothing but flag for forcibly scan domain directories in plugin settings page
+		 * This option will never save on wp-options table.
+		 *
+		 * @access public
+		 */
+		'force_dir_scan' => 'wp_domain_work_force_domain_directories_scan',
+
 );
 
 /**
