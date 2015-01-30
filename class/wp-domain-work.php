@@ -105,6 +105,20 @@ class WP_Domain_Work {
 	}
 
 	/**
+	 * Domains initialize
+	 *
+	 * @access private
+	 *
+	 * @uses   service\domains
+	 *
+	 * @param  boolean $force_scan (optional) if true, domains directories are forcibly scaned.
+	 * @return (void)
+	 */
+	private static function Domains( $force_scan = false ) {
+		new \service\Domains( $force_scan );
+	}
+
+	/**
 	 * Delete plugin's option
 	 *
 	 * @access private
@@ -129,7 +143,7 @@ class WP_Domain_Work {
 			 */
 			case $this -> get_option_key( 'force_dir_scan' ) :
 				if ( $value ) {
-					new service\Domains( true );
+					self::Domains( true );
 				}
 				$value = $old_value; // never saved on wp-options table
 				break;
@@ -186,7 +200,7 @@ class WP_Domain_Work {
 		 * init services
 		 */
 		if ( $_WPDW -> get_option( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
-			new \service\Domains();
+			self::Domains();
 			if ( $_WPDW -> get_option( 'home_level' ) !== false && $_WPDW -> get_option( 'site_level' ) !== false ) {
 				new \service\Router();
 			}
