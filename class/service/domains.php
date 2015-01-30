@@ -129,7 +129,7 @@ class Domains {
 				$_WPDW::update_class_loaders( $this -> class_loaders );
 				$_WPDW::update_functions_files( $this -> functions_files );
 			}
-			add_action( 'init', function() { flush_rewrite_rules(); }, 99 );
+			$_WPDW::flush_rewrite_rules();
 		}
 
 		if ( $this -> domains ) {

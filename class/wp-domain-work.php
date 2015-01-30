@@ -43,6 +43,7 @@ class WP_Domain_Work {
 		foreach ( $delOpts as $option ) {
 			self::delete_option( $option );
 		}
+		self::flush_rewrite_rules();
 	}
 
 	/**
@@ -138,6 +139,11 @@ class WP_Domain_Work {
 	 */
 	public function pre_update_option( $value, $option, $old_value ) {
 		switch ( $option ) {
+			case $this -> get_option_key( 'use_domains' ) :
+				if ( $value !== $old_value && !$value ) {
+					self::flush_rewrite_rules();
+				}
+				break;
 			/**
 			 * forcibly scan domain directories
 			 */
@@ -293,6 +299,15 @@ EOF;
 		}
 
 		$_PAGE -> done();
+	}
+
+	/**
+	 * @access public
+	 */
+	public static function flush_rewrite_rules() {
+		add_action( 'init', function() {
+			flush_rewrite_rules();
+		}, 99 );
 	}
 
 	/**
