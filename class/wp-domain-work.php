@@ -133,6 +133,34 @@ class WP_Domain_Work {
 				}
 				$value = $old_value; // never saved on wp-options table
 				break;
+			/**
+			 * domains
+			 */
+			case $this -> get_option_key( 'domains' ) :
+				if ( $value !== $old_value ) {
+					$msg = 'Domains are updated ! ';
+					$added   = [];
+					$updated = [];
+					foreach ( $value as $domain => $arg ) {
+						if ( !array_key_exists( $domain, $old_value ) ) {
+							# $added[$domain] = $arg;
+							$msg .= '"' . $domain . '" is added. ';
+						} else {
+							if ( $arg !== $old_value[$domain] ) {
+								# $updated[$domain] = $arg;
+								$msg .= '"' . $domain . '" is updated. ';
+							}
+							unset( $old_value[$domain] );
+						}
+					}
+					foreach ( $old_value as $old => $old_arg ) {
+						$msg .= '"' . $old . '" is removed. ';
+					}
+					add_settings_error( 'wp-domain-work', 'update-domains', $msg, 'updated' );
+				}
+				break;
+			case $this -> get_option_key( 'class_loaders' ) :
+				break;
 		}
 
 		return $value;
