@@ -105,7 +105,11 @@ class Domains {
 		 */
 		$_WPDW = \WP_Domain_Work::getInstance();
 
-		if ( $force_scan || !$_WPDW::get_domains() ) {
+		if ( !$force_scan && $domains = $_WPDW::get_domains() ) {
+			$this -> domains = $domains;
+			$this -> class_loaders = $_WPDW::get_class_loaders();
+			$this -> functions_files = $_WPDW::get_functions_files();
+		} else {
 			// wp-content/domains
 			$this -> directories[] = \WP_CONTENT_DIR . '/' . self::DOMAINS_DIR_NAME;
 			// wp-content/themes/your-parent-theme/domains
@@ -126,10 +130,6 @@ class Domains {
 				$_WPDW::update_functions_files( $this -> functions_files );
 			}
 			add_action( 'init', function() { flush_rewrite_rules(); }, 99 );
-		} else {
-			$this -> domains = $_WPDW::get_domains();
-			$this -> class_loaders = $_WPDW::get_class_loaders();
-			$this -> functions_files = $_WPDW::get_functions_files();
 		}
 
 		if ( $this -> domains ) {
