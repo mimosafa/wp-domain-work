@@ -196,7 +196,7 @@ class WP_Domain_Work {
 		 * Catch error
 		 */
 		if ( self::$error -> get_error_code() ) {
-			add_action( 'admin_notices', [ $_WPDW, 'notice' ] );
+			add_action( 'admin_menu', [ $_WPDW, 'notice' ] );
 		}
 	}
 
@@ -289,13 +289,10 @@ EOF;
 		foreach ( $codes as $code ) {
 			$msg  = self::$error -> get_error_message( $code );
 			$data = self::$error -> get_error_data( $code );
-			?>
-  <div class="message error">
-    <p>
-      <b><?= esc_html( $msg ) ?></b> <?= esc_html( $data[0] ) ?>
-    </p>
-  </div>
-			<?php
+			foreach ( $data as $d ) {
+				$msg .= ' ' . $d;
+			}
+			add_settings_error( 'wp-domain-work', $code, $msg, 'error' );
 		}
 	}
 
