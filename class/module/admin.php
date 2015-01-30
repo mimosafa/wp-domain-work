@@ -58,7 +58,7 @@ trait admin {
 	/**
 	 * 
 	 */
-	private $_box_id_prefix = 'wp-dct-meta-box-';
+	private $_box_id_prefix = 'wp-domain-work-meta-box-';
 
 	/**
 	 * @var null|object \(domain)\properties
@@ -146,10 +146,11 @@ trait admin {
 		/**
 		 * Post type supports
 		 */
-		
+		/*
 		if ( $default = get_option( 'wp_dct_post_type_default_supports' ) ) {
 			//
 		}
+		*/
 
 		foreach ( $this -> post_type_supports as $support => $bool ) {
 			$_support = '_' . $support;
