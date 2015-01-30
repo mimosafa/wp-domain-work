@@ -218,7 +218,7 @@ class Domains {
 				if ( !array_key_exists( $domain, $this -> domains ) ) {
 					$this -> domains[$domain] = $property;
 				} else {
-					array_merge( $this -> domains[$domain], $property );
+					$this -> domains[$domain] = array_merge( $this -> domains[$domain], $property );
 				}
 
 				/**
