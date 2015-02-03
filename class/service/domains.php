@@ -258,10 +258,14 @@ class Domains {
 		/**
 		 * Name (slug)
 		 */
-		$post_type = ( array_key_exists( 'post_type', $array ) )
-			? esc_html( $array['post_type'] )
-			: esc_html( $domain )
-		;
+		if ( array_key_exists( 'post_type', $array ) ) {
+			$post_type = strtolower( $array['post_type'] );
+			if ( in_array( $post_type, self::$_excepted ) ) {
+				return;
+			}
+		} else {
+			$post_type = $domain;
+		}
 
 		/**
 		 * Label
@@ -328,7 +332,47 @@ class Domains {
 	/**
 	 */
 	private function taxonomy_setting( $domain, Array $array ) {
-		//
+		/**
+		 * Name (slug)
+		 */
+		if ( array_key_exists( 'taxonomy', $array ) ) {
+			$taxonomy = strtolower( $array['taxonomy'] );
+			if ( in_array( $taxonomy, self::$_excepted ) ) {
+				return;
+			}
+		} else {
+			$taxonomy = $domain;
+		}
+		/**
+		 * Label
+		 */
+		$label = array_key_exists( 'name', $array )
+			? esc_html( $array['name'] )
+			: ucwords( str_replace( '_', ' ', $taxonomy ) )
+		;
+		/**
+		 * Post types
+		 */
+		$post_types = explode( ',', $array['related_post_type'] );
+		$post_types = array_map( function( $string ) {
+			return trim( $string );
+		}, $post_types );
+		/**
+		 * Rewrite
+		 */
+		$opt = [ 'rewrite' => [ 'slug' => $domain ] ];
+		if ( array_key_exists( 'taxonomy_type', $array ) && 'Category' === $array['taxonomy_type'] ) {
+			$opt['hierarchical'] = true;
+			$opt['rewrite']['hierarchical'] = true;
+		}
+		// ~
+		$opt = \utility\md_array_merge( $opt, $this -> _ct_option );
+
+		/**
+		 * Get instance \wordpress\register_customs, if not constructed.
+		 */
+		$registerCustoms = \wordpress\register_customs::getInstance();
+		$registerCustoms -> add_taxonomy( $taxonomy, $label, $post_types, $opt );
 	}
 
 	/**
