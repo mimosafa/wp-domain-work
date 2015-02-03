@@ -31,31 +31,6 @@ trait admin {
 	private $postParent = 0;
 
 	/**
-	 * Custom post type supports
-	 * @var boolean
-	 */
-	private $post_type_supports = [
-		/**
-		 * Core supports
-		 */
-		'title'     => false,
-		'editor'    => false,
-		'author'    => false,
-		'thumbnail' => false,
-		'excerpt'   => false,
-		'trackbacks'=> false,
-		'custom_fields' => false,
-		'comments'  => false,
-		'revisions' => false,
-		'page_attributes' => false,
-		'post_formats' => false,
-		/**
-		 * Additional supports
-		 */
-		'slug' => false,
-	];
-
-	/**
 	 * 
 	 */
 	private $_box_id_prefix = 'wp-domain-work-meta-box-';
@@ -81,27 +56,11 @@ trait admin {
 	 * @access public
 	 */
 	public function __construct() {
-
-		/**
-		 * define domain's name
-		 *
-		 * @uses \utility\getObjectNamespace
-		 */
-		$this -> domain = \utility\getObjectNamespace( $this );
-
-		$this -> _domain_setting();
-
-		/**
-		 * if contoroling some thing about class properties, define this function
-		 */
-		if ( method_exists( $this, 'custom_init' ) ) {
-			$this -> custom_init();
-		}
+		$this -> _domain_settings();
 
 		if ( 'post_type' === $this -> registered ) {
 			$this -> init_post_type();
 		}
-
 	}
 
 	/**
@@ -109,7 +68,13 @@ trait admin {
 	 * 
 	 * @access private
 	 */
-	private function _domain_setting() {
+	private function _domain_settings() {
+		/**
+		 * define domain's name
+		 *
+		 * @uses \utility\getObjectNamespace
+		 */
+		$this -> domain = \utility\getObjectNamespace( $this );
 
 		/**
 		 * Get domain's setting stored in option table
@@ -138,37 +103,14 @@ trait admin {
 		} else {
 			$this -> registeredName = $this -> domain;
 		}
-
 	}
 
 	private function init_post_type() {
 
 		/**
-		 * Post type supports
-		 */
-		/*
-		if ( $default = get_option( 'wp_dct_post_type_default_supports' ) ) {
-			//
-		}
-		*/
-
-		foreach ( $this -> post_type_supports as $support => $bool ) {
-			$_support = '_' . $support;
-			if ( property_exists( $this, $_support ) ) {
-				$this -> post_type_supports[$support] = $this -> $_support;
-			}
-		}
-
-		if ( $this -> post_type_supports = array_filter( $this -> post_type_supports ) ) {
-			$this -> add_post_type_supports();
-		}
-
-		/**
 		 * Post type meta boxes
 		 */
-		
 		if ( isset( $this -> meta_boxes ) && !empty( $this -> meta_boxes ) ) {
-
 			/**
 			 * Add meta boxes
 			 */
@@ -178,7 +120,6 @@ trait admin {
 			 * Save post
 			 */
 			new \wordpress\admin\save_post( $this -> registeredName );
-
 		}
 
 		/**
@@ -197,25 +138,6 @@ trait admin {
 			add_filter( 'wp_insert_post_parent', [ $this, 'insert_post_parent' ], 10, 2 );
 		}
 
-	}
-
-	/**
-	 * Add post type support, if necessary show as readonly form
-	 */
-	private function add_post_type_supports() {
-		foreach ( $this -> post_type_supports as $support => $param ) {
-			if ( true === $param ) {
-				if ( 'slug' === $support ) {
-					continue;
-				}
-				add_post_type_support( $this -> registeredName, str_replace( '_', '-', $support ) );
-			} else if ( 'readonly' === $param ) {
-				$className = '\\wordpress\\admin\\post_type\\readonly_' . $support;
-				if ( class_exists( $className ) ) {
-					$className::set( $this -> registeredName );
-				}
-			}
-		}
 	}
 
 	/**
@@ -287,7 +209,6 @@ trait admin {
 			call_user_func_array( 'add_meta_box', $meta_box );
 
 		}
-
 	}
 
 	/**

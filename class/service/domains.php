@@ -21,6 +21,10 @@ class Domains {
 
 	/**
 	 */
+	private $supports = [];
+
+	/**
+	 */
 	private $class_loaders = [];
 
 	/**
@@ -89,6 +93,13 @@ class Domains {
 		'capability_type' => 'Capability Type',
 	];
 
+	/**
+	 */
+	private static $admin_data = [
+		'support' => 'Support',
+		'readonly' => 'Read Only',
+	];
+
 	//
 
 	/**
@@ -128,6 +139,7 @@ class Domains {
 				$_WPDW::update_domains( $this -> domains );
 				$_WPDW::update_class_loaders( $this -> class_loaders );
 				$_WPDW::update_functions_files( $this -> functions_files );
+				$_WPDW::update_post_type_supports( $this -> supports );
 			}
 			$_WPDW::flush_rewrite_rules();
 		}
@@ -219,6 +231,23 @@ class Domains {
 					$this -> domains[$domain] = $property;
 				} else {
 					$this -> domains[$domain] = array_merge( $this -> domains[$domain], $property );
+				}
+
+				/**
+				 * Custom Post Types' support data
+				 */
+				if ( $admin_file = self::returnReadableFilePath( $fileinfo, 'admin.php' ) ) {
+					$supports = array_filter( get_file_data( $admin_file, self::$admin_data ) );
+					if ( $supports ) {
+						foreach ( $supports as $key => $string ) {
+							$array = array_map( function( $str ) {
+								return trim( $str );
+							}, explode( ',', $string ) );
+							foreach ( $array as $var ) {
+								$this -> supports[$domain][$var] = $key;
+							}
+						}
+					}
 				}
 
 				/**

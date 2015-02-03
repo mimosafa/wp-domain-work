@@ -56,6 +56,11 @@ $GLOBALS['wp_domain_work_plugin_option_keys'] = array(
 		'functions_files' => 'wp_domain_work_domain_functions_files',
 
 		/**
+		 * @access private
+		 */
+		'post_type_supports' => 'wp_domain_work_post_type_supports',
+
+		/**
 		 * This option key is nothing but flag for forcibly scan domain directories in plugin settings page
 		 * This option will never save on wp-options table.
 		 *
@@ -87,8 +92,8 @@ require_once dirname( __FILE__ ) . '/lib/ClassLoader.php';
  * Register classloader
  */
 ClassLoader::register( null, dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_STRTOLOWER | ClassLoader::UNDERBAR_AS_HYPHEN );
-ClassLoader::register( 'service', dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_STRTOLOWER );
-# ClassLoader::register( 'admin',     __DIR__ . '/class' );
+ClassLoader::register( 'service',   dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_STRTOLOWER );
+ClassLoader::register( 'admin',     dirname( __FILE__ ) . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
 ClassLoader::register( 'module',    dirname( __FILE__ ) . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
 ClassLoader::register( 'property',  dirname( __FILE__ ) . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
 ClassLoader::register( 'wordpress', dirname( __FILE__ ) . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );

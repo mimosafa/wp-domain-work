@@ -222,6 +222,7 @@ class Router {
 	 *
 	 */
 	public function init_admin() {
+		\admin\post\post_type_supports::init( $this -> _ns ); // if post type, self::$_ns mean post_type
 		$this -> construct( 'admin' );
 	}
 
