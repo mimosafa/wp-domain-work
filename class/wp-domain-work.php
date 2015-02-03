@@ -136,13 +136,15 @@ class WP_Domain_Work {
 
 	/**
 	 * @access private
+	 *
+	 * @todo   When un-use_domain, flush rewrite rules does not work well...
 	 */
 	public function pre_update_option( $value, $option, $old_value ) {
 		switch ( $option ) {
 			case $this -> get_option_key( 'use_domains' ) :
 				if ( $value !== $old_value ) {
 					if ( !$value ) {
-						self::flush_rewrite_rules();
+						self::flush_rewrite_rules(); // does not work well...
 					} else {
 						self::installed_level();
 					}
