@@ -278,6 +278,9 @@ class WP_Domain_Work {
 This is awesome plugin!
 EOF;
 
+		/**
+		 * Page: WP Domain Work Settings
+		 */
 		$_PAGE
 		-> init( 'wp-domain-work', 'WP Domain Work Settings', 'WP Domain Work' )
 			-> description( $top_page_desc )
@@ -292,13 +295,14 @@ EOF;
 		} else {
 			$_PAGE
 					-> description( 'ドメインディレクトリーは有効です' )
-			;
-		}
-		$_PAGE
 				-> field( 'force-directories-search' )
 				-> option_name( $this -> get_option_key( 'force_dir_scan' ), 'checkbox' )
-		;
+			;
+		}
 
+		/**
+		 * Subpage: Your Domains
+		 */
 		if ( $this -> get_option( 'use_domains' ) ) {
 			$_PAGE
 			-> init( 'wp-domains', 'Your Domains' )
