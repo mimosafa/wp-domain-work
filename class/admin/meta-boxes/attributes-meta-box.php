@@ -12,7 +12,8 @@ class attributes_meta_box {
 		//
 	}
 
-	public static function set( $property ) {
+	public static function set( $attr, $property ) {
+		_var_dump( $attr );
 		_var_dump( $property );
 	}
 

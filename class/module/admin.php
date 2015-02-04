@@ -51,15 +51,33 @@ trait admin {
 	private static $nonce = null;
 
 	/**
+	 * @var array
+	 */
+	private static $post_attrs = [ 'post_parent', 'menu_order' ];
+
+	/**
 	 * constructor
 	 *
 	 * @access public
 	 */
 	public function __construct() {
 		$this->_domain_settings();
+		$this->init();
+	}
 
+	private function init() {
+		if ( ! $props =& $this->_get_properties() ) {
+			return;
+		}
 		if ( 'post_type' === $this->registered ) {
-			$this->init_post_type();
+			if ( isset( $this->meta_boxes ) && $this->meta_boxes ) {
+				foreach ( $this->meta_boxes as $arg ) {
+					if ( is_string( $arg ) && in_array( $arg, self::$post_attrs ) && $prop = $props->$arg ) {
+						\admin\meta_boxes\attributes_meta_box::set( $arg, $prop );
+					}
+				}
+			}
+			# $this->init_post_type();
 		}
 	}
 
@@ -75,14 +93,12 @@ trait admin {
 		 * @uses \utility\getObjectNamespace
 		 */
 		$this->domain = \utility\getObjectNamespace( $this );
-
 		/**
 		 * Get domain's setting stored in option table
 		 *
 		 * @var array
 		 */
 		$setting = \WP_Domain_Work::get_domains()[$this->domain];
-
 		/**
 		 * Identify 'post_type' or 'taxonomy'
 		 */
@@ -94,7 +110,6 @@ trait admin {
 				$this->registered = 'taxonomy';
 				break;
 		}
-
 		/**
 		 * Confirm registered name
 		 */
@@ -103,6 +118,20 @@ trait admin {
 		} else {
 			$this->registeredName = $this->domain;
 		}
+	}
+
+	/**
+	 * @return boolean
+	 */
+	private function &_get_properties() {
+		if ( ! self::$properties ) {
+			$className = sprintf( '\\%s\\properties', $this->domain );
+			if ( ! class_exists( $className ) ) {
+				return false;
+			}
+			self::$properties = new $className();
+		}
+		return self::$properties;
 	}
 
 	private function init_post_type() {

@@ -75,7 +75,7 @@ trait properties {
 	/**
 	 * Overloading method, '__isset'
 	 * Check property definition, and set property instance, if defined.
-	 * e.g. isset( $this -> var )
+	 * e.g. isset( $this->var )
 	 *
 	 * @access public
 	 *
@@ -95,6 +95,7 @@ trait properties {
 
 		if ( in_array( $var, [ 'post_parent', 'menu_order' ] ) ) {
 			$instance = new \stdClass();
+			_var_dump( $this->_post );
 			$instance->$var = $this->_post->$var;
 			foreach ( $propSetting as $key => $val ) {
 				$instance->$key = $val;
@@ -121,20 +122,20 @@ trait properties {
 				self::$models['posts'] = new \wordpress\model\posts();
 			}
 			$model =& self::$models['posts'];
-			$queryArgs = $instance -> getQueryArgs();
+			$queryArgs = $instance->getQueryArgs();
 
-			$instance -> value = $model -> get( $queryArgs );
+			$instance->value = $model->get( $queryArgs );
 
-			$this -> _data[$var] = $instance;
+			$this->_data[$var] = $instance;
 
 		} else if ( 'post_parent' === $propSetting['type'] ) {
 
 			$instance = new \property\post_parent( $var, $propSetting );
 
-			$parent_id = $this -> _post -> post_parent;
-			$instance -> value = $parent_id ? intval( $parent_id ) : null;
+			$parent_id = $this->_post->post_parent;
+			$instance->value = $parent_id ? intval( $parent_id ) : null;
 
-			$this -> _data[$var] = $instance;
+			$this->_data[$var] = $instance;
 
 		} else if ( 'group' === $propSetting['type'] ) {
 
@@ -147,16 +148,16 @@ trait properties {
 			$instance = new \property\group( $var, $propSetting );
 
 			foreach ( $propSetting['elements'] as $element ) {
-				if ( $elementData = $this -> $element ) {
-					$instance -> set_element( $element, $elementData );
+				if ( $elementData = $this->$element ) {
+					$instance->set_element( $element, $elementData );
 				}
 			}
 
-			if ( empty( $instance -> properties ) ) {
+			if ( empty( $instance->properties ) ) {
 				return false;
 			}
 
-			$this -> _data[$var] = $instance;
+			$this->_data[$var] = $instance;
 
 		}
 
@@ -173,7 +174,7 @@ trait properties {
 	 * @return null|object
 	 */
 	public function __get( $var ) {
-		return isset( $this -> $var ) ? $this -> _data[$var] : null;
+		return isset( $this->$var ) ? $this->_data[$var] : null;
 	}
 
 	/**
@@ -186,66 +187,37 @@ trait properties {
 	 * @param mixed $value (required) new value. if null value, delete property's value.
 	 */
 	public function __set( $name, $value ) {
-
-		/**
-		 * Check capability
-		 */
-		if ( !current_user_can( 'edit_post', $this -> _post -> ID ) ) {
-			return;
-		}
-
-		/**
-		 * Get property instance
-		 */
-		$property = $this -> $name;
-
-		if ( is_null( $property ) ) {
+		if ( ! $property = $this->$name  ) {
 			return;
 		}
 
 		$type = \utility\getEndOfClassname( $property );
 
 		if ( 'group' === $type ) {
-
 			if ( !is_array( $value ) ) {
 				return;
 			}
-
-			$elements = array_keys( $property -> properties );
+			$elements = array_keys( $property->properties );
 			foreach ( $elements as $element ) {
-				$newValue = array_key_exists( $element, $value )
-					? $value[$element]
-					: ''
-				;
-				$this -> $element = $newValue;
+				$newValue = array_key_exists( $element, $value ) ? $value[$element] : '';
+				$this->$element = $newValue;
 			}
-
 		} else if ( 'post_children' === $type ) {
 
 			//
 
 		} else {
-
-			$modelStr = $property -> getModel();
-			$model =& self::$models[$modelStr];
-
-			$newValue = $property -> filter( $value );
-
+			$modelName = $property->getModel();
+			$model =& $this->get_mode( $modelName );
+			$newValue = $property->filter( $value );
 			if ( null === $newValue ) {
-
-				unset( $model -> $name );
-
-			} else if ( $newValue !== $property -> value ) {
-
-				$model -> $name = $newValue;
-				unset( $this -> _data[$name] );
-
+				unset( $model->$name );
+			} else if ( $newValue !== $property->value ) {
+				$model->$name = $newValue;
+				unset( $this->_data[$name] );
 			}
-
 		}
-
 		return isset( $name );
-
 	}
 
 	/**

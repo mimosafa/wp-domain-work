@@ -189,7 +189,7 @@ class metadata {
 		if ( $single === false && count( $value ) === 1 && $value === array_values( $value ) ) {
 			return $value[0];
 		}
-		return $value;
+		return $value ? $value : false;
 		# return get_metadata( $this -> meta_type, $this -> object_id, $meta_key, $single );
 	}
 
