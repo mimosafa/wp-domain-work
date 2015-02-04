@@ -419,7 +419,7 @@ class Domains {
 			foreach ( $somePath as $path ) {
 				$path = self::add_path_prefix( $path );
 				if ( is_readable( $path ) ) {
-					\ClassLoader::register( $domain, $path, \ClassLoader::UNDERBAR_AS_HYPHEN );
+					\ClassLoader::register( $domain, $path, \ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN );
 				} else {
 					new self( true );
 					add_action( 'admin_init', function() {

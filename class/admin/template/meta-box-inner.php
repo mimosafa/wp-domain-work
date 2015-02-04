@@ -1,6 +1,6 @@
 <?php
 
-namespace wordpress\admin;
+namespace admin\template;
 
 /**
  * @uses \wordpress\admin\nonce (*important)
@@ -22,7 +22,7 @@ class meta_box_inner {
 	/**
 	 * @var string
 	 */
-	private $_form_id_prefix = 'wp-dct-custom-form-';
+	private $_form_id_prefix = 'wp-domain-work-custom-form-';
 
 	/**
 	 * @var object \admin\nonce
@@ -39,45 +39,36 @@ class meta_box_inner {
 	 */
 	public function __construct( $post_type ) {
 		if ( !post_type_exists( $post_type ) ) {
-			return false; // throw error
+			return false;
 		}
-		$this -> post_type = $post_type;
-
-		self::$_post_new = ( 'add' === get_current_screen() -> action )
-			? true
-			: false
-		;
+		$this->post_type = $post_type;
+		self::$_post_new = get_current_screen()->action === 'add' ? true : false;
 
 		self::$nonceInstance = new nonce( $post_type );
-
 		/**
 		 * DOM creater from php array (, and json).
 		 */
-		#require_once TEMPLATEPATH . '/lib/mimosafa/Decoder.php';
 		self::$decoder = new \mimosafa\Decoder();
 
-		$this -> form_style();
+		$this->form_style();
 	}
 
 	/**
 	 *
 	 */
 	public function init( $post, $metabox ) {
-
 		$instance = $metabox['args']['instance']; // object \property\(property type)
 		$args = $instance -> getArray();
 		$dom_array = $this -> generate_dom_array( $args );
-		#var_dump( $dom_array ); return;
 
 		if ( empty( $dom_array ) ) {
 			return;
 		}
 
 		$html  = self::$decoder -> getArrayToHtmlString( $dom_array );
-		$html .= self::$nonceInstance -> nonce_field( $instance -> name );
+		$html .= self::$nonceInstance -> nonce_field( $instance->name );
 
 		echo $html;
-
 	}
 
 	/**
@@ -159,62 +150,6 @@ class meta_box_inner {
 			}
 
 			$wrapper = [];
-
-		} else if ( $type === 'post' ) {
-
-			$dom['element'] = 'select';
-			$attr['id'] = esc_attr( $id );
-			$attr['name'] = esc_attr( $name );
-			/*
-			if ( $required ) {
-				$attr['required'] = 'required';
-			}
-
-			if ( $readonly ) {
-				$attr['style'] = 'background-color:#eee;';
-			}
-
-			$dom['children'] = [];
-			if ( !$required ) {
-				$dom['children'][] = [
-					'element' => 'option',
-					'text' => '-',
-					'attribute' => [
-						'value' => '',
-					],
-				];
-			}
-			*/
-			$_query_args = [];
-			if ( array_key_exists( 'post_type', $args ) ) {
-				$_query_args['post_type'] = array( $args['post_type'] );
-			}
-			$posts = get_posts( $_query_args );
-
-			foreach ( $posts as $post ) {
-				$child = [
-					'element' => 'option',
-					'attribute' => [
-						'value' => $post->ID,
-					],
-					'text' => get_the_title( $post ),
-				];
-				/*
-				if ( array_key_exists( 'value', $args ) ) {
-					if ( $key == $args['value'] ) {
-						$child['attribute']['selected'] = 'selected';
-					} else if ( $readonly ) {
-						$child['attribute']['disabled'] = 'disabled';
-					}
-				}
-				*/
-				$dom['children'][] = $child;
-
-				$return[] = [
-					'element' => 'p',
-					'children' => [ $dom ],
-				];
-			}
 
 		} else if ( 'post_children' === $type ) {
 
@@ -530,7 +465,7 @@ class meta_box_inner {
 	 */
 	private function form_style() {
 		add_action( 'admin_head', function() {
-			$id_prefix = $this -> _form_id_prefix;
+			$id_prefix = $this->_form_id_prefix;
 			echo <<<EOF
 <style>
 [id^="{$id_prefix}"] {

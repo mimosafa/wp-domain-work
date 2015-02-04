@@ -56,10 +56,10 @@ trait admin {
 	 * @access public
 	 */
 	public function __construct() {
-		$this -> _domain_settings();
+		$this->_domain_settings();
 
-		if ( 'post_type' === $this -> registered ) {
-			$this -> init_post_type();
+		if ( 'post_type' === $this->registered ) {
+			$this->init_post_type();
 		}
 	}
 
@@ -74,34 +74,34 @@ trait admin {
 		 *
 		 * @uses \utility\getObjectNamespace
 		 */
-		$this -> domain = \utility\getObjectNamespace( $this );
+		$this->domain = \utility\getObjectNamespace( $this );
 
 		/**
 		 * Get domain's setting stored in option table
 		 *
 		 * @var array
 		 */
-		$setting = \WP_Domain_Work::get_domains()[$this -> domain];
+		$setting = \WP_Domain_Work::get_domains()[$this->domain];
 
 		/**
 		 * Identify 'post_type' or 'taxonomy'
 		 */
 		switch ( $setting['register'] ) {
 			case 'Custom Post Type' :
-				$this -> registered = 'post_type';
+				$this->registered = 'post_type';
 				break;
 			case 'Custom Taxonomy' :
-				$this -> registered = 'taxonomy';
+				$this->registered = 'taxonomy';
 				break;
 		}
 
 		/**
 		 * Confirm registered name
 		 */
-		if ( array_key_exists( $this -> registered, $setting ) ) {
-			$this -> registeredName = $setting[$this -> registered];
+		if ( array_key_exists( $this->registered, $setting ) ) {
+			$this->registeredName = $setting[$this->registered];
 		} else {
-			$this -> registeredName = $this -> domain;
+			$this->registeredName = $this->domain;
 		}
 	}
 
@@ -110,7 +110,7 @@ trait admin {
 		/**
 		 * Post type meta boxes
 		 */
-		if ( isset( $this -> meta_boxes ) && !empty( $this -> meta_boxes ) ) {
+		if ( isset( $this->meta_boxes ) && ! empty( $this->meta_boxes ) ) {
 			/**
 			 * Add meta boxes
 			 */
@@ -119,7 +119,7 @@ trait admin {
 			/**
 			 * Save post
 			 */
-			new \wordpress\admin\save_post( $this -> registeredName );
+			new \wordpress\admin\save_post( $this->registeredName );
 		}
 
 		/**
@@ -130,9 +130,9 @@ trait admin {
 			&& ( $parent = get_post( $_GET['post_parent'] ) )
 			&& current_user_can( 'edit_post', $parent )
 		) {
-			$this -> postParent = (int) $_GET['post_parent'];
+			$this->postParent = (int) $_GET['post_parent'];
 			if ( null === self::$nonce ) {
-				self::$nonce = new \wordpress\admin\nonce( $this -> domain );
+				self::$nonce = new \wordpress\admin\nonce( $this->domain );
 			}
 			add_action( 'edit_form_after_title', [ $this, 'view_post_parent' ] );
 			add_filter( 'wp_insert_post_parent', [ $this, 'insert_post_parent' ], 10, 2 );
@@ -148,19 +148,24 @@ trait admin {
 		/**
 		 * @uses \module\admin::_properties()
 		 */
-		if ( !$this -> _properties() ) {
+		if ( ! $this->_properties() ) {
 			return;
 		}
 
-		foreach ( $this -> meta_boxes as $arg ) {
-
-			if ( !array_key_exists( 'property', $arg ) ) {
+		foreach ( $this->meta_boxes as $arg ) {
+			if ( is_string( $arg ) ) {
+				if ( in_array( $arg, [ 'post_parent', 'menu_order' ] ) && $property = self::$properties->$arg ) {
+					\admin\meta_boxes\attributes_meta_box::set( $property );
+					continue;
+				}
 				continue;
 			}
 
+			if ( ! array_key_exists( 'property', $arg ) ) {
+				continue;
+			}
 			$propertyName = $arg['property'];
-
-			if ( !$property = self::$properties -> $propertyName ) {
+			if ( ! $property = self::$properties->$propertyName ) {
 				continue;
 			}
 
@@ -168,9 +173,9 @@ trait admin {
 			 * Set arguments of function 'add_meta_box'
 			 */
 			
-			$id = esc_attr( $this -> _box_id_prefix . $this -> domain . '-' . $propertyName );
+			$id = esc_attr( $this->_box_id_prefix . $this->domain . '-' . $propertyName );
 
-			$title = esc_html( $property -> label );
+			$title = esc_html( $property->label );
 
 			// callback
 			if ( array_key_exists( 'callback', $arg ) && is_callable( $arg['callback'] ) ) {
@@ -180,12 +185,12 @@ trait admin {
 				 * get \wprdpress\admin\meta_box_inner instance
 				 */
 				if ( null === self::$metaBoxInner ) {
-					self::$metaBoxInner = new \wordpress\admin\meta_box_inner( $this -> registeredName );
+					self::$metaBoxInner = new \wordpress\admin\meta_box_inner( $this->registeredName );
 				}
 				$callback = [ self::$metaBoxInner, 'init' ];
 			}
 
-			$post_type = $this -> registeredName;
+			$post_type = $this->registeredName;
 
 			static $_contexts = [ 'normal', 'advanced', 'side' ];
 			$context = array_key_exists( 'context', $arg ) && in_array( $arg['context'], $_contexts )
@@ -221,15 +226,15 @@ trait admin {
 		if ( 'post-new.php' !== $pagenow ) {
 			return;
 		}
-		$parent = get_post( $this -> postParent );
-		$parentType = get_post_type_object( $parent -> post_type ) -> label;
+		$parent = get_post( $this->postParent );
+		$parentType = get_post_type_object( $parent->post_type )->label;
 		$ttl = get_the_title( $parent );
 		$editLink = get_edit_post_link( $parent );
 		?>
 <div class="inside">
 <p>Post as child post. Parent is <strong><?= sprintf( '<a href="%s">%s</a>', $editLink, $ttl ) ?></strong> ( <?= esc_html( $parentType ) ?> )</p>
-<input type="hidden" name="post_parent" value="<?= $parent -> ID ?>" />
-<?= self::$nonce -> nonce_field( 'post_parent' ) ?>
+<input type="hidden" name="post_parent" value="<?= $parent->ID ?>" />
+<?= self::$nonce->nonce_field( 'post_parent' ) ?>
 </div>
 		<?php
 	}
@@ -244,10 +249,10 @@ trait admin {
 	 * @return int
 	 */
 	public function insert_post_parent( $post_parent, $post_ID ) {
-		if ( !array_key_exists( 'post_parent', $_POST ) || ( !$parent_id = absint( $_POST['post_parent'] ) ) ) {
+		if ( ! array_key_exists( 'post_parent', $_POST ) || ( ! $parent_id = absint( $_POST['post_parent'] ) ) ) {
 			return $post_parent;
 		}
-		if ( !self::$nonce -> check_admin_referer( 'post_parent' ) ) {
+		if ( ! self::$nonce->check_admin_referer( 'post_parent' ) ) {
 			return $post_parent;
 		}
 		return $parent_id;
@@ -264,7 +269,7 @@ trait admin {
 		if ( null !== self::$properties ) {
 			return true;
 		}
-		$className = '\\' . $this -> domain . '\\properties';
+		$className = '\\' . $this->domain . '\\properties';
 		if ( class_exists( $className ) ) {
 			self::$properties = new $className();
 			return true;

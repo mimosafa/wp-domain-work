@@ -16,19 +16,23 @@ class ClassLoader {
 	 * 1. FILENAME_STRTOLOWER
 	 *    - Class name string to lower case for file name
 	 *    - ex: 'Model_Class' -> 'model_class.php'
-	 * 2. UNDERBAR_AS_HYPHEN
+	 * 2. FILENAME_UNDERBAR_AS_HYPHEN
 	 *    - '_' in class name replace to '-'
 	 *    - ex: 'Model_Class' -> 'Model-Class.php'
-	 * 4. UNDERBAR_AS_DIR_SEP
+	 * 4. FILENAME_UNDERBAR_AS_DIR_SEP
 	 *    - '_' in class name replace to '/' for directory separator
 	 *    - ex: 'Model_Class' -> 'Model/Class.php'
+	 * 8. NAMESPACE_UNDERBAR_AS_DIR_SEP
+	 *    - '_' in namespace replace to '-' for directory separator
+	 *    - ex: 'Name_Space\Model_Class' -> 'Name-Space/Model_Class.php'
 	 *
 	 * (Bitwise operation use as $flag
 	 *  -> http://qiita.com/mpyw/items/ce626976ec4dc07dfec2#1-2)
 	 */
 	const FILENAME_STRTOLOWER = 1;
-	const UNDERBAR_AS_HYPHEN  = 2;
-	const UNDERBAR_AS_DIR_SEP = 4;
+	const FILENAME_UNDERBAR_AS_HYPHEN  = 2;
+	const FILENAME_UNDERBAR_AS_DIR_SEP = 4;
+	const NAMESPACE_UNDERBAR_AS_HYPHEN = 8;
 
 	/**
 	 * Supplied flag
@@ -68,14 +72,14 @@ class ClassLoader {
 	 * @return (void)
 	 */
 	private function __construct( $ns, $path, $flag = null ) {
-		$this -> _namespace = $ns;
-		$this -> _includePath = realpath( $path );
+		$this->_namespace = $ns;
+		$this->_includePath = realpath( $path );
 
 		/**
 		 *
 		 */
 		if ( $flag && is_int( $flag ) ) {
-			$this -> flag = $flag;
+			$this->flag = $flag;
 		}
 	}
 
@@ -99,10 +103,10 @@ class ClassLoader {
 	 * @param  string $className
 	 */
 	public function loadClass( $className ) {
-		$sep = $this -> _namespace_separator;
+		$sep = $this->_namespace_separator;
 		if (
-			null === $this -> _namespace
-			|| $this -> _namespace . $sep === substr( $className, 0, strlen( $this -> _namespace . $sep ) )
+			null === $this->_namespace
+			|| $this->_namespace . $sep === substr( $className, 0, strlen( $this->_namespace . $sep ) )
 		) {
 			$fileName = '';
 			$namespace = '';
@@ -110,22 +114,26 @@ class ClassLoader {
 				$namespace = substr( $className, 0, $lastNsPos );
 				$className = substr( $className, $lastNsPos + 1 );
 
+				if ( self::NAMESPACE_UNDERBAR_AS_HYPHEN & $this->flag ) {
+					$namespace = str_replace( '_', '-', $namespace );
+				}
+
 				$fileName = str_replace( $sep, '/', $namespace ) . '/';
 			}
 
 			/**
 			 * Analys flag 'FILENAME_STRTOLOWER'
 			 */
-			if ( self::FILENAME_STRTOLOWER & $this -> flag ) {
+			if ( self::FILENAME_STRTOLOWER & $this->flag ) {
 				$className = strtolower( $className );
 			}
 
 			/**
-			 * Analys flag 'UNDERBAR_AS_HYPHEN' or 'UNDERBAR_AS_DIR_SEP'
+			 * Analys flag 'FILENAME_UNDERBAR_AS_HYPHEN' or 'FILENAME_UNDERBAR_AS_DIR_SEP'
 			 */
-			if ( self::UNDERBAR_AS_HYPHEN & $this -> flag ) {
+			if ( self::FILENAME_UNDERBAR_AS_HYPHEN & $this->flag ) {
 				$replace = '-';
-			} else if ( self::UNDERBAR_AS_DIR_SEP & $this -> flag ) {
+			} else if ( self::FILENAME_UNDERBAR_AS_DIR_SEP & $this->flag ) {
 				$replace = '/';
 			}
 
@@ -135,7 +143,7 @@ class ClassLoader {
 				$fileName .= $className;
 			}
 			$fileName .= '.php';
-			$filePath = $this -> _includePath . '/' . $fileName;
+			$filePath = $this->_includePath . '/' . $fileName;
 
 			if ( file_exists( $filePath ) ) {
 				require $filePath;

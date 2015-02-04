@@ -185,7 +185,12 @@ class metadata {
 	 * @see http://codex.wordpress.org/Function_Reference/get_metadata
 	 */
 	public function get( $meta_key, $single = false ) {
-		return get_metadata( $this -> meta_type, $this -> object_id, $meta_key, $single );
+		$value = get_metadata( $this -> meta_type, $this -> object_id, $meta_key, $single );
+		if ( $single === false && count( $value ) === 1 && $value === array_values( $value ) ) {
+			return $value[0];
+		}
+		return $value;
+		# return get_metadata( $this -> meta_type, $this -> object_id, $meta_key, $single );
 	}
 
 }

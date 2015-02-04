@@ -2,31 +2,22 @@
 
 namespace property;
 
-/**
- *
- */
-class string extends single {
-
-	private $_multi_byte = false;
-
-	protected function construct( $arg ) {
-
-		if ( array_key_exists( 'multibyte', $arg ) && true === $arg['multibyte'] ) {
-			$this -> _multi_byte = true;
-		}
-
-		return true;
-
-	}
+class string extends basic {
 
 	/**
-	 *
+	 * @var  bool
+	 * @todo 
 	 */
+	protected $_multi_byte = false;
+
+	public function __construct( $var, Array $arg ) {
+		if ( !parent::__construct( $var, $arg ) ) {
+			return false;
+		}
+	}
+
 	public function filter( $value ) {
-
 		return $value;
-
-		// throw error
 	}
 
 }

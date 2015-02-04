@@ -23,9 +23,20 @@ trait properties {
 	/**
 	 * @var array \wordpress\model\~ instance
 	 */
-	private static $models = [
-		'metadata' => null,
-		'posts'    => null,
+	private static $models = [];
+
+	/**
+	 *
+	 */
+	private static $defaultPropSettings = [
+		'metadata' => [
+			'type'       => 'string',
+			'multi_byte' => true,
+		],
+		'post_parent' => [
+			'model' => 'post_parent',
+			'type'  => 'post',
+		],
 	];
 
 	/**
@@ -37,10 +48,10 @@ trait properties {
 	 * @return (void)
 	 */
 	public function __construct( $post = 0 ) {
-		if ( !$post = get_post( $post ) ) {
+		if ( ! $post = get_post( $post ) ) {
 			return null;
 		}
-		$this -> _post = $post;
+		$this->_post = $post;
 	}
 
 	/**
@@ -52,19 +63,13 @@ trait properties {
 	 * @return array
 	 */
 	public function get_property_setting( $prop = null ) {
-		if ( !isset( $this -> properties ) ) {
+		if ( ! isset( $this->properties ) || ! is_array( $this->properties ) || ! $this->properties ) {
 			return null;
 		}
 		if ( null === $prop ) {
-			/**
-			 * All properties setting
-			 */
-			return $this -> properties;
+			return $this->properties;
 		}
-		return is_string( $prop ) && array_key_exists( $prop, $this -> properties )
-			? $this -> properties[$prop]
-			: null
-		;
+		return array_key_exists( $prop, $this->properties ) ? $this->properties[$prop] : null;
 	}
 
 	/**
@@ -80,67 +85,34 @@ trait properties {
 	 * @return bool
 	 */
 	public function __isset( $var ) {
-
-		/**
-		 * If already set, return true
-		 */
-		if ( isset( $this -> _data[$var] ) ) {
+		if ( array_key_exists( $var, $this->_data ) ) {
 			return true;
 		}
-
-		/**
-		 * Get property setting, if not exist, return false
-		 */
-		if ( !$propSetting = $this -> get_property_setting( $var ) ) {
-			return false; // throw error: not exist
+		if ( ! $propSetting = $this->get_property_setting( $var ) ) {
+			return false;
 		}
+		// insert conditional logic here ?
 
-		if ( !array_key_exists( 'type', $propSetting ) ) {
-			return false; // invalid setting
-		}
-
-		/**
-		 * TASK: insert conditional logic here
-		 */
-
-		/**
-		 * Set property instance
-		 */
-		if ( array_key_exists( 'model', $propSetting ) ) {
-
-			/**
-			 * Set model instance
-			 */
-			$propModel = $propSetting['model'];
-			if ( !array_key_exists( $propModel, self::$models ) ) {
+		if ( in_array( $var, [ 'post_parent', 'menu_order' ] ) ) {
+			$instance = new \stdClass();
+			$instance->$var = $this->_post->$var;
+			foreach ( $propSetting as $key => $val ) {
+				$instance->$key = $val;
+			}
+			$this->_data[$var] = $instance;
+		} else if ( array_key_exists( 'model', $propSetting ) ) {
+			$modelName = $propSetting['model'];
+			if ( ! $_Model =& $this->_get_model( $modelName ) ) {
 				return false;
 			}
-
-			if ( null === self::$models[$propModel] ) {
-				$modelClass = '\\wordpress\\model\\' . $propModel;
-				self::$models[$propModel] = new $modelClass( $this -> _post );
-			}
-			$model =& self::$models[$propModel];
-
-			/**
-			 * Get property type instance
-			 */
+			$propSetting = array_merge( self::$defaultPropSettings[$modelName], $propSetting );
 			$typeClass = '\\property\\' . $propSetting['type'];
 			if ( !class_exists( $typeClass ) ) {
 				return false;
 			}
 			$instance = new $typeClass( $var, $propSetting );
-
-			/**
-			 * Set value (get by model instance) to type instance
-			 */
-			$instance -> val( $model -> $var );
-
-			/**
-			 * Set $var to self::$_data
-			 */
-			$this -> _data[$var] = $instance;
-
+			$instance->val( $_Model->get( $var ) );
+			$this->_data[$var] = $instance;
 		} else if ( 'post_children' === $propSetting['type'] ) {
 
 			$instance = new \property\post_children( $var, $propSetting );
@@ -188,8 +160,7 @@ trait properties {
 
 		}
 
-		return array_key_exists( $var, $this -> _data );
-
+		return array_key_exists( $var, $this->_data );
 	}
 
 	/**
@@ -275,6 +246,24 @@ trait properties {
 
 		return isset( $name );
 
+	}
+
+	/**
+	 * @access private
+	 * 
+	 * @param  string $modelName
+	 * @return reference
+	 */
+	private function &_get_model( $modelName ) {
+		if ( array_key_exists( $modelName, self::$models ) ) {
+			return self::$models[$modelName];
+		}
+		$modelClass = "\\wordpress\\model\\{$modelName}";
+		if ( ! class_exists( $modelClass ) ) {
+			return false;
+		}
+		self::$models[$modelName] = new $modelClass( $this->_post );
+		return self::$models[$modelName];
 	}
 
 }

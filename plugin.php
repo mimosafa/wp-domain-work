@@ -91,12 +91,12 @@ require_once dirname( __FILE__ ) . '/lib/ClassLoader.php';
 /**
  * Register classloader
  */
-ClassLoader::register( null, dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_STRTOLOWER | ClassLoader::UNDERBAR_AS_HYPHEN );
+ClassLoader::register( null, dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_STRTOLOWER | ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN );
 ClassLoader::register( 'service',   dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_STRTOLOWER );
-ClassLoader::register( 'admin',     dirname( __FILE__ ) . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
-ClassLoader::register( 'module',    dirname( __FILE__ ) . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
-ClassLoader::register( 'property',  dirname( __FILE__ ) . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
-ClassLoader::register( 'wordpress', dirname( __FILE__ ) . '/class', ClassLoader::UNDERBAR_AS_HYPHEN );
+ClassLoader::register( 'admin',     dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN | ClassLoader::NAMESPACE_UNDERBAR_AS_HYPHEN );
+ClassLoader::register( 'module',    dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN );
+ClassLoader::register( 'property',  dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN );
+ClassLoader::register( 'wordpress', dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN );
 ClassLoader::register( 'mimosafa',  dirname( __FILE__ ) . '/lib' );
 
 /**
