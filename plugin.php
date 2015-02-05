@@ -82,6 +82,7 @@ if ( !requirement_wp_domain_work_plugin() ) {
  * Include utility file
  */
 require_once dirname( __FILE__ ) . '/inc/utility.php';
+require_once dirname( __FILE__ ) . '/inc/wputil.php';
 
 /**
  * include classloader file

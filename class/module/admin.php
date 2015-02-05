@@ -51,33 +51,65 @@ trait admin {
 	private static $nonce = null;
 
 	/**
-	 * @var array
-	 */
-	private static $post_attrs = [ 'post_parent', 'menu_order' ];
-
-	/**
 	 * constructor
 	 *
 	 * @access public
 	 */
 	public function __construct() {
 		$this->_domain_settings();
-		$this->init();
+		# add_action( 'wp', [ $this, 'init' ] );
+		add_action( 'add_meta_boxes', [ $this, 'init' ] );
 	}
 
-	private function init() {
+	public function init() {
 		if ( ! $props =& $this->_get_properties() ) {
 			return;
 		}
 		if ( 'post_type' === $this->registered ) {
-			if ( isset( $this->meta_boxes ) && $this->meta_boxes ) {
+			if ( doing_action( 'add_meta_boxes' ) && isset( $this->meta_boxes ) && $this->meta_boxes ) {
 				foreach ( $this->meta_boxes as $arg ) {
-					if ( is_string( $arg ) && in_array( $arg, self::$post_attrs ) && $prop = $props->$arg ) {
-						\admin\meta_boxes\attributes_meta_box::set( $arg, $prop );
+					if ( is_string( $arg ) && in_array( $arg, [ 'post_parent', 'menu_order' ] ) && $prop = $props->$arg ) {
+						\admin\meta_boxes\attributes_meta_box::set( $arg, $prop->getArray() );
+					} else if ( is_array( $arg ) ) {
+						if ( ! array_key_exists( 'property', $arg ) ) {
+							continue;
+						}
+						$propName = $arg['property'];
+						if ( ! $prop = $props->$propName ) {
+							continue;
+						}
+						$id = esc_attr( $this->_box_id_prefix . $this->domain . '-' . $propName );
+						$title = esc_html( $prop->label );
+						if ( array_key_exists( 'callback', $arg ) && is_callable( $arg['callback'] ) ) {
+							$callback = $arg['callback'];
+						} else {
+							if ( null === self::$metaBoxInner ) {
+								self::$metaBoxInner = new \wordpress\admin\meta_box_inner( $this->registeredName );
+							}
+							$callback = [ self::$metaBoxInner, 'init' ];
+						}
+						$post_type = $this->registeredName;
+						static $_contexts = [ 'normal', 'advanced', 'side' ];
+						$context = array_key_exists( 'context', $arg ) && in_array( $arg['context'], $_contexts )
+							? $arg['context']
+							: 'advanced'
+						;
+						static $_priorities = [ 'high', 'core', 'default', 'low' ];
+						$priority = array_key_exists( 'priority', $arg ) && in_array( $arg['priority'], $_priorities )
+							? $arg['priority']
+							: 'default'
+						;
+						$callback_args = [ 'instance' => $prop ];
+
+						$meta_box = compact(
+							'id', 'title', 'callback', 'post_type',
+							'context', 'priority', 'callback_args'
+						);
+						call_user_func_array( 'add_meta_box', $meta_box );
 					}
 				}
+				new \wordpress\admin\save_post( $this->registeredName );
 			}
-			# $this->init_post_type();
 		}
 	}
 
@@ -93,15 +125,15 @@ trait admin {
 		 * @uses \utility\getObjectNamespace
 		 */
 		$this->domain = \utility\getObjectNamespace( $this );
+
 		/**
 		 * Get domain's setting stored in option table
 		 *
 		 * @var array
 		 */
 		$setting = \WP_Domain_Work::get_domains()[$this->domain];
-		/**
-		 * Identify 'post_type' or 'taxonomy'
-		 */
+
+		// Identify 'post_type' or 'taxonomy'
 		switch ( $setting['register'] ) {
 			case 'Custom Post Type' :
 				$this->registered = 'post_type';
@@ -110,9 +142,8 @@ trait admin {
 				$this->registered = 'taxonomy';
 				break;
 		}
-		/**
-		 * Confirm registered name
-		 */
+
+		// Confirm registered name
 		if ( array_key_exists( $this->registered, $setting ) ) {
 			$this->registeredName = $setting[$this->registered];
 		} else {
@@ -135,25 +166,7 @@ trait admin {
 	}
 
 	private function init_post_type() {
-
-		/**
-		 * Post type meta boxes
-		 */
-		if ( isset( $this->meta_boxes ) && ! empty( $this->meta_boxes ) ) {
-			/**
-			 * Add meta boxes
-			 */
-			add_action( 'add_meta_boxes', [ $this, 'post_type_meta_boxes' ] );
-
-			/**
-			 * Save post
-			 */
-			new \wordpress\admin\save_post( $this->registeredName );
-		}
-
-		/**
-		 * Post new as child post
-		 */
+		// Post new as child post
 		if (
 			array_key_exists( 'post_parent', $_GET )
 			&& ( $parent = get_post( $_GET['post_parent'] ) )
@@ -165,83 +178,6 @@ trait admin {
 			}
 			add_action( 'edit_form_after_title', [ $this, 'view_post_parent' ] );
 			add_filter( 'wp_insert_post_parent', [ $this, 'insert_post_parent' ], 10, 2 );
-		}
-
-	}
-
-	/**
-	 *
-	 */
-	public function post_type_meta_boxes() {
-
-		/**
-		 * @uses \module\admin::_properties()
-		 */
-		if ( ! $this->_properties() ) {
-			return;
-		}
-
-		foreach ( $this->meta_boxes as $arg ) {
-			if ( is_string( $arg ) ) {
-				if ( in_array( $arg, [ 'post_parent', 'menu_order' ] ) && $property = self::$properties->$arg ) {
-					\admin\meta_boxes\attributes_meta_box::set( $property );
-					continue;
-				}
-				continue;
-			}
-
-			if ( ! array_key_exists( 'property', $arg ) ) {
-				continue;
-			}
-			$propertyName = $arg['property'];
-			if ( ! $property = self::$properties->$propertyName ) {
-				continue;
-			}
-
-			/**
-			 * Set arguments of function 'add_meta_box'
-			 */
-			
-			$id = esc_attr( $this->_box_id_prefix . $this->domain . '-' . $propertyName );
-
-			$title = esc_html( $property->label );
-
-			// callback
-			if ( array_key_exists( 'callback', $arg ) && is_callable( $arg['callback'] ) ) {
-				$callback = $arg['callback'];
-			} else {
-				/**
-				 * get \wprdpress\admin\meta_box_inner instance
-				 */
-				if ( null === self::$metaBoxInner ) {
-					self::$metaBoxInner = new \wordpress\admin\meta_box_inner( $this->registeredName );
-				}
-				$callback = [ self::$metaBoxInner, 'init' ];
-			}
-
-			$post_type = $this->registeredName;
-
-			static $_contexts = [ 'normal', 'advanced', 'side' ];
-			$context = array_key_exists( 'context', $arg ) && in_array( $arg['context'], $_contexts )
-				? $arg['context']
-				: 'advanced'
-			;
-
-			static $_priorities = [ 'high', 'core', 'default', 'low' ];
-			$priority = array_key_exists( 'priority', $arg ) && in_array( $arg['priority'], $_priorities )
-				? $arg['priority']
-				: 'default'
-			;
-
-			$callback_args = [ 'instance' => $property ];
-
-			$meta_box = compact(
-				'id', 'title', 'callback', 'post_type',
-				'context', 'priority', 'callback_args'
-			);
-
-			call_user_func_array( 'add_meta_box', $meta_box );
-
 		}
 	}
 
@@ -285,25 +221,6 @@ trait admin {
 			return $post_parent;
 		}
 		return $parent_id;
-	}
-
-	/**
-	 * Check domain's properties class (\(domain)\properties) exists
-	 * if class exists and instance yet, get instance
-	 *
-	 * @uses   \(domain)\properties
-	 * @return bool
-	 */
-	private function _properties() {
-		if ( null !== self::$properties ) {
-			return true;
-		}
-		$className = '\\' . $this->domain . '\\properties';
-		if ( class_exists( $className ) ) {
-			self::$properties = new $className();
-			return true;
-		}
-		return false;
 	}
 
 }

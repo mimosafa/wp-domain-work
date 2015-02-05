@@ -94,12 +94,11 @@ trait properties {
 		// insert conditional logic here ?
 
 		if ( in_array( $var, [ 'post_parent', 'menu_order' ] ) ) {
-			$instance = new \stdClass();
-			_var_dump( $this->_post );
-			$instance->$var = $this->_post->$var;
-			foreach ( $propSetting as $key => $val ) {
-				$instance->$key = $val;
+			$typeClass = "\\property\\{$var}";
+			if ( ! class_exists( $typeClass ) ) {
+				return false;
 			}
+			$instance = new $typeClass( $this->_post, (array) $propSetting ); // (array)... default で良い場合は 1 とか入れる場合もあるので。
 			$this->_data[$var] = $instance;
 		} else if ( array_key_exists( 'model', $propSetting ) ) {
 			$modelName = $propSetting['model'];

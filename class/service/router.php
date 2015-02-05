@@ -158,8 +158,10 @@ class Router {
 	 * Define 'namespace' & 'action hook' in admin
 	 */
 	private function adminDispatch() {
-		$string = !empty( $this -> _path ) ? $this -> _path[0]: 'index.php';
-		switch ( $string ) {
+		global $pagenow;
+		#$string = !empty( $this -> _path ) ? $this -> _path[0]: 'index.php';
+		#switch ( $string ) {
+		switch ( $pagenow ) {
 			// posts & post
 			case 'edit.php' :
 			case 'post-new.php' :
@@ -187,7 +189,8 @@ class Router {
 				break;
 		}
 		if ( '' === $this -> _hook ) {
-			$this -> _hook = 'load-' . $string;
+			#$this -> _hook = 'load-' . $string;
+			$this->_hook = "load-{$pagenow}";
 		}
 	}
 
@@ -198,8 +201,7 @@ class Router {
 		/**
 		 * Admin dashboard
 		 */
-		if ( true === $this -> _is_admin ) {
-
+		if ( true === $this->_is_admin ) {
 			/**
 			 * Initialize common admin setting. (autoload '\service\admin_init')
 			 */
@@ -208,14 +210,12 @@ class Router {
 			/**
 			 * Initialize admin setting, referenced by domain.
 			 */
-			add_action( $this -> _hook, [ $this, 'init_admin' ] );
-
+			add_action( $this->_hook, [ $this, 'init_admin' ] );
 		}
-
 		/**
 		 * Initialize services, referenced by domain.
 		 */
-		add_action( $this -> _hook, [ $this, 'init_services'] );
+		add_action( $this->_hook, [ $this, 'init_services'] );
 	}
 
 	/**

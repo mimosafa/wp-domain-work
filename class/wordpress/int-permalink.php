@@ -27,6 +27,7 @@ class int_permalink {
 	private function init() {
 		add_action( 'init', [ $this, 'set_rewrite' ], 11 );
 		add_filter( 'post_type_link', [ $this, 'set_permalink' ], 10, 2 );
+		add_action( 'add_meta_boxes', [ $this, 'remove_slugdiv'] );
 	}
 
 	/**
@@ -81,6 +82,14 @@ class int_permalink {
 			$url = home_url( user_trailingslashit( $_url ) );
 		}
 		return $url;
+	}
+
+	public function remove_slugdiv() {
+		if ( ! empty( self::$post_types ) ) {
+			foreach ( self::$post_types as $post_type ) {
+				remove_meta_box( 'slugdiv', $post_type, 'normal' );
+			}
+		}
 	}
 
 }
