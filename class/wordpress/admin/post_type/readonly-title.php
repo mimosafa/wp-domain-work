@@ -39,11 +39,11 @@ EOF;
 		add_action( 'admin_action_edit', function() {
 
 			$post_id = $_GET['post'];
-
+/*
 			if ( current_user_can( 'edit_others_posts', $post_id ) ) {
 				return;
 			}
-
+*/
 			/**
 			 * Return if auto-draft or no-title
 			 */

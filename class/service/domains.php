@@ -82,15 +82,15 @@ class Domains {
 	/**
 	 */
 	private static $property_data = [
-		'name'            => 'Name',
-		'plural_name'     => 'Plural Name',
-		'register'        => 'Register As',
-		'post_type'       => 'Post Type Name',
-		'taxonomy'        => 'Taxonomy Name',
-		'taxonomy_type'   => 'Taxonomy Type',
+		'name'              => 'Name',
+		'plural_name'       => 'Plural Name',
+		'register'          => 'Register As',
+		'post_type'         => 'Post Type Name',
+		'taxonomy'          => 'Taxonomy Name',
+		'taxonomy_type'     => 'Taxonomy Type',
 		'related_post_type' => 'Related Post Type',
-		'rewrite'         => 'Permalink Format',
-		'capability_type' => 'Capability Type',
+		'rewrite'           => 'Permalink Format',
+		'capability_type'   => 'Capability Type',
 	];
 
 	/**

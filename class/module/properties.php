@@ -39,6 +39,8 @@ trait properties {
 		],
 	];
 
+	private static $falseVal = false;
+
 	/**
 	 * Constructor
 	 *
@@ -91,14 +93,15 @@ trait properties {
 		if ( ! $propSetting = $this->get_property_setting( $var ) ) {
 			return false;
 		}
-		// insert conditional logic here ?
-
+		/**
+		 * property instance
+		 */
 		if ( in_array( $var, [ 'post_parent', 'menu_order' ] ) ) {
 			$typeClass = "\\property\\{$var}";
 			if ( ! class_exists( $typeClass ) ) {
 				return false;
 			}
-			$instance = new $typeClass( $this->_post, (array) $propSetting ); // (array)... default で良い場合は 1 とか入れる場合もあるので。
+			$instance = new $typeClass( $this->_post, (array) $propSetting ); // (array)... default で良い場合は 1 とか入れる場合もあるので
 			$this->_data[$var] = $instance;
 		} else if ( array_key_exists( 'model', $propSetting ) ) {
 			$modelName = $propSetting['model'];
@@ -124,15 +127,6 @@ trait properties {
 			$queryArgs = $instance->getQueryArgs();
 
 			$instance->value = $model->get( $queryArgs );
-
-			$this->_data[$var] = $instance;
-
-		} else if ( 'post_parent' === $propSetting['type'] ) {
-
-			$instance = new \property\post_parent( $var, $propSetting );
-
-			$parent_id = $this->_post->post_parent;
-			$instance->value = $parent_id ? intval( $parent_id ) : null;
 
 			$this->_data[$var] = $instance;
 
@@ -207,7 +201,7 @@ trait properties {
 
 		} else {
 			$modelName = $property->getModel();
-			$model =& $this->get_mode( $modelName );
+			$model =& $this->_get_model( $modelName );
 			$newValue = $property->filter( $value );
 			if ( null === $newValue ) {
 				unset( $model->$name );
@@ -231,7 +225,7 @@ trait properties {
 		}
 		$modelClass = "\\wordpress\\model\\{$modelName}";
 		if ( ! class_exists( $modelClass ) ) {
-			return false;
+			return self::$falseVal;
 		}
 		self::$models[$modelName] = new $modelClass( $this->_post );
 		return self::$models[$modelName];

@@ -21,12 +21,12 @@ class readonly_slug extends base {
 		if ( !post_type_exists( $this -> post_type ) ) {
 			return;
 		}
-
+/*
 		$post_id = $_GET['post'];
 		if ( current_user_can( 'edit_others_posts', $post_id ) ) {
 			return;
 		}
-
+*/
 		/**
 		 * @see http://ja.forums.wordpress.org/topic/21239
 		 */
