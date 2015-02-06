@@ -104,6 +104,7 @@ trait properties {
 			$instance = new $typeClass( $this->_post, (array) $propSetting ); // (array)... default で良い場合は 1 とか入れる場合もあるので
 			$this->_data[$var] = $instance;
 		} else if ( array_key_exists( 'model', $propSetting ) ) {
+			#_var_dump( $propSetting );
 			$modelName = $propSetting['model'];
 			if ( ! $_Model =& $this->_get_model( $modelName ) ) {
 				return false;

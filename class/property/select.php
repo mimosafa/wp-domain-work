@@ -2,7 +2,7 @@
 
 namespace property;
 
-class select extends basic {
+class select extends simple {
 
 	/**
 	 * @var array

@@ -96,7 +96,7 @@ class Domains {
 	/**
 	 */
 	private static $admin_data = [
-		'support' => 'Support',
+		'support'  => 'Support',
 		'readonly' => 'Read Only',
 	];
 
@@ -105,7 +105,7 @@ class Domains {
 	/**
 	 */
 	public function __construct( $force_scan = false ) {
-		$this -> init( $force_scan );
+		$this->init( $force_scan );
 	}
 
 	/**
@@ -117,41 +117,38 @@ class Domains {
 		$_WPDW = \WP_Domain_Work::getInstance();
 
 		if ( !$force_scan && $domains = $_WPDW::get_domains() ) {
-			$this -> domains = $domains;
-			$this -> class_loaders = $_WPDW::get_class_loaders();
-			$this -> functions_files = $_WPDW::get_functions_files();
+			$this->domains = $domains;
+			$this->class_loaders = $_WPDW::get_class_loaders();
+			$this->functions_files = $_WPDW::get_functions_files();
 		} else {
 			// wp-content/domains
-			$this -> directories[] = \WP_CONTENT_DIR . '/' . self::DOMAINS_DIR_NAME;
+			$this->directories[] = \WP_CONTENT_DIR . '/' . self::DOMAINS_DIR_NAME;
 			// wp-content/themes/your-parent-theme/domains
-			$this -> directories[] = get_template_directory() . '/' . self::DOMAINS_DIR_NAME;
+			$this->directories[] = get_template_directory() . '/' . self::DOMAINS_DIR_NAME;
 			// wp-content/themes/your-child-theme/domains
-			$this -> directories[] = get_stylesheet_directory() . '/' . self::DOMAINS_DIR_NAME;
+			$this->directories[] = get_stylesheet_directory() . '/' . self::DOMAINS_DIR_NAME;
 			if ( $excepted_domains = $_WPDW::get_excepted_domains() ) {
 				self::$_excepted = array_merge( $excepted_domains, self::$_excepted );
 			}
-			$this -> scan_directories();
-
+			$this->scan_directories();
 			/**
 			 * update options
 			 */
-			if ( $this -> domains ) {
-				$_WPDW::update_domains( $this -> domains );
-				$_WPDW::update_class_loaders( $this -> class_loaders );
-				$_WPDW::update_functions_files( $this -> functions_files );
-				$_WPDW::update_post_type_supports( $this -> supports );
+			if ( $this->domains ) {
+				$_WPDW::update_domains( $this->domains );
+				$_WPDW::update_class_loaders( $this->class_loaders );
+				$_WPDW::update_functions_files( $this->functions_files );
+				$_WPDW::update_post_type_supports( $this->supports );
 			}
 			$_WPDW::flush_rewrite_rules();
 		}
 
-		if ( $this -> domains ) {
-			$this -> classify_domains();
+		if ( $this->domains ) {
+			$this->classify_domains();
+			$this->register_class_loaders();
 		}
-		if ( $this -> class_loaders ) {
-			$this -> register_class_loaders();
-		}
-		if ( $this -> functions_files ) {
-			$this -> include_functions_files();
+		if ( $this->functions_files ) {
+			$this->include_functions_files();
 		}
 	}
 
@@ -166,55 +163,48 @@ class Domains {
 		 * 2. wp-content/themes/your-parent-theme/domains (parent theme)
 		 * 3. wp-content/themes/your-child-theme/domains (child theme)
 		 */
-		foreach ( $this -> directories as $path ) {
+		foreach ( $this->directories as $path ) {
 			/**
 			 * Outer loop will be end in first loop, if TEMPLATEPATH equals STYLESHEETPATH
 			 */
 			if ( $path === $done ) {
 				break;
 			}
-
 			if ( !is_readable( $path ) ) {
 				continue;
 			}
-
 			/**
 			 * Files & dires in domains directory
 			 */
 			$dir = new \DirectoryIterator( $path );
-
 			/**
 			 * Inner loop
 			 */
 			foreach ( $dir as $fileinfo ) {
-				if ( $fileinfo -> isDot() || !$fileinfo -> isDir() ) {
+				if ( $fileinfo->isDot() || !$fileinfo->isDir() ) {
 					continue;
 				}
-
 				/**
 				 * Directory's name will be used as domain name
 				 */
-				$domain = $fileinfo -> getFilename();
-
+				$domain = $fileinfo->getFilename();
 				/**
 				 * Refuse registering, if the domain set as excepted domain
 				 */
 				if ( in_array( $domain, self::$_excepted ) ) {
 					continue;
 				}
-
 				/**
 				 * (*2) クラスのオートローダーとヘルパー関数が定義されたファイル (functions.php)
 				 * - ディレクトリーループ (*1)で 2巡目以降のみを対象。
 				 * - あとに読み込んだローダー、ファイルを優先したいので、array_unshiftで配列の先頭に追加する。
 				 */
-				if ( array_key_exists( $domain, $this -> class_loaders ) ) {
-					array_unshift( $this -> class_loaders[$domain], self::remove_path_prefix( $path ) );
+				if ( array_key_exists( $domain, $this->class_loaders ) ) {
+					array_unshift( $this->class_loaders[$domain], self::remove_path_prefix( $path ) );
 					if ( $functions_path = self::returnReadableFilePath( $fileinfo, 'functions.php' ) ) {
-						array_unshift( $this -> functions_files, self::remove_path_prefix( $functions_path ) );
+						array_unshift( $this->functions_files, self::remove_path_prefix( $functions_path ) );
 					}
 				}
-
 				/**
 				 * Retrieve metadata from properties.php
 				 * if file is not exist, continue
@@ -225,14 +215,14 @@ class Domains {
 					continue;
 				}
 				$property = array_filter( get_file_data( $property_file, self::$property_data ) );
-
-				// 親テーマの場合はそのまま代入、子テーマの場合 (すでに $domainsに要素がある場合)はマージする。
-				if ( !array_key_exists( $domain, $this -> domains ) ) {
-					$this -> domains[$domain] = $property;
+				/**
+				 * 親テーマの場合はそのまま代入、子テーマの場合 (すでに $domainsに要素がある場合)はマージする。
+				 */
+				if ( !array_key_exists( $domain, $this->domains ) ) {
+					$this->domains[$domain] = $property;
 				} else {
-					$this -> domains[$domain] = array_merge( $this -> domains[$domain], $property );
+					$this->domains[$domain] = array_merge( $this->domains[$domain], $property );
 				}
-
 				/**
 				 * Custom Post Types' support data
 				 */
@@ -244,20 +234,19 @@ class Domains {
 								return trim( $str );
 							}, explode( ',', $string ) );
 							foreach ( $array as $var ) {
-								$this -> supports[$domain][$var] = $key;
+								$this->supports[$domain][$var] = $key;
 							}
 						}
 					}
 				}
-
 				/**
 				 * クラスのオートローダーとヘルパー関数が定義されたファイル (functions.php)
 				 * - (*2) 以外が対象
 				 */
-				if ( !array_key_exists( $domain, $this -> class_loaders ) ) {
-					$this -> class_loaders[$domain][] = self::remove_path_prefix( $path );
+				if ( !array_key_exists( $domain, $this->class_loaders ) ) {
+					$this->class_loaders[$domain][] = self::remove_path_prefix( $path );
 					if ( $functions_path = self::returnReadableFilePath( $fileinfo, 'functions.php' ) ) {
-						array_unshift( $this -> functions_files, self::remove_path_prefix( $functions_path ) );
+						array_unshift( $this->functions_files, self::remove_path_prefix( $functions_path ) );
 					}
 				}
 			}
@@ -268,15 +257,15 @@ class Domains {
 	/**
 	 */
 	private function classify_domains() {
-		foreach ( $this -> domains as $domain => $array ) {
+		foreach ( $this->domains as $domain => $array ) {
 			if ( 'Custom Post Type' === $array['register'] ) {
-				$this -> post_type_setting( $domain, $array );
+				$this->post_type_setting( $domain, $array );
 			} elseif ( 'Custom Taxonomy' === $array['register'] ) {
-				$this -> taxonomy_setting( $domain, $array );
+				$this->taxonomy_setting( $domain, $array );
 			} elseif ( 'Custom Endpoint' === $array['register'] ) {
-				$this -> endpoint_setting( $domain, $array );
+				$this->endpoint_setting( $domain, $array );
 			} else {
-				unset( $this -> domains[$domain] );
+				unset( $this->domains[$domain] );
 			}
 		}
 	}
@@ -328,7 +317,7 @@ class Domains {
 				if ( null === self::$roles ) {
 					self::$roles = new \wordpress\roles();
 				}
-				self::$roles -> add_cap( $cap_type );
+				self::$roles->add_cap( $cap_type );
 			}
 		}
 		*/
@@ -336,13 +325,13 @@ class Domains {
 		/**
 		 * Merge default setting to each post type setting
 		 */
-		$opt = \utility\md_array_merge( $opt, $this -> _cpt_option );
+		$opt = \utility\md_array_merge( $opt, $this->_cpt_option );
 
 		/**
 		 * Get instance \wordpress\register_customs
 		 */
 		$registerCustoms = \wordpress\register_customs::getInstance();
-		$registerCustoms -> add_post_type( $post_type, $label, $opt );
+		$registerCustoms->add_post_type( $post_type, $label, $opt );
 
 		/**
 		 * 
@@ -353,7 +342,7 @@ class Domains {
 			 * Get instance \wordpress\int_permalink
 			 */
 			$intPermalink = \wordpress\int_permalink::getInstance();
-			$intPermalink -> set( $post_type );
+			$intPermalink->set( $post_type );
 
 		}
 	}
@@ -395,13 +384,13 @@ class Domains {
 			$opt['rewrite']['hierarchical'] = true;
 		}
 		// ~
-		$opt = \utility\md_array_merge( $opt, $this -> _ct_option );
+		$opt = \utility\md_array_merge( $opt, $this->_ct_option );
 
 		/**
 		 * Get instance \wordpress\register_customs, if not constructed.
 		 */
 		$registerCustoms = \wordpress\register_customs::getInstance();
-		$registerCustoms -> add_taxonomy( $taxonomy, $label, $post_types, $opt );
+		$registerCustoms->add_taxonomy( $taxonomy, $label, $post_types, $opt );
 	}
 
 	/**
@@ -409,13 +398,13 @@ class Domains {
 	private function endpoint_setting( $domain, Array $array ) {
 		// ~ some settings from $array, but yet...
 		$createEndpoints = \wordpress\create_endpoints::getInstance();
-		$createEndpoints -> set( $domain );
+		$createEndpoints->set( $domain );
 	}
 
 	/**
 	 */
 	private function register_class_loaders() {
-		foreach ( $this -> class_loaders as $domain => $somePath ) {
+		foreach ( $this->class_loaders as $domain => $somePath ) {
 			foreach ( $somePath as $path ) {
 				$path = self::add_path_prefix( $path );
 				if ( is_readable( $path ) ) {
@@ -439,7 +428,7 @@ class Domains {
 	/**
 	 */
 	private function include_functions_files() {
-		foreach ( $this -> functions_files as $file ) {
+		foreach ( $this->functions_files as $file ) {
 			$file = self::add_path_prefix( $file );
 			if ( file_exists( $file ) ) {
 				require_once $file;
@@ -467,7 +456,7 @@ class Domains {
 	 */
 	private static function returnReadableFilePath( $fileinfo, $file ) {
 		if ( 'DirectoryIterator' === get_class( $fileinfo ) ) {
-			$path = $fileinfo -> getPathname() . '/' . ltrim( $file, '/' );
+			$path = $fileinfo->getPathname() . '/' . ltrim( $file, '/' );
 			if ( is_readable( $path ) ) {
 				return $path;
 			}
@@ -478,24 +467,24 @@ class Domains {
 	/**
 	 * add wp-content directory's path to path string
 	 *
-	 * @access private
+	 * @access public
 	 *
 	 * @param  string $path
 	 * @return string
 	 */
-	private static function add_path_prefix( $path ) {
+	public static function add_path_prefix( $path ) {
 		return \WP_CONTENT_DIR . $path;
 	}
 
 	/**
 	 * remove wp-content directory's path from path string
 	 *
-	 * @access private
+	 * @access public
 	 *
 	 * @param  string $path
 	 * @return string
 	 */
-	private static function remove_path_prefix( $path ) {
+	public static function remove_path_prefix( $path ) {
 		static $start = null;
 		if ( null === $start ) {
 			$start = strlen( \WP_CONTENT_DIR );

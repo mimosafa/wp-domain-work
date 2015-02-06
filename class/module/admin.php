@@ -26,19 +26,9 @@ trait admin {
 	private $registeredName;
 
 	/**
-	 * 
-	 */
-	private $_box_id_prefix = 'wp-domain-work-meta-box-';
-
-	/**
 	 * @var null|object \(domain)\properties
 	 */
 	private static $properties = null;
-
-	/**
-	 * @var null|object \wordpress\admin\meta_box_inner
-	 */
-	private static $metaBoxInner = null;
 
 	private static $falseVal = false;
 
@@ -117,34 +107,7 @@ trait admin {
 					if ( ! $prop = $props->$propName ) {
 						continue;
 					}
-					$id = esc_attr( $this->_box_id_prefix . $this->domain . '-' . $propName );
-					$title = esc_html( $prop->label );
-					if ( array_key_exists( 'callback', $arg ) && is_callable( $arg['callback'] ) ) {
-						$callback = $arg['callback'];
-					} else {
-						if ( null === self::$metaBoxInner ) {
-							self::$metaBoxInner = new \wordpress\admin\meta_box_inner( $this->registeredName );
-						}
-						$callback = [ self::$metaBoxInner, 'init' ];
-					}
-					$post_type = $this->registeredName;
-					static $_contexts = [ 'normal', 'advanced', 'side' ];
-					$context = array_key_exists( 'context', $arg ) && in_array( $arg['context'], $_contexts )
-						? $arg['context']
-						: 'advanced'
-					;
-					static $_priorities = [ 'high', 'core', 'default', 'low' ];
-					$priority = array_key_exists( 'priority', $arg ) && in_array( $arg['priority'], $_priorities )
-						? $arg['priority']
-						: 'default'
-					;
-					$callback_args = [ 'instance' => $prop ];
-
-					$meta_box = compact(
-						'id', 'title', 'callback', 'post_type',
-						'context', 'priority', 'callback_args'
-					);
-					call_user_func_array( 'add_meta_box', $meta_box );
+					\admin\meta_boxes\property_meta_box::set( $propName, $prop, $arg );
 				}
 			}
 		}

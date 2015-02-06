@@ -39,7 +39,15 @@ class WP_Domain_Work {
 	 * @todo need flush_rewrite_rules and remove_cap() ?
 	 */
 	public static function deactivation() {
-		$delOpts = [ 'home_level', 'site_level', 'domains', 'class_loaders', 'functions_files', 'post_type_supports' ];
+		$delOpts = [
+			'home_level',
+			'site_level',
+			'use_domains',
+			'domains',
+			'class_loaders',
+			'functions_files',
+			'post_type_supports',
+		];
 		foreach ( $delOpts as $option ) {
 			self::delete_option( $option );
 		}

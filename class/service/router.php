@@ -213,6 +213,8 @@ class Router {
 		 * Initialize services, referenced by domain.
 		 */
 		add_action( $this->_hook, [ $this, 'init_services'] );
+
+		add_filter( 'template_include', [ $this, 'template_include' ] );
 	}
 
 	/**
@@ -253,6 +255,36 @@ class Router {
 		if ( class_exists( $cl ) ) {
 			new $cl();
 		}
+	}
+
+	/**
+	 * @see https://github.com/WordPress/WordPress/blob/master/wp-includes/template-loader.php#L73
+	 */
+	public function template_include( $template ) {
+		if ( is_null( $this->_ns ) ) {
+			return $template;
+		}
+		global $post_type;
+		$filenow = substr( $template, strripos( $template, '/' ) + 1 );
+		$is = is_archive() ? 'archive' : 'single';
+		if ( $filenow === "{$is}-{$post_type}.php" ) {
+			return $template;
+		}
+		$domain_dirs = \WP_Domain_Work::get_class_loaders();
+		if ( array_key_exists( $this->_ns, $domain_dirs ) ) {
+			$dirs = array_map( function( $var ) {
+				return sprintf( '%s/%s/', Domains::add_path_prefix( $var ), $this->_ns );
+			}, $domain_dirs[$this->_ns] );
+			foreach ( [ "{$is}.php", 'index.php' ] as $file ) {
+				foreach ( $dirs as $dir ) {
+					$path = $dir . $file;
+					if ( is_readable( $path ) ) {
+						return $path;
+					}
+				}
+			}
+		}
+		return $template;
 	}
 
 }

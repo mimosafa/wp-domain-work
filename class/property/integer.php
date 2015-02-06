@@ -5,7 +5,7 @@ namespace property;
 /**
  *
  */
-class integer extends basic {
+class integer extends simple {
 
 	/**
 	 * 0値を許可するか否か

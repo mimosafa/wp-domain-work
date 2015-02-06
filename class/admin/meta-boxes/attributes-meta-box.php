@@ -54,6 +54,7 @@ class attributes_meta_box {
 	/**
 	 * @see  https://github.com/WordPress/WordPress/blob/master/wp-admin/includes/meta-boxes.php#L709
 	 * @todo Change to using Walker class
+	 * @todo If no contents, empty meta box is appered..
 	 */
 	public function meta_box( $post ) {
 		if ( array_key_exists( 'post_parent', self::$attributes ) ) {

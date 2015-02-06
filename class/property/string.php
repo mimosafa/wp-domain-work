@@ -2,7 +2,7 @@
 
 namespace property;
 
-class string extends basic {
+class string extends simple {
 
 	/**
 	 * @var  bool

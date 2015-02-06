@@ -5,7 +5,7 @@ namespace property;
 /**
  *
  */
-class boolean extends basic {
+class boolean extends simple {
 
 	protected $_true_value  = 1;
 	protected $_false_value = null;

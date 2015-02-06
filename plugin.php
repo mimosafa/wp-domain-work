@@ -53,6 +53,11 @@ $GLOBALS['wp_domain_work_plugin_option_keys'] = array(
 		/**
 		 * @access private
 		 */
+		'template_files' => 'wp_domain_work_domain_template_files',
+
+		/**
+		 * @access private
+		 */
 		'functions_files' => 'wp_domain_work_domain_functions_files',
 
 		/**
