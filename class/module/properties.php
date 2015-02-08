@@ -33,10 +33,6 @@ trait properties {
 			'type'       => 'string',
 			'multi_byte' => true,
 		],
-		'post_parent' => [
-			'model' => 'post_parent',
-			'type'  => 'post',
-		],
 	];
 
 	private static $falseVal = false;
@@ -93,68 +89,7 @@ trait properties {
 		if ( ! $propSetting = $this->get_property_setting( $var ) ) {
 			return false;
 		}
-		/**
-		 * property instance
-		 */
-		if ( in_array( $var, [ 'post_parent', 'menu_order' ] ) ) {
-			$typeClass = "\\property\\{$var}";
-			if ( ! class_exists( $typeClass ) ) {
-				return false;
-			}
-			$instance = new $typeClass( $this->_post, (array) $propSetting ); // (array)... default で良い場合は 1 とか入れる場合もあるので
-			$this->_data[$var] = $instance;
-		} else if ( array_key_exists( 'model', $propSetting ) ) {
-			#_var_dump( $propSetting );
-			$modelName = $propSetting['model'];
-			if ( ! $_Model =& $this->_get_model( $modelName ) ) {
-				return false;
-			}
-			$propSetting = array_merge( self::$defaultPropSettings[$modelName], $propSetting );
-			$typeClass = '\\property\\' . $propSetting['type'];
-			if ( !class_exists( $typeClass ) ) {
-				return false;
-			}
-			$instance = new $typeClass( $var, $propSetting );
-			$instance->val( $_Model->get( $var ) );
-			$this->_data[$var] = $instance;
-		} else if ( 'post_children' === $propSetting['type'] ) {
-
-			$instance = new \property\post_children( $var, $propSetting );
-
-			if ( null === self::$models['posts'] ) {
-				self::$models['posts'] = new \wordpress\model\posts();
-			}
-			$model =& self::$models['posts'];
-			$queryArgs = $instance->getQueryArgs();
-
-			$instance->value = $model->get( $queryArgs );
-
-			$this->_data[$var] = $instance;
-
-		} else if ( 'group' === $propSetting['type'] ) {
-
-			/**
-			 * Grouped property
-			 */
-			if ( !array_key_exists( 'elements', $propSetting ) || !\utility\is_vector( $propSetting['elements'] ) ) {
-				return false;
-			}
-			$instance = new \property\group( $var, $propSetting );
-
-			foreach ( $propSetting['elements'] as $element ) {
-				if ( $elementData = $this->$element ) {
-					$instance->set_element( $element, $elementData );
-				}
-			}
-
-			if ( empty( $instance->properties ) ) {
-				return false;
-			}
-
-			$this->_data[$var] = $instance;
-
-		}
-
+		$this->_set_property( $var, $propSetting );
 		return array_key_exists( $var, $this->_data );
 	}
 
@@ -184,7 +119,6 @@ trait properties {
 		if ( ! $property = $this->$name  ) {
 			return;
 		}
-
 		$type = \utility\getEndOfClassname( $property );
 
 		if ( 'group' === $type ) {
@@ -211,7 +145,68 @@ trait properties {
 				unset( $this->_data[$name] );
 			}
 		}
-		return isset( $name );
+		return isset( $this->$name );
+	}
+
+	/**
+	 * @access private
+	 *
+	 * @param  string $name
+	 * @param  array  $args
+	 */
+	private function _set_property( $name, $args ) {
+		if ( in_array( $name, [ 'post_parent', 'menu_order' ] ) ) {
+			/**
+			 * Post's default attributes
+			 */
+			$typeClass = "\\property\\{$name}";
+			$this->_data[$name] = new $typeClass( $this->_post, (array) $args ); // (array)... default で良い場合は 1 とか入れる場合もあるので
+		} else if ( array_key_exists( 'model', $args ) ) {
+			$modelName = $args['model'];
+			if ( ! $_Model =& $this->_get_model( $modelName ) ) {
+				return false;
+			}
+			$args = array_merge( self::$defaultPropSettings[$modelName], $args );
+			$typeClass = '\\property\\' . $args['type'];
+			if ( !class_exists( $typeClass ) ) {
+				return false;
+			}
+			$instance = new $typeClass( $name, $args );
+			$instance->val( $_Model->get( $name ) );
+			$this->_data[$name] = $instance;
+		} else if ( 'post_children' === $args['type'] ) {
+
+			$instance = new \property\post_children( $name, $args );
+
+			if ( null === self::$models['posts'] ) {
+				self::$models['posts'] = new \wordpress\model\posts();
+			}
+			$model =& self::$models['posts'];
+			$queryArgs = $instance->getQueryArgs();
+
+			$instance->value = $model->get( $queryArgs );
+
+			$this->_data[$name] = $instance;
+
+		} else if ( 'group' === $args['type'] ) {
+			/**
+			 * Grouped property
+			 */
+			if ( !array_key_exists( 'elements', $args ) || !\utility\is_vector( $args['elements'] ) ) {
+				return false;
+			}
+			$instance = new \property\group( $name, $args );
+			foreach ( $args['elements'] as $element ) {
+				if ( $elementData = $this->$element ) {
+					$instance->set_element( $element, $elementData );
+				}
+			}
+			if ( empty( $instance->properties ) ) {
+				return false;
+			}
+			$this->_data[$name] = $instance;
+		}
+		return array_key_exists( $name, $this->_data );
 	}
 
 	/**

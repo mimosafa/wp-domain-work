@@ -10,6 +10,12 @@ class string extends simple {
 	 */
 	protected $_multi_byte = false;
 
+	/**
+	 * @var integer
+	 * @todo
+	 */
+	protected $_max_length;
+
 	public function __construct( $var, Array $arg ) {
 		if ( !parent::__construct( $var, $arg ) ) {
 			return false;

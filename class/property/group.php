@@ -5,7 +5,7 @@ namespace property;
 /**
  *
  */
-class group extends base {
+class group extends complex {
 
 	public $properties = [];
 
