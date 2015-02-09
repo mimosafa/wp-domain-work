@@ -44,17 +44,15 @@ class property_meta_box {
 		}
 		$_PMB = self::getInstance();
 
+		$post_type = $_PMB->post_type;
 		$id = esc_attr( $_PMB->_box_id_prefix . $name );
 		$title = esc_html( $obj->label );
 		if ( array_key_exists( 'callback', $args ) && is_callable( $args['callback'] ) ) {
 			$callback = $args['callback'];
 		} else {
-			if ( self::$metaBoxInner === null ) {
-				self::$metaBoxInner = new \wordpress\admin\meta_box_inner( $_PMB->post_type );
-			}
-			$callback = [ self::$metaBoxInner, 'init' ];
+			$inner = \admin\templates\meta_box_inner::getInstance( $post_type );
+			$callback = [ $inner, 'init' ];
 		}
-		$post_type = $_PMB->post_type;
 		static $_contexts = [ 'normal', 'advanced', 'side' ];
 		$context = array_key_exists( 'context', $args ) && in_array( $args['context'], $_contexts )
 			? $args['context']
@@ -65,7 +63,7 @@ class property_meta_box {
 			? $args['priority']
 			: 'default'
 		;
-		$callback_args = [ 'instance' => $obj ];
+		$callback_args = $obj->getArray();
 
 		self::$meta_boxes[] = compact(
 			'id', 'title', 'callback', 'post_type',

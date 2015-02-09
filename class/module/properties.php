@@ -121,7 +121,7 @@ trait properties {
 		}
 		$type = \utility\getEndOfClassname( $property );
 
-		if ( 'group' === $type ) {
+		if ( 'group' === $type || 'set' === $type ) {
 			if ( !is_array( $value ) ) {
 				return;
 			}
@@ -188,14 +188,18 @@ trait properties {
 
 			$this->_data[$name] = $instance;
 
-		} else if ( 'group' === $args['type'] ) {
+		} else if ( in_array( $args['type'], [ 'group', 'set' ] ) ) {
 			/**
 			 * Grouped property
 			 */
 			if ( !array_key_exists( 'elements', $args ) || !\utility\is_vector( $args['elements'] ) ) {
 				return false;
 			}
-			$instance = new \property\group( $name, $args );
+			$typeClass = '\\property\\' . $args['type'];
+			if ( !class_exists( $typeClass ) ) {
+				return false;
+			}
+			$instance = new $typeClass( $name, $args );
 			foreach ( $args['elements'] as $element ) {
 				if ( $elementData = $this->$element ) {
 					$instance->set_element( $element, $elementData );

@@ -18,11 +18,14 @@ class readonly_slug extends base {
 	 *
 	 */
 	public function admin_action_edit() {
-		if ( !post_type_exists( $this -> post_type ) ) {
+		if ( ! post_type_exists( $this->post_type ) ) {
+			return;
+		}
+		$post_id = $_GET['post'];
+		if ( 'publish' !== get_post_status( $post_id ) ) {
 			return;
 		}
 /*
-		$post_id = $_GET['post'];
 		if ( current_user_can( 'edit_others_posts', $post_id ) ) {
 			return;
 		}
@@ -32,7 +35,7 @@ class readonly_slug extends base {
 		 */
 		add_filter( 'get_sample_permalink_html', [ $this, 'sample_permalink_html' ], 10, 2 );
 		add_action( 'add_meta_boxes', function() {
-			remove_meta_box( 'slugdiv', $this -> post_type, 'normal' );
+			remove_meta_box( 'slugdiv', $this->post_type, 'normal' );
 		} );
 	}
 
@@ -40,15 +43,12 @@ class readonly_slug extends base {
 	 * @see https://core.trac.wordpress.org/browser/trunk/src/wp-admin/includes/post.php#L1184
 	 */
 	public function sample_permalink_html( $return, $id ) {
-		if ( 'publish' !== get_post_status( $id ) ) {
-			return $return;
-		}
 		if ( current_user_can( 'read_post', $id ) ) {
-			$ptype = get_post_type_object( $this -> post_type );
+			$ptype = get_post_type_object( $this->post_type );
 			if( 'draft' == get_post_status( $id ) ) {
 				$view_post = __( 'Preview' );
 			} else {
-				$view_post = $ptype -> labels -> view_item;
+				$view_post = $ptype->labels->view_item;
 			}
 		}
 		$return  = '<strong>' . __('Permalink:') . "</strong>\n";
@@ -67,11 +67,11 @@ class readonly_slug extends base {
 	 * @return (void)
 	 */
 	public static function set( $post_type = '' ) {
-		if ( !is_admin() || !is_string( $post_type ) ) {
+		if ( ! is_admin() || ! is_string( $post_type ) ) {
 			return;
 		}
 		$instance = new self( $post_type );
-		$instance -> init();
+		$instance->init();
 	}
 
 }

@@ -22,7 +22,7 @@ class menu_order {
 		if ( array_key_exists( 'label', $arg ) ) {
 			$this->label = $arg['label'];
 		}
-		$this->value = (int) $this->_post->menu_order ?: null;
+		$this->value = (int) $this->_post->menu_order;
 	}
 
 	public function getArray() {
