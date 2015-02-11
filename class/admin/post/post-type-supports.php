@@ -60,7 +60,7 @@ class post_type_supports {
 			}
 		}
 		if ( $this->post_type_supports = array_filter( $this->post_type_supports ) ) {
-			$this -> add_post_type_supports();
+			$this->add_post_type_supports();
 		}
 	}
 
@@ -83,4 +83,5 @@ class post_type_supports {
 			}
 		}
 	}
+	
 }

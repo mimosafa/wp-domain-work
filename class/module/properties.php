@@ -175,19 +175,8 @@ trait properties {
 			$instance->val( $_Model->get( $name ) );
 			$this->_data[$name] = $instance;
 		} else if ( 'post_children' === $args['type'] ) {
-
-			$instance = new \property\post_children( $name, $args );
-
-			if ( null === self::$models['posts'] ) {
-				self::$models['posts'] = new \wordpress\model\posts();
-			}
-			$model =& self::$models['posts'];
-			$queryArgs = $instance->getQueryArgs();
-
-			$instance->value = $model->get( $queryArgs );
-
+			$instance = new \property\post_children( $name, $args, $this->_post );
 			$this->_data[$name] = $instance;
-
 		} else if ( in_array( $args['type'], [ 'group', 'set' ] ) ) {
 			/**
 			 * Grouped property

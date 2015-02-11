@@ -107,7 +107,7 @@ trait admin {
 					if ( ! $prop = $props->$propName ) {
 						continue;
 					}
-					\admin\meta_boxes\property_meta_box::set( $propName, $prop, $arg );
+					\admin\meta_boxes\property_meta_box::set( $propName, $prop->getArray() );
 				}
 			}
 		}

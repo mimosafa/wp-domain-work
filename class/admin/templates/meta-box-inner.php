@@ -54,7 +54,7 @@ class meta_box_inner {
 	}
 
 	public static function getInstance( $context ) {
-		static $instance;
+		static $instance = null;
 		return $instance ?: new \admin\templates\meta_box_inner( $context );
 	}
 
@@ -162,6 +162,16 @@ class meta_box_inner {
 			}
 			$return = $inline;
 			$inline = [];
+
+		} else if ( $type === 'post_children' ) {
+
+			if ( $args['value'] ) {
+
+				echo '<pre>';
+				var_dump( $args['value'] );
+				echo '</pre>';
+
+			}
 
 		} else {
 

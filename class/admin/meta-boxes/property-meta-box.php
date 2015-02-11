@@ -38,15 +38,15 @@ class property_meta_box {
 		}
 	}
 
-	public static function set( $name, $obj, $args = [] ) {
-		if ( ! is_string( $name ) || !is_object( $obj ) ) {
+	public static function set( $name, $args = [] ) {
+		if ( ! is_string( $name ) || ! $name ) {
 			return false;
 		}
 		$_PMB = self::getInstance();
 
 		$post_type = $_PMB->post_type;
 		$id = esc_attr( $_PMB->_box_id_prefix . $name );
-		$title = esc_html( $obj->label );
+		$title = esc_html( $args['label'] );
 		if ( array_key_exists( 'callback', $args ) && is_callable( $args['callback'] ) ) {
 			$callback = $args['callback'];
 		} else {
@@ -63,7 +63,7 @@ class property_meta_box {
 			? $args['priority']
 			: 'default'
 		;
-		$callback_args = $obj->getArray();
+		$callback_args = $args;
 
 		self::$meta_boxes[] = compact(
 			'id', 'title', 'callback', 'post_type',
