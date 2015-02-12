@@ -1,40 +1,40 @@
 <?php
 
-namespace wordpress\admin\post_type;
+namespace admin\post;
 
-/**
- * Usage: \wordpress\admin\readonly_slug::set( 'cpt' );
- */
-class readonly_slug extends base {
+class readonly_slug {
 
-	/**
-	 *
-	 */
-	public function init() {
-		add_action( 'admin_action_edit', [ $this, 'admin_action_edit' ], 11 );
+	private $post_type;
+
+	public function __construct( $post_type ) {
+		if ( is_string( $post_type ) && $post_type ) {
+			$this->post_type = $post_type;
+			$this->init();
+		}
 	}
 
-	/**
-	 *
-	 */
+	private function init() {
+		add_action( 'admin_action_edit', [ $this, 'admin_action_edit' ] );
+	}
+
 	public function admin_action_edit() {
-		if ( ! post_type_exists( $this->post_type ) ) {
+		if ( get_current_screen()->post_type !== $this->post_type ) {
 			return;
 		}
 		$post_id = $_GET['post'];
-		if ( 'publish' !== get_post_status( $post_id ) ) {
+		if ( get_post_status( $post_id ) !== 'publish' ) {
 			return;
 		}
-/*
+		/*
 		if ( current_user_can( 'edit_others_posts', $post_id ) ) {
 			return;
 		}
-*/
+		*/
+		add_filter( 'get_sample_permalink_html', [ $this, 'sample_permalink_html' ], 10, 2 );
 		/**
 		 * @see http://ja.forums.wordpress.org/topic/21239
 		 */
-		add_filter( 'get_sample_permalink_html', [ $this, 'sample_permalink_html' ], 10, 2 );
-		add_action( 'add_meta_boxes', function() {
+		add_action( 'add_meta_boxes_' . $this->post_type, function() {
 			remove_meta_box( 'slugdiv', $this->post_type, 'normal' );
 		} );
 	}
@@ -54,24 +54,7 @@ class readonly_slug extends base {
 		$return  = '<strong>' . __('Permalink:') . "</strong>\n";
 		$return .= '<span id="sample-permalink" tabindex="-1">' . get_permalink( $id ) . "</span>\n";
 		$return .= "<span id='view-post-btn'><a href='" . get_permalink( $id ) . "' class='button button-small'>$view_post</a></span>\n";
-
 		return $return;
-	}
-
-	/**
-	 * Wrapper static function
-	 *
-	 * @access public
-	 *
-	 * @param  string $post_type (optional)
-	 * @return (void)
-	 */
-	public static function set( $post_type = '' ) {
-		if ( ! is_admin() || ! is_string( $post_type ) ) {
-			return;
-		}
-		$instance = new self( $post_type );
-		$instance->init();
 	}
 
 }

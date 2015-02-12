@@ -106,9 +106,9 @@ class posts_list_table {
 			if ( $type === 'menu_order' ) {
 				$vars = array_merge( $vars, [ 'orderby' => 'menu_order' ] );
 			} else if ( $type === 'integer' ) {
-				$vars = array_merge( $vars, [ 'orderby' => 'meta_value_num', 'orderby' => $vars['orderby'] ] );
+				$vars = array_merge( $vars, [ 'orderby' => 'meta_value_num', 'meta_key' => $vars['orderby'] ] );
 			} else {
-				$vars = array_merge( $vars, [ 'orderby' => 'meta_value', 'orderby' => $vars['orderby'] ] );
+				$vars = array_merge( $vars, [ 'orderby' => 'meta_value', 'meta_key' => $vars['orderby'] ] );
 			}
 		}
 		return $vars;

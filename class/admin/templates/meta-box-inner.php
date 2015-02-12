@@ -55,7 +55,8 @@ class meta_box_inner {
 
 	public static function getInstance( $context ) {
 		static $instance = null;
-		return $instance ?: new \admin\templates\meta_box_inner( $context );
+		$cl = __CLASS__;
+		return $instance ?: new $cl( $context );
 	}
 
 	/**

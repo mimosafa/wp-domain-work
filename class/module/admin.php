@@ -26,11 +26,6 @@ trait admin {
 	private $registeredName;
 
 	/**
-	 * @var array
-	 */
-	private $hide_columns;
-
-	/**
 	 * @var null|object \(domain)\properties
 	 */
 	private static $properties = null;
@@ -91,12 +86,7 @@ trait admin {
 				\admin\post\post_type_supports::init( $this->registeredName );
 				add_action( 'add_meta_boxes', [ $this, 'post_type_meta_boxes' ] );
 			} else if ( $pagenow === 'edit.php' ) {
-				if ( isset( $this->columns ) && is_array( $this->columns ) && $this->columns ) {
-					$_PLT = new \admin\list_table\posts_list_table( $this->registeredName );
-					foreach ( $this->columns as $column => $args ) {
-						$_PLT->add( $column, $args );
-					}
-				}
+				$this->post_type_columns();
 			}
 			new \wordpress\admin\save_post( $this->registeredName );
 		}
@@ -125,6 +115,16 @@ trait admin {
 					\admin\meta_boxes\property_meta_box::set( $propName, $prop->getArray() );
 				}
 			}
+		}
+	}
+
+	public function post_type_columns() {
+		if ( ! isset( $this->columns ) || ! is_array( $this->columns ) || ! $this->columns ) {
+			return;
+		}
+		$_PLT = new \admin\list_table\posts_list_table( $this->registeredName );
+		foreach ( $this->columns as $column => $args ) {
+			$_PLT->add( $column, $args );
 		}
 	}
 
