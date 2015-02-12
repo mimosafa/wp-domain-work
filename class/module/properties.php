@@ -15,6 +15,10 @@ trait properties {
 	 */
 	private $_post;
 
+	private static $post_id;
+
+	private $domain;
+
 	/**
 	 * @var array
 	 */
@@ -50,6 +54,12 @@ trait properties {
 			return null;
 		}
 		$this->_post = $post;
+		/**
+		 * define domain's name
+		 *
+		 * @uses \utility\getObjectNamespace
+		 */
+		$this->domain = \utility\getObjectNamespace( $this );
 	}
 
 	/**
@@ -60,14 +70,14 @@ trait properties {
 	 * @param  string|null $prop (optional) property name, if null value, get all settings.
 	 * @return array
 	 */
-	public function get_property_setting( $prop = null ) {
-		if ( ! isset( $this->properties ) || ! is_array( $this->properties ) || ! $this->properties ) {
+	public static function get_property_setting( $prop = null ) {
+		if ( ! isset( self::$properties ) || ! is_array( self::$properties ) || ! self::$properties ) {
 			return null;
 		}
 		if ( null === $prop ) {
-			return $this->properties;
+			return self::$properties;
 		}
-		return array_key_exists( $prop, $this->properties ) ? $this->properties[$prop] : null;
+		return array_key_exists( $prop, self::$properties ) ? self::$properties[$prop] : null;
 	}
 
 	/**
@@ -86,7 +96,7 @@ trait properties {
 		if ( array_key_exists( $var, $this->_data ) ) {
 			return true;
 		}
-		if ( ! $propSetting = $this->get_property_setting( $var ) ) {
+		if ( ! $propSetting = self::get_property_setting( $var ) ) {
 			return false;
 		}
 		$this->_set_property( $var, $propSetting );
@@ -136,7 +146,7 @@ trait properties {
 
 		} else {
 			$modelName = $property->getModel();
-			$model =& $this->_get_model( $modelName );
+			$model =& $this->_get_model( $modelName, $this->_post->ID );
 			$newValue = $property->filter( $value );
 			if ( null === $newValue ) {
 				unset( $model->$name );
@@ -155,15 +165,16 @@ trait properties {
 	 * @param  array  $args
 	 */
 	private function _set_property( $name, $args ) {
+		$instance = null;
 		if ( in_array( $name, [ 'post_parent', 'menu_order' ] ) ) {
 			/**
 			 * Post's default attributes
 			 */
 			$typeClass = "\\property\\{$name}";
-			$this->_data[$name] = new $typeClass( $this->_post, (array) $args ); // (array)... default で良い場合は 1 とか入れる場合もあるので
+			$instance = new $typeClass( $this->_post, (array) $args ); // (array)... default で良い場合は 1 とか入れる場合もあるので
 		} else if ( array_key_exists( 'model', $args ) ) {
 			$modelName = $args['model'];
-			if ( ! $_Model =& $this->_get_model( $modelName ) ) {
+			if ( ! $_Model =& $this->_get_model( $modelName, $this->_post->ID ) ) {
 				return false;
 			}
 			$args = array_merge( self::$defaultPropSettings[$modelName], $args );
@@ -173,10 +184,8 @@ trait properties {
 			}
 			$instance = new $typeClass( $name, $args );
 			$instance->val( $_Model->get( $name ) );
-			$this->_data[$name] = $instance;
 		} else if ( 'post_children' === $args['type'] ) {
 			$instance = new \property\post_children( $name, $args, $this->_post );
-			$this->_data[$name] = $instance;
 		} else if ( in_array( $args['type'], [ 'group', 'set' ] ) ) {
 			/**
 			 * Grouped property
@@ -197,6 +206,13 @@ trait properties {
 			if ( empty( $instance->properties ) ) {
 				return false;
 			}
+		}
+		/**
+		 * 各プロパティの出力関数(getValue)で、各プロパティ固有のフィルターフックを追加させる際に、異なるドメインで同一のプロパティ名が
+		 * 存在した場合に不具合が発生しないように、フィルター名に追加するための domain 名を引数に追加した。
+		 */
+		if ( $instance ) {
+			$instance->domain = $this->domain;
 			$this->_data[$name] = $instance;
 		}
 		return array_key_exists( $name, $this->_data );
@@ -208,8 +224,12 @@ trait properties {
 	 * @param  string $modelName
 	 * @return reference
 	 */
-	private function &_get_model( $modelName ) {
-		if ( array_key_exists( $modelName, self::$models ) ) {
+	private function &_get_model( $modelName, $post_id ) {
+		if ( array_key_exists( $modelName, self::$models ) && $post_id === self::$post_id ) {
+			/**
+			 * アーカイブや wp-admin での一覧表示の際に model が上書きされない不具合発生。
+			 * $post_id をフラグとして引数に追加した。
+			 */
 			return self::$models[$modelName];
 		}
 		$modelClass = "\\wordpress\\model\\{$modelName}";
@@ -217,6 +237,10 @@ trait properties {
 			return self::$falseVal;
 		}
 		self::$models[$modelName] = new $modelClass( $this->_post );
+		/**
+		 * フラグとして ID を上書き
+		 */
+		self::$post_id = $post_id;
 		return self::$models[$modelName];
 	}
 

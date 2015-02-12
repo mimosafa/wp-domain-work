@@ -23,4 +23,11 @@ class select extends simple {
 		return $value !== false && array_key_exists( $value, $this->options ) ? $value : null;
 	}
 
+	public function getValue() {
+		$value  = $this->value;
+		$return = $this->options[$this->value];
+		$tag    = sprintf( 'wpdw_get_%s_%s_value', $this->domain, $this->name );
+		return apply_filters( $tag, $return, $value );
+	}
+
 }

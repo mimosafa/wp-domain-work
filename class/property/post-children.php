@@ -2,27 +2,14 @@
 
 namespace property;
 
-class post_children {
+class post_children extends basic {
 
-	public $name;
-	public $label;
 	public $value = [];
 
-	protected $_type = 'post_children';
-
 	public function __construct( $var, Array $args, $post = 0 ) {
-		if ( ! is_string( $var ) || ! $var ) {
+		if ( ! parent::__construct( $var, $args ) ) {
 			return false;
 		}
-		$this->name = $var;
-		$this->label = array_key_exists( 'label', $args ) && is_string( $args['label'] )
-			? $args['label']
-			: ucwords( str_replace( [ '_', '-' ], ' ', trim( $var ) ) );
-		;
-		if ( array_key_exists( 'description', $args ) ) {
-			$this->description = $args['description'];
-		}
-
 		$query_args = array_key_exists( 'query_args', $args ) && is_array( $args['query_args'] )
 			? $args['query_args'] : []
 		;

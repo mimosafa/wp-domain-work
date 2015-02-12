@@ -8,6 +8,11 @@ namespace property;
 abstract class basic {
 
 	/**
+	 * \module\properties ですべてのプロパティインスタンスに追加されている
+	 */
+	public $domain;
+
+	/**
 	 * @var string
 	 */
 	public $name;
@@ -25,7 +30,7 @@ abstract class basic {
 	abstract public function getArray();
 
 	public function __construct( $var, Array $arg ) {
-		if ( !is_string( $var )  ) {
+		if ( ! $var || ! is_string( $var )  ) {
 			return false;
 		}
 		$this->_type  = \utility\getEndOfClassname( $this );

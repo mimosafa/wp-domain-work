@@ -29,4 +29,8 @@ class menu_order {
 		return get_object_vars( $this );
 	}
 
+	public function getValue() {
+		return apply_filters( 'wpdw_get_' . $this->domain . '_menu_order_value', $this->value, $this->_post );
+	}
+
 }

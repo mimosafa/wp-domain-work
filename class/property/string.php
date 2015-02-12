@@ -26,4 +26,8 @@ class string extends simple {
 		return $value;
 	}
 
+	public function getValue() {
+		return $this->value;
+	}
+
 }

@@ -36,6 +36,8 @@ abstract class simple extends basic {
 
 	abstract public function filter( $value );
 
+	#abstract public function getValue();
+
 	public function __construct( $var, Array $arg ) {
 		if ( ! parent::__construct( $var, $arg ) ) {
 			return false;

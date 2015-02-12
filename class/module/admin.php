@@ -26,6 +26,11 @@ trait admin {
 	private $registeredName;
 
 	/**
+	 * @var array
+	 */
+	private $hide_columns;
+
+	/**
 	 * @var null|object \(domain)\properties
 	 */
 	private static $properties = null;
@@ -80,9 +85,19 @@ trait admin {
 	}
 
 	public function init() {
-		if ($this->registered === 'post_type') {
-			\admin\post\post_type_supports::init( $this->registeredName );
-			add_action( 'add_meta_boxes', [ $this, 'post_type_meta_boxes' ] );
+		global $pagenow;
+		if ( $this->registered === 'post_type' ) {
+			if ( $pagenow === 'post.php' || $pagenow === 'post-new.php' ) {
+				\admin\post\post_type_supports::init( $this->registeredName );
+				add_action( 'add_meta_boxes', [ $this, 'post_type_meta_boxes' ] );
+			} else if ( $pagenow === 'edit.php' ) {
+				if ( isset( $this->columns ) && is_array( $this->columns ) && $this->columns ) {
+					$_PLT = new \admin\list_table\posts_list_table( $this->registeredName );
+					foreach ( $this->columns as $column => $args ) {
+						$_PLT->add( $column, $args );
+					}
+				}
+			}
 			new \wordpress\admin\save_post( $this->registeredName );
 		}
 	}
@@ -91,7 +106,7 @@ trait admin {
 		if ( ! $props =& $this->_get_properties() ) {
 			return;
 		}
-		if ( isset( $this->meta_boxes ) && $this->meta_boxes ) {
+		if ( isset( $this->meta_boxes ) && is_array( $this->meta_boxes ) && $this->meta_boxes ) {
 			foreach ( $this->meta_boxes as $arg ) {
 				if ( is_string($arg) && $prop = $props->$arg ) {
 					if ( in_array( $arg, [ 'post_parent', 'menu_order' ] ) ) {
