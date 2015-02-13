@@ -38,7 +38,7 @@ class posts_list_table {
 	}
 
 	/**
-	 * @todo Default の Column でもソートが効かない… Why?
+	 * @todo ソートのバリエーション
 	 */
 	private function init() {
 		add_filter( 'manage_' . $this->post_type . '_posts_columns', [ $this, 'manage_columns' ] );
@@ -141,6 +141,33 @@ EOF;
 			return false;
 		}
 		$propArgs = $this->properties[$property];
+		if ( in_array( $property, [ 'menu_order', 'post_parent' ] ) ) {
+			$propClass = sprintf( '\\property\\%s', $property );
+			return new $propClass( 0, $propArgs );
+		}
+		if ( ! array_key_exists( 'type', $propArgs ) ) {
+			if ( ! array_key_exists( 'model', $propArgs ) ) {
+				return false;
+			}
+			$model = $propArgs['model'];
+			$propsClassName = sprintf( '\\%s\\properties', $this->domain );
+			$propArgs = array_merge(
+				$propsClassName::$defaultPropSettings[$model],
+				$propArgs
+			);
+		}
+		if ( ! array_key_exists( 'type', $propArgs ) ) {
+			return false;
+		}
+		if ( in_array( $propArgs['type'], [ 'group', 'set' ] ) ) {
+			return false;
+		}
+		$propClass = sprintf( '\\property\\%s', $propArgs['type'] );
+		if ( ! class_exists( $propClass ) ) {
+			return false;
+		}
+		return new $propClass( $property, $propArgs );
+		/*
 		if ( array_key_exists( 'type', $propArgs ) ) {
 			if ( in_array( $propArgs['type'], [ 'group', 'set' ] ) ) {
 				return false;
@@ -150,14 +177,9 @@ EOF;
 				return false;
 			}
 			return new $propClass( $property, $propArgs );
-		} else if ( in_array( $property, [ 'menu_order', 'post_parent' ] ) ) {
-			$propClass = sprintf( '\\property\\%s', $property );
-			if ( ! class_exists( $propClass ) ) {
-				return false;
-			}
-			return new $propClass( 0, $propArgs );
 		}
 		return false;
+		*/
 	}
 
 }

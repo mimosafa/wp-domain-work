@@ -216,8 +216,9 @@ class WP_Domain_Work {
 
 			/**
 			 * Settings page in admin menu
+			 * アドオンプラグインでサブページを追加できるようにするため init にフック
 			 */
-			$_WPDW -> settings_page();
+			add_action( 'init', [ $_WPDW, 'settings_page' ] );
 		}
 
 		/**
@@ -319,6 +320,10 @@ EOF;
 				-> html( '<pre>' . var_export( $this -> get_option( 'domains' ), true ) . '<pre>' )
 			;
 		}
+		/**
+		 * アドオンプラグインで管理画面を追加する用
+		 */
+		$_PAGE = apply_filters( 'wp-domain-work-settings-page', $_PAGE );
 
 		$_PAGE -> done();
 	}

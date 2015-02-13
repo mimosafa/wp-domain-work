@@ -24,8 +24,10 @@ class select extends simple {
 	}
 
 	public function getValue() {
-		$value  = $this->value;
-		$return = $this->options[$this->value];
+		$return = '';
+		if ( $value  = $this->value ) {
+			$return = $this->options[$this->value];
+		}
 		$tag    = sprintf( 'wpdw_get_%s_%s_value', $this->domain, $this->name );
 		return apply_filters( $tag, $return, $value );
 	}

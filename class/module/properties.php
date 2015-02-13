@@ -15,8 +15,6 @@ trait properties {
 	 */
 	private $_post;
 
-	private static $post_id;
-
 	private $domain;
 
 	/**
@@ -32,10 +30,13 @@ trait properties {
 	/**
 	 *
 	 */
-	private static $defaultPropSettings = [
+	public static $defaultPropSettings = [
 		'metadata' => [
 			'type'       => 'string',
 			'multi_byte' => true,
+		],
+		'taxonomy' => [
+			'type' => 'term',
 		],
 	];
 
@@ -219,28 +220,34 @@ trait properties {
 	}
 
 	/**
+	 * 無駄にモデルインスタンスをコンストラクトしない用の関数
+	 * 1) 問題でイマイチいけていない関数になっている気がする… orz
+	 *
 	 * @access private
 	 * 
 	 * @param  string $modelName
 	 * @return reference
 	 */
 	private function &_get_model( $modelName, $post_id ) {
-		if ( array_key_exists( $modelName, self::$models ) && $post_id === self::$post_id ) {
-			/**
-			 * アーカイブや wp-admin での一覧表示の際に model が上書きされない不具合発生。
-			 * $post_id をフラグとして引数に追加した。
-			 */
-			return self::$models[$modelName];
-		}
-		$modelClass = "\\wordpress\\model\\{$modelName}";
-		if ( ! class_exists( $modelClass ) ) {
-			return self::$falseVal;
-		}
-		self::$models[$modelName] = new $modelClass( $this->_post );
 		/**
-		 * フラグとして ID を上書き
+		 * 1) アーカイブや wp-admin での一覧表示の際に model が上書きされない不具合発生。
+		 * $_post_id をフラグとして引数に追加。
 		 */
-		self::$post_id = $post_id;
+		static $_post_id = 0;
+		if ( $post_id !== $_post_id ) {
+			self::$models = [];
+		}
+		if ( ! array_key_exists( $modelName, self::$models ) ) {
+			$modelClass = "\\wordpress\\model\\{$modelName}";
+			if ( ! class_exists( $modelClass ) ) {
+				return self::$falseVal;
+			}
+			self::$models[$modelName] = new $modelClass( $this->_post );
+			/**
+			 * フラグとして $_post_id を上書き
+			 */
+			$_post_id = $post_id;
+		}
 		return self::$models[$modelName];
 	}
 

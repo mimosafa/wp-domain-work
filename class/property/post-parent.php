@@ -32,6 +32,11 @@ class post_parent {
 		return get_object_vars( $this );
 	}
 
+	public function getValue() {
+		$title = $this->value ? get_the_title( $this->value ) : '';
+		return apply_filters( 'wpdw_get_' . $this->domain . '_post_parent_value', $title, $this->value );
+	}
+
 	/*
 	public $name;
 	public $label;
