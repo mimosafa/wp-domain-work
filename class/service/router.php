@@ -53,6 +53,7 @@ class Router {
 	 * @var array
 	 */
 	private static $_services = [
+		'status',
 		'query',    // Name of class, who controls 'main query' & public or private in frontend.
 		'template', // Name of class, who controls 'template'.
 	];
