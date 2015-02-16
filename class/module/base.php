@@ -1,6 +1,6 @@
 <?php
 
-namespace module;
+namespace WP_Domain_Work\Module;
 
 trait base {
 
