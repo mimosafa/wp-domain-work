@@ -1,6 +1,6 @@
 <?php
 
-namespace admin\post;
+namespace WP_Domain_Work\Admin\post;
 
 class readonly_title {
 

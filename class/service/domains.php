@@ -1,6 +1,6 @@
 <?php
 
-namespace service;
+namespace WP_Domain_Work\Service;
 
 /**
  * 
@@ -114,7 +114,7 @@ class Domains {
 		/**
 		 * Get instance plugin class
 		 */
-		$_WPDW = \WP_Domain_Work::getInstance();
+		$_WPDW = \WP_Domain_Work\Plugin::getInstance();
 
 		if ( !$force_scan && $domains = $_WPDW::get_domains() ) {
 			$this->domains = $domains;
@@ -330,7 +330,7 @@ class Domains {
 		/**
 		 * Get instance \wordpress\register_customs
 		 */
-		$registerCustoms = \wordpress\register_customs::getInstance();
+		$registerCustoms = \WP_Domain_Work\WP\register_customs::getInstance();
 		$registerCustoms->add_post_type( $post_type, $label, $opt );
 
 		/**
@@ -341,7 +341,7 @@ class Domains {
 			/**
 			 * Get instance \wordpress\int_permalink
 			 */
-			$intPermalink = \wordpress\int_permalink::getInstance();
+			$intPermalink = \WP_Domain_Work\WP\int_permalink::getInstance();
 			$intPermalink->set( $post_type );
 
 		}
@@ -389,7 +389,7 @@ class Domains {
 		/**
 		 * Get instance \wordpress\register_customs, if not constructed.
 		 */
-		$registerCustoms = \wordpress\register_customs::getInstance();
+		$registerCustoms = \WP_Domain_Work\WP\register_customs::getInstance();
 		$registerCustoms->add_taxonomy( $taxonomy, $label, $post_types, $opt );
 	}
 
@@ -397,7 +397,7 @@ class Domains {
 	 */
 	private function endpoint_setting( $domain, Array $array ) {
 		// ~ some settings from $array, but yet...
-		$createEndpoints = \wordpress\create_endpoints::getInstance();
+		$createEndpoints = \WP_Domain_Work\WP\create_endpoints::getInstance();
 		$createEndpoints->set( $domain );
 	}
 

@@ -58,7 +58,7 @@ trait base {
 		 *
 		 * @var array
 		 */
-		$setting = \WP_Domain_Work::get_domains()[$this->domain];
+		$setting = \WP_Domain_Work\Plugin::get_domains()[$this->domain];
 
 		// Identify 'post_type' or 'taxonomy'
 		switch ( $setting['register'] ) {

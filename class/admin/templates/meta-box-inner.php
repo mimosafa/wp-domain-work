@@ -1,6 +1,6 @@
 <?php
 
-namespace admin\templates;
+namespace WP_Domain_Work\Admin\templates;
 
 /**
  * @uses \wordpress\admin\nonce (*important)
@@ -48,7 +48,7 @@ class meta_box_inner {
 		}
 		$this->context = $context;
 		$this->_post_new = ( 'add' === get_current_screen()->action ) ? true : false;
-		self::$nonceInstance = new \wordpress\admin\nonce( $context );
+		self::$nonceInstance = new \WP_Domain_Work\WP\admin\nonce( $context );
 		self::$decoder = new \mimosafa\Decoder();
 		$this->form_style();
 	}

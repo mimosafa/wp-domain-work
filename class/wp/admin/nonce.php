@@ -1,6 +1,6 @@
 <?php
 
-namespace wordpress\admin;
+namespace WP_Domain_Work\WP\admin;
 
 /**
  * Create & Verify nonce in admin

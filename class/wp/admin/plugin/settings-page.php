@@ -1,6 +1,6 @@
 <?php
 
-namespace wordpress\admin\plugin;
+namespace WP_Domain_Work\WP\admin\plugin;
 
 /**
  * WordPress Settings API wrapper class

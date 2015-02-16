@@ -5,7 +5,7 @@
  *
  * @see http://php.net/manual/ja/language.oop5.traits.php#108293
  */
-trait singleton {
+trait Singleton {
 
 	protected function __constract() {
 		// do nothing
@@ -18,11 +18,11 @@ trait singleton {
 	}
 
 	public function __clone() {
-		# trigger_error('Cloning '.__CLASS__.' is not allowed.',E_USER_ERROR);
+		trigger_error('Cloning '.__CLASS__.' is not allowed.',E_USER_ERROR);
 	}
 
 	public function __wakeup() {
-		# trigger_error('Unserializing '.__CLASS__.' is not allowed.',E_USER_ERROR);
+		trigger_error('Unserializing '.__CLASS__.' is not allowed.',E_USER_ERROR);
 	}
 
 }

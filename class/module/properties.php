@@ -238,7 +238,7 @@ trait properties {
 			self::$models = [];
 		}
 		if ( ! array_key_exists( $modelName, self::$models ) ) {
-			$modelClass = "\\wordpress\\model\\{$modelName}";
+			$modelClass = "\\WP_Domain_Work\\WP\\model\\{$modelName}";
 			if ( ! class_exists( $modelClass ) ) {
 				return self::$falseVal;
 			}

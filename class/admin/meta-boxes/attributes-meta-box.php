@@ -1,6 +1,6 @@
 <?php
 
-namespace admin\meta_boxes;
+namespace WP_Domain_Work\Admin\meta_boxes;
 
 /**
  *

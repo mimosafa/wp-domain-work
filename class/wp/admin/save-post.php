@@ -1,6 +1,6 @@
 <?php
 
-namespace wordpress\admin;
+namespace WP_Domain_Work\WP\admin;
 
 /**
  * @uses \(domain)\properties
@@ -35,19 +35,19 @@ class save_post {
 		if ( !post_type_exists( $post_type ) ) {
 			return false; // throw error
 		}
-		$this -> post_type = $post_type;
-		$this -> domain = get_post_type_object( $post_type ) -> rewrite['slug'];
+		$this->post_type = $post_type;
+		$this->domain = get_post_type_object( $post_type )->rewrite['slug'];
 
 		self::$nonceInstance = new nonce( $post_type );
 
-		$this -> init();
+		$this->init();
 	}
 
 	/**
 	 *
 	 */
 	private function init() {
-		$hook = 'save_post_' . $this -> post_type;
+		$hook = 'save_post_' . $this->post_type;
 		add_action( $hook, [ $this, 'save_post' ] );
 	}
 
@@ -62,23 +62,23 @@ class save_post {
 		/**
 		 * @uses \(domain)\properties
 		 */
-		$propClass = '\\' . $this -> domain . '\\properties';
+		$propClass = '\\' . $this->domain . '\\properties';
 		if ( !class_exists( $propClass ) ) {
 			return $post_id;
 		}
 		self::$properties = new $propClass( $post_id );
 
-		if ( !$propSettings = self::$properties -> get_property_setting() ) {
+		if ( !$propSettings = self::$properties->get_property_setting() ) {
 			return $post_id;
 		}
 
 		foreach ( $propSettings as $key => $arg ) {
 
-			$nonce = self::$nonceInstance -> get_nonce( $key );
+			$nonce = self::$nonceInstance->get_nonce( $key );
 			if ( !array_key_exists( $nonce, $_POST ) ) {
 				continue;
 			}
-			if ( !self::$nonceInstance -> check_admin_referer( $key ) ) {
+			if ( !self::$nonceInstance->check_admin_referer( $key ) ) {
 				continue;
 			}
 
@@ -87,7 +87,7 @@ class save_post {
 			/**
 			 * Save action
 			 */
-			self::$properties -> $key = $val;
+			self::$properties->$key = $val;
 
 		}
 	}

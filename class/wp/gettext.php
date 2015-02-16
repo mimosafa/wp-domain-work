@@ -1,6 +1,6 @@
 <?php
 
-namespace wordpress;
+namespace WP_Domain_Work\WP;
 
 class gettext {
 	use \singleton;

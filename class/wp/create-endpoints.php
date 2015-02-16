@@ -1,12 +1,14 @@
 <?php
 
-namespace wordpress;
+namespace WP_Domain_Work\WP;
 
 /**
  * @see http://firegoby.jp/archives/5309
+ *
+ * @todo  flush rewrite rules...
  */
 class create_endpoints {
-	use \singleton;
+	use \Singleton;
 
 	/**
 	 *
@@ -89,14 +91,3 @@ class create_endpoints {
 
 }
 
-/**
- * \wordpress\is_endpoint();
- *
- * @param  string Your custom endpoint.
- * @return bool
- */
-if ( !function_exists( 'wordpress\is_endpoint' ) ) {
-	function is_endpoint( $endpoint ) {
-		return create_rewrite_endpoints::is_endpoint( $endpoint );
-	}
-}

@@ -1,6 +1,6 @@
 <?php
 
-namespace admin\post;
+namespace WP_Domain_Work\Admin\post;
 
 class post_type_supports {
 	use \singleton;
@@ -52,7 +52,7 @@ class post_type_supports {
 		}
 		$this->set_default_supports();
 
-		$supports = \WP_Domain_Work::get_post_type_supports();
+		$supports = \WP_Domain_Work\Plugin::get_post_type_supports();
 		$domain = get_post_type_object( self::$post_type )->rewrite['slug'];
 		if ( array_key_exists( $domain, $supports ) ) {
 			foreach ( $supports[$domain] as $feature => $string ) {
@@ -76,7 +76,7 @@ class post_type_supports {
 			if ( 'support' === $string ) {
 				add_post_type_support( self::$post_type, $feature );
 			} else if ( 'readonly' === $string ) {
-				$cl = sprintf( '\\admin\\post\\readonly_%s', $feature );
+				$cl = sprintf( '\\WP_Domain_Work\\Admin\\post\\readonly_%s', $feature );
 				if ( class_exists( $cl ) ) {
 					new $cl( self::$post_type );
 				}

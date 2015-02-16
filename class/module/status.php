@@ -25,7 +25,7 @@ trait status {
 			if ( ! in_array( $status, self::$builtin_statuses ) ) {
 				continue;
 			}
-			$class = sprintf( '\\wordpress\\admin\\post_status\\%s', $status );
+			$class = sprintf( '\\WP_Domain_Work\\WP\\admin\\post_status\\%s', $status );
 			if ( class_exists( $class ) ) {
 				new $class( $args );
 			}

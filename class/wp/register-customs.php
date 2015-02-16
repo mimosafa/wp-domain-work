@@ -1,6 +1,6 @@
 <?php
 
-namespace wordpress;
+namespace WP_Domain_Work\WP;
 
 /**
  * WordPress custom post type & custom taxonomy settings wrapper class
@@ -8,7 +8,7 @@ namespace wordpress;
  * @uses \singleton
  */
 class register_customs {
-	use \singleton;
+	use \Singleton;
 
 	/**
 	 * @var array

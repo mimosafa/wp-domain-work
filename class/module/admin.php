@@ -15,12 +15,12 @@ trait admin {
 		global $pagenow;
 		if ( $this->registered === 'post_type' ) {
 			if ( $pagenow === 'post.php' || $pagenow === 'post-new.php' ) {
-				\admin\post\post_type_supports::init( $this->registeredName );
+				\WP_Domain_Work\Admin\post\post_type_supports::init( $this->registeredName );
 				add_action( 'add_meta_boxes', [ $this, 'post_type_meta_boxes' ] );
 			} else if ( $pagenow === 'edit.php' ) {
 				$this->post_type_columns();
 			}
-			new \wordpress\admin\save_post( $this->registeredName );
+			new \WP_Domain_Work\WP\admin\save_post( $this->registeredName );
 		}
 	}
 
@@ -32,7 +32,7 @@ trait admin {
 			foreach ( $this->meta_boxes as $arg ) {
 				if ( is_string($arg) && $prop = $props->$arg ) {
 					if ( in_array( $arg, [ 'post_parent', 'menu_order' ] ) ) {
-						\admin\meta_boxes\attributes_meta_box::set( $arg, $prop->getArray() );
+						\WP_Domain_Work\Admin\meta_boxes\attributes_meta_box::set( $arg, $prop->getArray() );
 					} else {
 						//
 					}
@@ -44,7 +44,7 @@ trait admin {
 					if ( ! $prop = $props->$propName ) {
 						continue;
 					}
-					\admin\meta_boxes\property_meta_box::set( $propName, $prop->getArray() );
+					\WP_Domain_Work\Admin\meta_boxes\property_meta_box::set( $propName, $prop->getArray() );
 				}
 			}
 		}
@@ -54,7 +54,7 @@ trait admin {
 		if ( ! isset( $this->columns ) || ! is_array( $this->columns ) || ! $this->columns ) {
 			return;
 		}
-		$_PLT = new \admin\list_table\posts_list_table( $this->registeredName );
+		$_PLT = new \WP_Domain_Work\Admin\list_table\posts_list_table( $this->registeredName );
 		foreach ( $this->columns as $column => $args ) {
 			$_PLT->add( $column, $args );
 		}

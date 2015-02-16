@@ -1,6 +1,6 @@
 <?php
 
-namespace wordpress\model;
+namespace WP_Domain_Work\WP\model;
 
 /**
  * @see https://github.com/WordPress/WordPress/blob/master/wp-includes/meta.php

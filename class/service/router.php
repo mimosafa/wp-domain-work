@@ -1,6 +1,6 @@
 <?php
 
-namespace service;
+namespace WP_Domain_Work\Service;
 
 /**
  *
@@ -65,7 +65,7 @@ class Router {
 		/**
 		 * Get instance plugin class
 		 */
-		$_WPDW = \WP_Domain_Work::getInstance();
+		$_WPDW = \WP_Domain_Work\Plugin::getInstance();
 
 		if ( ! is_admin() ) {
 			$this->_level = $_WPDW::get_home_level();
@@ -271,7 +271,7 @@ class Router {
 		if ( $filenow === "{$is}-{$post_type}.php" ) {
 			return $template;
 		}
-		$domain_dirs = \WP_Domain_Work::get_class_loaders();
+		$domain_dirs = \WP_Domain_Work\Plugin::get_class_loaders();
 		if ( array_key_exists( $this->_ns, $domain_dirs ) ) {
 			$dirs = array_map( function( $var ) {
 				return sprintf( '%s/%s/', Domains::add_path_prefix( $var ), $this->_ns );

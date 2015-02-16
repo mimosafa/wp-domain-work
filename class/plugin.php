@@ -1,9 +1,12 @@
 <?php
+
+namespace WP_Domain_Work;
+
 /**
  *
  */
-class WP_Domain_Work {
-	use \singleton;
+class Plugin {
+	use \Singleton;
 
 	/**
 	 * @var WP_Error
@@ -15,13 +18,72 @@ class WP_Domain_Work {
 	 *
 	 * @var array
 	 */
-	private static $option_keys;
+	private static $option_keys = [
+		/**
+		 * Hierarchy level of home_url
+		 *
+		 * @access private
+		 */
+		'home_level' => 'wp_domain_work_home_url_hierarchy_level',
+
+		/**
+		 * Hierarchy level of WordPress installed directory (site_url) for wp-admin
+		 *
+		 * @access private
+		 */
+		'site_level' => 'wp_domain_work_site_url_hierarchy_level',
+
+		/**
+		 * Plugin activation
+		 *
+		 * @access public
+		 */
+		'use_domains' => 'wp_domain_work_domains_dir_activation',
+
+		/**
+		 * 除外する domain
+		 *
+		 * @access public
+		 */
+		'excepted_domains' => 'wp_domain_work_domains_excepted_domains',
+
+		/**
+		 * @access private
+		 */
+		'domains' => 'wp_domain_work_registered_domains',
+
+		/**
+		 * @access private
+		 */
+		'class_loaders' => 'wp_domain_work_domain_class_loaders',
+
+		/**
+		 * @access private
+		 */
+		'template_files' => 'wp_domain_work_domain_template_files',
+
+		/**
+		 * @access private
+		 */
+		'functions_files' => 'wp_domain_work_domain_functions_files',
+
+		/**
+		 * @access private
+		 */
+		'post_type_supports' => 'wp_domain_work_post_type_supports',
+
+		/**
+		 * This option key is nothing but flag for forcibly scan domain directories in plugin settings page
+		 * This option will never save on wp-options table.
+		 *
+		 * @access public
+		 */
+		'force_dir_scan' => 'wp_domain_work_force_domain_directories_scan',
+	];
 
 	/**
 	 */
 	protected function __construct() {
-		self::$option_keys = $GLOBALS['wp_domain_work_plugin_option_keys'];
-
 		/**
 		 * add filters & actions
 		 */
@@ -118,13 +180,13 @@ class WP_Domain_Work {
 	 *
 	 * @access private
 	 *
-	 * @uses   service\domains
+	 * @uses   WP_Domain_Work\Service\Domains
 	 *
 	 * @param  boolean $force_scan (optional) if true, domains directories are forcibly scaned.
 	 * @return (void)
 	 */
 	private static function Domains( $force_scan = false ) {
-		new \service\Domains( $force_scan );
+		new \WP_Domain_Work\Service\Domains( $force_scan );
 	}
 
 	/**
@@ -227,7 +289,7 @@ class WP_Domain_Work {
 		if ( $_WPDW -> get_option( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
 			self::Domains();
 			if ( $_WPDW -> get_option( 'home_level' ) !== false && $_WPDW -> get_option( 'site_level' ) !== false ) {
-				new \service\Router();
+				new \WP_Domain_Work\Service\Router();
 			}
 		}
 
@@ -246,7 +308,7 @@ class WP_Domain_Work {
 	 */
 	private static function installed_level() {
 		$_WPDW = self::getInstance();
-		$level = new \wordpress\installed_level();
+		$level = new \WP_Domain_Work\WP\installed_level();
 
 		if ( false === $_WPDW -> get_option( 'home_level' ) ) {
 			$homeLevel = $level -> get_level( 'home' );
@@ -283,7 +345,7 @@ class WP_Domain_Work {
 		/**
 		 * Get instance settings page generator
 		 */
-		$_PAGE = new \wordpress\admin\plugin\settings_page();
+		$_PAGE = new \WP_Domain_Work\WP\admin\plugin\settings_page();
 
 		$top_page_desc = <<<EOF
 This is awesome plugin!

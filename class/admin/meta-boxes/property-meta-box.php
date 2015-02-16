@@ -1,6 +1,6 @@
 <?php
 
-namespace admin\meta_boxes;
+namespace WP_Domain_Work\Admin\meta_boxes;
 
 class property_meta_box {
 	use \singleton;
@@ -50,7 +50,7 @@ class property_meta_box {
 		if ( array_key_exists( 'callback', $args ) && is_callable( $args['callback'] ) ) {
 			$callback = $args['callback'];
 		} else {
-			$inner = \admin\templates\meta_box_inner::getInstance( $post_type );
+			$inner = \WP_Domain_Work\Admin\templates\meta_box_inner::getInstance( $post_type );
 			$callback = [ $inner, 'init' ];
 		}
 		static $_contexts = [ 'normal', 'advanced', 'side' ];
