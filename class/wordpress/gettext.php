@@ -28,7 +28,7 @@ class gettext {
 		return $trancelated_text;
 	}
 
-	public static function set( $text, $trancelated_text ) {
+	public static function set( $text, $trancelated_text, $domain = 'default' ) {
 		if ( ! $text || ! is_string( $text ) ) {
 			return false;
 		}

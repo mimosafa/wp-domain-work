@@ -11,17 +11,7 @@ namespace module;
 trait admin {
 	use base;
 
-	/**
-	 * constructor
-	 *
-	 * @access public
-	 */
-	public function __construct() {
-		$this->_domain_settings();
-		$this->init();
-	}
-
-	public function init() {
+	protected function init() {
 		global $pagenow;
 		if ( $this->registered === 'post_type' ) {
 			if ( $pagenow === 'post.php' || $pagenow === 'post-new.php' ) {

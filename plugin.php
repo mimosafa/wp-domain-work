@@ -102,7 +102,7 @@ ClassLoader::register( 'service',   dirname( __FILE__ ) . '/class', ClassLoader:
 ClassLoader::register( 'admin',     dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN | ClassLoader::NAMESPACE_UNDERBAR_AS_HYPHEN );
 ClassLoader::register( 'module',    dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN );
 ClassLoader::register( 'property',  dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN );
-ClassLoader::register( 'wordpress', dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN );
+ClassLoader::register( 'wordpress', dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN | ClassLoader::NAMESPACE_UNDERBAR_AS_HYPHEN );
 ClassLoader::register( 'mimosafa',  dirname( __FILE__ ) . '/lib' );
 
 /**
@@ -135,6 +135,7 @@ add_filter( 'get_terms_orderby', function( $orderby, $args ) {
 	return 't.term_order';
 }, 10, 2 );
 
+/*
 function my_custom_post_status(){
 	register_post_status( 'unread', array(
 		'label'                     => _x( 'Unread', 'post' ),
@@ -142,7 +143,7 @@ function my_custom_post_status(){
 		'exclude_from_search'       => false,
 		'show_in_admin_all_list'    => true,
 		'show_in_admin_status_list' => true,
-		'label_count'               => _n_noop( '未読 <span class="count">(%s)</span>', '未読 <span class="count">(%s)</span>' ),
+		'label_count'               => _n_noop( 'Unread <span class="count">(%s)</span>', 'Unread <span class="count">(%s)</span>' ),
 	) );
 }
 add_action( 'init', 'my_custom_post_status' );
@@ -157,13 +158,14 @@ function jc_append_post_status_list(){
 			$complete = ' selected="selected"';
 			$label = '<span id="post-status-display"> Unread</span>';
 		}
-		echo '
-		<script>
-		  jQuery(document).ready(function($){
-		    $(\'#post_status\').append(\'<option value="archive" '.$complete.'>Unread</option>\');
-		    $(\'.misc-pub-section label\').append("'.$label.'");
-		  });
-		</script>
-		';
+		echo <<<EOF
+<script>
+  jQuery(document).ready(function($){
+    $('#post_status').append('<option value="archive"{$complete}>Unread</option>');
+    $('.misc-pub-section label').append('{$label}');
+  });
+</script>
+EOF;
 	}
 }
+*/

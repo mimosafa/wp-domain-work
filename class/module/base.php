@@ -27,6 +27,20 @@ trait base {
 	protected static $falseVal = false;
 
 	/**
+	 * constructor
+	 *
+	 * @access public
+	 */
+	public function __construct() {
+		$this->_domain_settings();
+		$this->init();
+	}
+
+	protected function init() {
+		//
+	}
+
+	/**
 	 * Get domain's setting defined at properties.php (stored in option table as 'wp_dct_domains')
 	 * 
 	 * @access protected
