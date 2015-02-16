@@ -1,6 +1,6 @@
 <?php
 
-namespace property;
+namespace WP_Domain_Work\Property;
 
 class term extends simple {
 

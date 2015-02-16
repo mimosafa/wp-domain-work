@@ -171,7 +171,7 @@ trait properties {
 			/**
 			 * Post's default attributes
 			 */
-			$typeClass = "\\property\\{$name}";
+			$typeClass = "\\WP_Domain_Work\\Property\\{$name}";
 			$instance = new $typeClass( $this->_post, (array) $args ); // (array)... default で良い場合は 1 とか入れる場合もあるので
 		} else if ( array_key_exists( 'model', $args ) ) {
 			$modelName = $args['model'];
@@ -179,14 +179,14 @@ trait properties {
 				return false;
 			}
 			$args = array_merge( self::$defaultPropSettings[$modelName], $args );
-			$typeClass = '\\property\\' . $args['type'];
+			$typeClass = '\\WP_Domain_Work\\Property\\' . $args['type'];
 			if ( !class_exists( $typeClass ) ) {
 				return false;
 			}
 			$instance = new $typeClass( $name, $args );
 			$instance->val( $_Model->get( $name ) );
 		} else if ( 'post_children' === $args['type'] ) {
-			$instance = new \property\post_children( $name, $args, $this->_post );
+			$instance = new \WP_Domain_Work\Property\post_children( $name, $args, $this->_post );
 		} else if ( in_array( $args['type'], [ 'group', 'set' ] ) ) {
 			/**
 			 * Grouped property
@@ -194,7 +194,7 @@ trait properties {
 			if ( !array_key_exists( 'elements', $args ) || !\utility\is_vector( $args['elements'] ) ) {
 				return false;
 			}
-			$typeClass = '\\property\\' . $args['type'];
+			$typeClass = '\\WP_Domain_Work\\Property\\' . $args['type'];
 			if ( !class_exists( $typeClass ) ) {
 				return false;
 			}

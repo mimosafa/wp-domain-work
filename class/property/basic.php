@@ -1,6 +1,6 @@
 <?php
 
-namespace property;
+namespace WP_Domain_Work\Property;
 
 /**
  * Abstract class for basic property class
