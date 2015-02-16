@@ -37,13 +37,6 @@ ClassLoader::register( 'WP_Domain_Work', dirname( __FILE__ ) . '/class',
 	ClassLoader::FILENAME_STRTOLOWER | ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN | ClassLoader::NAMESPACE_STRTOLOWER |
 	ClassLoader::NAMESPACE_UNDERBAR_AS_HYPHEN | ClassLoader::REMOVE_FIRST_NAMESPACE_STRING );
 ClassLoader::register( '', dirname( __FILE__ ) . '/lib' );
-
-ClassLoader::register( '', dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_STRTOLOWER | ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN );
-
-ClassLoader::register( 'admin',     dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN | ClassLoader::NAMESPACE_UNDERBAR_AS_HYPHEN );
-ClassLoader::register( 'module',    dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN );
-ClassLoader::register( 'property',  dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN );
-ClassLoader::register( 'wordpress', dirname( __FILE__ ) . '/class', ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN | ClassLoader::NAMESPACE_UNDERBAR_AS_HYPHEN );
 ClassLoader::register( 'mimosafa',  dirname( __FILE__ ) . '/lib' );
 
 /**
