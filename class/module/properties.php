@@ -60,7 +60,8 @@ trait properties {
 		 *
 		 * @uses \utility\getObjectNamespace
 		 */
-		$this->domain = \utility\getObjectNamespace( $this );
+		$domainNS     = \utility\getObjectNamespace( $this );
+		$this->domain = substr( $domainNS, strripos( $domainNS, '\\' ) + 1 );
 	}
 
 	/**

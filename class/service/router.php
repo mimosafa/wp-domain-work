@@ -252,7 +252,7 @@ class Router {
 			}
 			$this->_is_admin = '...But, namespace is already checked! :)';
 		}
-		$cl = '\\' . $this->_ns . '\\' . $class;
+		$cl = sprintf( 'WP_Domain\\%s\\%s', $this->_ns, $class );
 		if ( class_exists( $cl ) ) {
 			new $cl();
 		}
@@ -265,23 +265,25 @@ class Router {
 		if ( is_null( $this->_ns ) ) {
 			return $template;
 		}
+
 		global $post_type;
 		$filenow = substr( $template, strripos( $template, '/' ) + 1 );
 		$is = is_archive() ? 'archive' : 'single';
 		if ( $filenow === "{$is}-{$post_type}.php" ) {
 			return $template;
 		}
-		$domain_dirs = \WP_Domain_Work\Plugin::get_class_loaders();
-		if ( array_key_exists( $this->_ns, $domain_dirs ) ) {
-			$dirs = array_map( function( $var ) {
-				return sprintf( '%s/%s/', Domains::add_path_prefix( $var ), $this->_ns );
-			}, $domain_dirs[$this->_ns] );
-			foreach ( [ "{$is}.php", 'index.php' ] as $file ) {
-				foreach ( $dirs as $dir ) {
-					$path = $dir . $file;
-					if ( is_readable( $path ) ) {
-						return $path;
-					}
+
+		$domains_dirs = \WP_Domain_Work\Plugin::get_domains_dirs();
+		$dirs = array_map( function( $var ) {
+			return sprintf( '%s/%s/', Domains::add_path_prefix( $var ), $this->_ns );
+		}, $domains_dirs );
+
+		foreach ( [ "{$is}.php", 'index.php' ] as $file ) {
+			foreach ( $dirs as $dir ) {
+				$path = $dir . $file;
+				if ( is_readable( $path ) ) {
+					_var_dump( $path );
+					return $path;
 				}
 			}
 		}

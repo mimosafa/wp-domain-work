@@ -22,7 +22,7 @@ class posts_list_table {
 		}
 		$this->post_type = $post_type;
 		$this->domain = get_post_type_object( $post_type )->rewrite['slug'];
-		$class = sprintf( '\\%s\\properties', $this->domain );
+		$class = sprintf( 'WP_Domain\\%s\\properties', $this->domain );
 		$this->properties = $class::get_property_setting();
 		$this->init();
 	}
@@ -78,7 +78,7 @@ class posts_list_table {
 	}
 
 	public function column_callbacks( $column_name, $post_id ) {
-		$class = sprintf( '\\%s\\properties', $this->domain );
+		$class = sprintf( 'WP_Domain\\%s\\properties', $this->domain );
 		$props = new $class( $post_id );
 		$return = $props->$column_name->getValue();
 		echo $return;
@@ -142,7 +142,7 @@ EOF;
 		}
 		$propArgs = $this->properties[$property];
 		if ( in_array( $property, [ 'menu_order', 'post_parent' ] ) ) {
-			$propClass = sprintf( '\\WP_Domain_Work\\Property\\%s', $property );
+			$propClass = sprintf( 'WP_Domain_Work\\Property\\%s', $property );
 			return new $propClass( 0, $propArgs );
 		}
 		if ( ! array_key_exists( 'type', $propArgs ) ) {
@@ -150,7 +150,7 @@ EOF;
 				return false;
 			}
 			$model = $propArgs['model'];
-			$propsClassName = sprintf( '\\%s\\properties', $this->domain );
+			$propsClassName = sprintf( 'WP_Domain\\%s\\properties', $this->domain );
 			$propArgs = array_merge(
 				$propsClassName::$defaultPropSettings[$model],
 				$propArgs
@@ -162,7 +162,7 @@ EOF;
 		if ( in_array( $propArgs['type'], [ 'group', 'set' ] ) ) {
 			return false;
 		}
-		$propClass = sprintf( '\\WP_Domain_Work\\Property\\%s', $propArgs['type'] );
+		$propClass = sprintf( 'WP_Domain_Work\\Property\\%s', $propArgs['type'] );
 		if ( ! class_exists( $propClass ) ) {
 			return false;
 		}

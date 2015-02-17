@@ -51,7 +51,8 @@ trait base {
 		 *
 		 * @uses \utility\getObjectNamespace
 		 */
-		$this->domain = \utility\getObjectNamespace( $this );
+		$domainNS     = \utility\getObjectNamespace( $this );
+		$this->domain = substr( $domainNS, strripos( $domainNS, '\\' ) + 1 );
 
 		/**
 		 * Get domain's setting stored in option table
@@ -82,7 +83,7 @@ trait base {
 	 */
 	protected function &_get_properties() {
 		if ( ! self::$properties ) {
-			$className = sprintf( '\\%s\\properties', $this->domain );
+			$className = sprintf( 'WP_Domain\\%s\\properties', $this->domain );
 			if ( ! class_exists( $className ) ) {
 				return self::$falseVal;
 			}

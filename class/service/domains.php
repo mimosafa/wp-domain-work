@@ -3,6 +3,11 @@
 namespace WP_Domain_Work\Service;
 
 /**
+ * alias
+ */
+use \WP_Domain_Work\Plugin as DW;
+
+/**
  * 
  */
 class Domains {
@@ -17,15 +22,15 @@ class Domains {
 
 	/**
 	 */
+	private $domains_directories = [];
+
+	/**
+	 */
 	private $domains = [];
 
 	/**
 	 */
 	private $supports = [];
-
-	/**
-	 */
-	private $class_loaders = [];
 
 	/**
 	 */
@@ -114,12 +119,12 @@ class Domains {
 		/**
 		 * Get instance plugin class
 		 */
-		$_WPDW = \WP_Domain_Work\Plugin::getInstance();
+		#$_WPDW = \WP_Domain_Work\Plugin::getInstance();
 
-		if ( !$force_scan && $domains = $_WPDW::get_domains() ) {
+		if ( !$force_scan && $domains = DW::get_domains() ) {
 			$this->domains = $domains;
-			$this->class_loaders = $_WPDW::get_class_loaders();
-			$this->functions_files = $_WPDW::get_functions_files();
+			$this->domains_directories = DW::get_domains_dirs();
+			$this->functions_files = DW::get_functions_files();
 		} else {
 			// wp-content/domains
 			$this->directories[] = \WP_CONTENT_DIR . '/' . self::DOMAINS_DIR_NAME;
@@ -127,7 +132,7 @@ class Domains {
 			$this->directories[] = get_template_directory() . '/' . self::DOMAINS_DIR_NAME;
 			// wp-content/themes/your-child-theme/domains
 			$this->directories[] = get_stylesheet_directory() . '/' . self::DOMAINS_DIR_NAME;
-			if ( $excepted_domains = $_WPDW::get_excepted_domains() ) {
+			if ( $excepted_domains = DW::get_excepted_domains() ) {
 				self::$_excepted = array_merge( $excepted_domains, self::$_excepted );
 			}
 			$this->scan_directories();
@@ -135,12 +140,12 @@ class Domains {
 			 * update options
 			 */
 			if ( $this->domains ) {
-				$_WPDW::update_domains( $this->domains );
-				$_WPDW::update_class_loaders( $this->class_loaders );
-				$_WPDW::update_functions_files( $this->functions_files );
-				$_WPDW::update_post_type_supports( $this->supports );
+				DW::update_domains( $this->domains );
+				DW::update_domains_dirs( $this->domains_directories );
+				DW::update_functions_files( $this->functions_files );
+				DW::update_post_type_supports( $this->supports );
 			}
-			$_WPDW::flush_rewrite_rules();
+			DW::flush_rewrite_rules();
 		}
 
 		if ( $this->domains ) {
@@ -195,26 +200,18 @@ class Domains {
 					continue;
 				}
 				/**
-				 * (*2) クラスのオートローダーとヘルパー関数が定義されたファイル (functions.php)
-				 * - ディレクトリーループ (*1)で 2巡目以降のみを対象。
-				 * - あとに読み込んだローダー、ファイルを優先したいので、array_unshiftで配列の先頭に追加する。
-				 */
-				if ( array_key_exists( $domain, $this->class_loaders ) ) {
-					array_unshift( $this->class_loaders[$domain], self::remove_path_prefix( $path ) );
-					if ( $functions_path = self::returnReadableFilePath( $fileinfo, 'functions.php' ) ) {
-						array_unshift( $this->functions_files, self::remove_path_prefix( $functions_path ) );
-					}
-				}
-				/**
 				 * Retrieve metadata from properties.php
 				 * if file is not exist, continue
 				 *
 				 * @see http://dogmap.jp/2014/09/10/post-3109/
 				 */
-				if ( !$property_file = self::returnReadableFilePath( $fileinfo, 'properties.php' ) ) {
+				if ( ! $property_file = self::returnReadableFilePath( $fileinfo, 'properties.php' ) ) {
 					continue;
 				}
-				$property = array_filter( get_file_data( $property_file, self::$property_data ) );
+				if ( ! $property = array_filter( get_file_data( $property_file, self::$property_data ) ) ) {
+					continue;
+				}
+
 				/**
 				 * 親テーマの場合はそのまま代入、子テーマの場合 (すでに $domainsに要素がある場合)はマージする。
 				 */
@@ -239,17 +236,12 @@ class Domains {
 						}
 					}
 				}
-				/**
-				 * クラスのオートローダーとヘルパー関数が定義されたファイル (functions.php)
-				 * - (*2) 以外が対象
-				 */
-				if ( !array_key_exists( $domain, $this->class_loaders ) ) {
-					$this->class_loaders[$domain][] = self::remove_path_prefix( $path );
-					if ( $functions_path = self::returnReadableFilePath( $fileinfo, 'functions.php' ) ) {
-						array_unshift( $this->functions_files, self::remove_path_prefix( $functions_path ) );
-					}
+
+				if ( $functions_path = self::returnReadableFilePath( $fileinfo, 'functions.php' ) ) {
+					array_unshift( $this->functions_files, self::remove_path_prefix( $functions_path ) );
 				}
 			}
+			array_unshift( $this->domains_directories, self::remove_path_prefix( $path ) );
 			$done = $path;
 		}
 	}
@@ -404,23 +396,14 @@ class Domains {
 	/**
 	 */
 	private function register_class_loaders() {
-		foreach ( $this->class_loaders as $domain => $somePath ) {
-			foreach ( $somePath as $path ) {
-				$path = self::add_path_prefix( $path );
-				if ( is_readable( $path ) ) {
-					\ClassLoader::register( $domain, $path, \ClassLoader::FILENAME_UNDERBAR_AS_HYPHEN );
-				} else {
-					new self( true );
-					add_action( 'admin_init', function() {
-						add_settings_error(
-							'wp-domain-work',
-							'domain-dir-removed',
-							'1 or more domain directories are deleted. You shoud do "Force Directories Search".',
-							'error'
-						);
-					} );
-					break 2;
-				}
+		foreach ( $this->domains_directories as $dir ) {
+			$path = self::add_path_prefix( $dir );
+			if ( is_readable( $path ) ) {
+				\ClassLoader::register( 'WP_Domain', $path, \ClassLoader::REMOVE_FIRST_NAMESPACE_STRING );
+			} else {
+				new self( true );
+				//
+				break;
 			}
 		}
 	}

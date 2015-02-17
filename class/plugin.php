@@ -48,14 +48,14 @@ class Plugin {
 		'excepted_domains' => 'wp_domain_work_domains_excepted_domains',
 
 		/**
-		 * @access private
+		 *
 		 */
-		'domains' => 'wp_domain_work_registered_domains',
+		'domains_dirs' => 'wp_domain_work_domains_directories',
 
 		/**
 		 * @access private
 		 */
-		'class_loaders' => 'wp_domain_work_domain_class_loaders',
+		'domains' => 'wp_domain_work_registered_domains',
 
 		/**
 		 * @access private
@@ -106,7 +106,6 @@ class Plugin {
 			'site_level',
 			'use_domains',
 			'domains',
-			'class_loaders',
 			'functions_files',
 			'post_type_supports',
 		];
@@ -258,8 +257,6 @@ class Plugin {
 						add_settings_error( 'wp-domain-work', 'update-domains', $msg, 'updated' );
 					}
 				}
-				break;
-			case $this -> get_option_key( 'class_loaders' ) :
 				break;
 		}
 
