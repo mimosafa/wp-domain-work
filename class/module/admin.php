@@ -15,11 +15,11 @@ trait admin {
 		global $pagenow;
 		if ( $this->registered === 'post_type' ) {
 			if ( $pagenow === 'post.php' || $pagenow === 'post-new.php' ) {
-				\WP_Domain_Work\Admin\post\post_type_supports::init( $this->registeredName );
 				add_action( 'add_meta_boxes', [ $this, 'post_type_meta_boxes' ] );
 			} else if ( $pagenow === 'edit.php' ) {
 				$this->post_type_columns();
 			}
+			\WP_Domain_Work\Admin\post\post_type_supports::init( $this->registeredName );
 			new \WP_Domain_Work\WP\admin\save_post( $this->registeredName );
 		}
 	}

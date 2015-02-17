@@ -128,7 +128,7 @@ class posts_list_table {
 		$selector = substr( $selector, 0, -2 ) . ' ';
 		echo <<<EOF
 <style type="text/css">
-@media screen and (max-width: 782px) { {$selector} { display: none; } }
+  @media screen and (max-width: 782px) { {$selector} { display: none; } }
 </style>\n
 EOF;
 	}
