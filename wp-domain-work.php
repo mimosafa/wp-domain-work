@@ -14,7 +14,7 @@ Domain Path: /languages
  * System version check
  */
 require_once dirname( __FILE__ ) . '/inc/version.php';
-if ( !requirement_wp_domain_work_plugin() ) {
+if ( ! requirement_wp_domain_work_plugin() ) {
 	return;
 }
 
@@ -27,8 +27,6 @@ require_once dirname( __FILE__ ) . '/inc/utility.php';
  * include classloader file
  */
 require_once dirname( __FILE__ ) . '/lib/ClassLoader.php';
-
-#require_once dirname( __FILE__ ) . '/lib/Singleton.php';
 
 /**
  * Register classloader

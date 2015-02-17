@@ -14,7 +14,7 @@ define( 'WP_VER_WP_DOMAIN_WORK_REQUIRE', '4.0' );
  * Check PHP & WordPress version
  * @return bool
  */
-function requirement_wp_domain_work_plugin() {
+function requirement_wp_domain_work_plugin( $show_error = true ) {
 	$e = new WP_Error();
 	$phpVer = PHP_VERSION;
 	$wpVer  = $GLOBALS['wp_version'];
@@ -31,9 +31,11 @@ function requirement_wp_domain_work_plugin() {
 		);
 	}
 	if ( $e -> get_error_code() ) {
-		global $_error_messages;
-		$_error_messages = $e -> get_error_messages();
-		add_action( 'admin_notices', 'error_requirement_wp_domain_work_plugin' );
+		if ( $show_error ) {
+			global $_error_messages;
+			$_error_messages = $e -> get_error_messages();
+			add_action( 'admin_notices', 'error_requirement_wp_domain_work_plugin' );
+		}
 		return false;
 	}
 	return true;
