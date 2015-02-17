@@ -5,10 +5,18 @@ namespace WP_Domain_Work\Module;
 trait status {
 	use base;
 
-	private static $postL10n_props = [];
-
 	private static $builtin_statuses = [
 		'publish', 'future', 'draft', 'pending', 'private', 'trash'
+	];
+
+	private static $customs_defaults = [
+		'label'         => '',
+		'public'        => false,
+		'show_in_admin' => true, // original key for this class
+		// 'exclude_from_search'       => true,
+		// 'show_in_admin_all_list'    => false,
+		// 'show_in_admin_status_list' => true,
+		// 'label_count'               => []
 	];
 
 	private function init() {
@@ -25,7 +33,7 @@ trait status {
 			if ( ! in_array( $status, self::$builtin_statuses ) ) {
 				continue;
 			}
-			$class = sprintf( '\\WP_Domain_Work\\WP\\admin\\post_status\\%s', $status );
+			$class = sprintf( '\\WP_Domain_Work\\WP\\post\\post_status\\%s', $status );
 			if ( class_exists( $class ) ) {
 				new $class( $args );
 			}
@@ -33,27 +41,31 @@ trait status {
 	}
 
 	private function init_custom_statuses() {
-		#foreach ( $this->custom as $status => $args ) {
-			register_post_status( 'withdrawal', array(
-				'label'                     => '退会',
-				'public'                    => false,
-				'exclude_from_search'       => true,
-				'show_in_admin_all_list'    => false,
-				'show_in_admin_status_list' => true,
-				'label_count'               => _n_noop( '退会 <span class="count">(%s)</span>', '退会 <span class="count">(%s)</span>' ),
-			) );
-			add_action( 'post_submitbox_misc_actions', function() {
-				global $post;
-?>
-<script>
-  jQuery(document).ready(function($){
-    $("select#post_status").append("<option value=\"withdrawal\" <?php selected('withdrawal', $post->post_status); ?>>退会済み</option>");
-  });
-</script>
-<?php
-			} );
-		#	register_post_status( $status, $args );
-		#}
+		foreach ( $this->custom as $status => $args ) {
+			if ( ! is_string( $status ) || ! $status || in_array( $status, self::$builtin_statuses ) ) {
+				continue;
+			}
+			$args = wp_parse_args( $args, self::$customs_defaults );
+			if ( ! $args['label'] ) {
+				$args['label'] = ucwords( $status );
+			}
+			$args['public'] = (boolean) $args['public'];
+			if ( ! array_key_exists( 'exclude_from_search', $args ) ) {
+				$args['exclude_from_search'] = ! $args['public'];
+			}
+			if ( ! array_key_exists( 'show_in_admin_all_list', $args ) ) {
+				$args['show_in_admin_all_list'] = $args['public'];
+			}
+			if ( ! array_key_exists( 'show_in_admin_status_list', $args ) ) {
+				$args['show_in_admin_status_list'] = (bool) $args['show_in_admin'];
+			}
+			if ( $args['show_in_admin_status_list'] ) {
+				$string = sprintf( '%s <span class="count">(%%s)</span>', $args['label'] );
+				$args['label_count'] = _n_noop( $string, $string );
+			}
+			unset( $args['show_in_admin'] );
+			\WP_Domain_Work\WP\post\post_status\custom_post_status::set( $status, $args );
+		}
 	}
 
 }

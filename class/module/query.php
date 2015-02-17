@@ -49,6 +49,27 @@ trait query {
 		if ( ! $query->is_main_query() || $query->is_singular() ) {
 			return;
 		}
+
+		/**
+		 * 管理画面(edit.php)でカラムでソートを掛けた際に並び替えがされない不具合を解消。
+		 *
+		 * @see WP_Domain_Work\Admin\list_table\posts_list_table::columns_order( $vars )
+		 */
+		if ( is_admin() ) {
+			if ( array_key_exists( 'order', $this->query_args ) && array_key_exists( 'order', $query->query ) ) {
+				if ( strtolower( $query->query['order'] ) !== strtolower( $this->query_args['order'] ) ) {
+					unset( $this->query_args['order'] );
+				}
+			}
+			if ( array_key_exists( 'orderby', $this->query_args ) && array_key_exists( 'orderby', $query->query ) ) {
+				if ( $query->query['orderby'] !== $this->query_args['orderby'] ) {
+					unset( $this->query_args['orderby'] );
+				} else if ( in_array( $query->query['orderby'], [ 'meta_value', 'meta_value_num' ] ) ) {
+					// meta_key should be unset...
+				}
+			}
+		}
+
 		foreach ( $this->query_args as $key => $val ) {
 			$query->set( $key, $val );
 		}

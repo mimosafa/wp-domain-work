@@ -1,20 +1,20 @@
 <?php
 
-namespace WP_Domain_Work\WP\admin\post_status;
+namespace WP_Domain_Work\WP\post\post_status;
 
 /**
  *
  */
-class publish {
+class pending {
 
 	private $labels;
 
 	private static $defaults = [
-		'label'        => 'Publish',
-		'display'      => 'Published',
-		'label_counts' => '',
-		'timestamp'    => 'Published on',
-		#'save-action'  => '',
+		#'label'        => '',
+		'display'      => 'Pending Review',
+		'label_count' => '',
+		#'timestamp'    => 'Published on',
+		'save-action'  => 'Save as Pending',
 	];
 
 	private $postL10nData = [];
@@ -25,11 +25,13 @@ class publish {
 	}
 
 	private function init() {
+		/*
 		if ( ! $this->labels['display'] && $this->labels['label'] !== self::$defaults['label'] ) {
 			$this->labels['display'] = $this->labels['label'];
 		}
-		if ( ! $this->labels['label_counts'] && $this->labels['display'] !== self::$defaults['display'] ) {
-			$this->labels['label_counts'] = $this->labels['display'];
+		*/
+		if ( ! $this->labels['label_count'] && $this->labels['display'] !== self::$defaults['display'] ) {
+			$this->labels['label_count'] = $this->labels['display'];
 		}
 		$this->status_labels();
 		if ( $this->postL10nData ) {
@@ -40,22 +42,25 @@ class publish {
 	private function status_labels() {
 		if ( ( $display = $this->labels['display'] ) && is_string( $display ) && $display !== self::$defaults['display'] ) {
 			\WP_Domain_Work\WP\gettext::set( self::$defaults['display'], $display );
-			$this->postL10nData['published'] = wp_json_encode( $this->labels['display'] );
+			#$this->postL10nData['published'] = wp_json_encode( $this->labels['display'] );
 		}
-		if ( ( $lc = $this->labels['label_counts'] ) && is_string( $this->labels['label_counts'] ) ) {
+		if ( ( $lc = $this->labels['label_count'] ) && is_string( $this->labels['label_count'] ) ) {
 			global $wp_post_statuses;
-			$lc = $this->labels['label_counts'];
-			$wp_post_statuses['publish']->label_count = _n_noop(
+			$lc = $this->labels['label_count'];
+			$wp_post_statuses['pending']->label_count = _n_noop(
 				$lc . ' <span class="count">(%s)</span>',
 				$lc . ' <span class="count">(%s)</span>'
 			);
 		}
+		/*
 		if ( ( $timestamp = $this->labels['timestamp'] ) && is_string( $timestamp ) && $timestamp !== self::$defaults['timestamp'] ) {
-			\WP_Domain_Work\WP\gettext::set( 'Published on: <b>%1$s</b>', $timestamp . ': <b>%1$s</b>' );
+			\wordpress\gettext::set( 'Published on: <b>%1$s</b>', $timestamp . ': <b>%1$s</b>' );
 			$this->postL10nData['publishOnPast'] = wp_json_encode( $this->labels['timestamp'] );
 		}
+		*/
 	}
 
+	/*
 	public function js_postL10n() {
 		echo "<script type='text/javascript'>\n";
 		foreach ( $this->postL10nData as $before => $after ) {
@@ -65,5 +70,6 @@ EOF;
 		}
 		echo "</script>\n";
 	}
+	*/
 
 }
