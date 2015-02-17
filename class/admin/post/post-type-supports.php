@@ -3,7 +3,7 @@
 namespace WP_Domain_Work\Admin\post;
 
 class post_type_supports {
-	use \singleton;
+	use \Singleton;
 
 	private static $post_type;
 

@@ -6,7 +6,7 @@ namespace WP_Domain_Work\Admin\meta_boxes;
  *
  */
 class attributes_meta_box {
-	use \singleton;
+	use \Singleton;
 
 	private $post_type;
 	private static $attributes = [
