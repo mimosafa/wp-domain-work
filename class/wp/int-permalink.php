@@ -18,7 +18,7 @@ class int_permalink {
 	/**
 	 */
 	protected function __construct() {
-		$this -> init();
+		$this->init();
 	}
 
 	/**
@@ -33,12 +33,14 @@ class int_permalink {
 	/**
 	 * Set post types.
 	 *
-	 * @param string $post_type variable-length
+	 * @param string $post_type
 	 */
-	public function set( $post_type ) {
-		if ( is_string( $post_type ) ) {
-			self::$post_types[] = $post_type;
+	public static function set( $post_type ) {
+		if ( ! is_string( $post_type ) || ! $post_type ) {
+			return;
 		}
+		$_IP = self::getInstance();
+		$_IP::$post_types[] = $post_type;
 	}
 
 	/**
@@ -46,9 +48,6 @@ class int_permalink {
 	 * @see http://blog.ext.ne.jp/?p=1416
 	 */
 
-	/**
-	 * action_hook 'init'
-	 */
 	public function set_rewrite() {
 		if ( empty( self::$post_types ) ) {
 			return;
@@ -56,28 +55,25 @@ class int_permalink {
 		global $wp_rewrite;
 		foreach ( self::$post_types as $post_type ) {
 			if ( post_type_exists( $post_type ) ) {
-				$slug = get_post_type_object( $post_type ) -> rewrite['slug'];
-				$wp_rewrite -> add_rewrite_tag( "%{$post_type}_id%", '([^/]+)', "post_type={$post_type}&p=" );
-				$wp_rewrite -> add_permastruct( $post_type, "/{$slug}/%{$post_type}_id%", false );
+				$slug = get_post_type_object( $post_type )->rewrite['slug'];
+				$wp_rewrite->add_rewrite_tag( "%{$post_type}_id%", '([^/]+)', "post_type={$post_type}&p=" );
+				$wp_rewrite->add_permastruct( $post_type, "/{$slug}/%{$post_type}_id%", false );
 			}
 		}
 	}
 
-	/**
-	 * filter_hook 'post_type_link'
-	 */
 	public function set_permalink( $url, $post ) {
 		if ( empty( self::$post_types ) ) {
 			return $url;
 		}
 		global $wp_rewrite;
 		$post = get_post( $post );
-		$post_type = $post -> post_type;
+		$post_type = $post->post_type;
 		if ( in_array( $post_type, self::$post_types ) ) {
 			$_url = str_replace(
 				"%{$post_type}_id%",
-				$post -> ID,
-				$wp_rewrite -> get_extra_permastruct( $post_type )
+				$post->ID,
+				$wp_rewrite->get_extra_permastruct( $post_type )
 			);
 			$url = home_url( user_trailingslashit( $_url ) );
 		}

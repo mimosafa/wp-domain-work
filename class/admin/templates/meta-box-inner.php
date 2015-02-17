@@ -3,7 +3,7 @@
 namespace WP_Domain_Work\Admin\templates;
 
 /**
- * @uses \wordpress\admin\nonce (*important)
+ * @uses \wordpress\admin\nonce
  * @uses \mimosafa\Decoder
  * @uses \property\(property type)
  */
@@ -43,13 +43,13 @@ class meta_box_inner {
 	 *
 	 */
 	protected function __construct( $context ) {
-		if ( !  $context || !  is_string( $context ) ) {
+		if ( ! $context || ! is_string( $context ) ) {
 			return;
 		}
-		$this->context = $context;
+		$this->context   = $context;
 		$this->_post_new = ( 'add' === get_current_screen()->action ) ? true : false;
 		self::$nonceInstance = new \WP_Domain_Work\WP\admin\nonce( $context );
-		self::$decoder = new \mimosafa\Decoder();
+		self::$decoder       = new \mimosafa\Decoder();
 		$this->form_style();
 	}
 
@@ -68,11 +68,6 @@ class meta_box_inner {
 		if ( empty( $dom_array ) ) {
 			return;
 		}
-		/*
-		echo '<pre>';
-		var_dump( $dom_array );
-		echo '</pre>';
-		//*/
 		$html  = self::$decoder->getArrayToHtmlString( $dom_array );
 		$html .= self::$nonceInstance->nonce_field( $metabox['args']['name'] );
 		echo $html;
@@ -95,6 +90,7 @@ class meta_box_inner {
 		$return = [];
 
 		if ( $type === 'group' ) {
+			
 			if ( !  array_key_exists( '_properties', $args ) || !  $args['_properties'] ) {
 				return []; // error
 			}
@@ -110,14 +106,11 @@ class meta_box_inner {
 			];
 			$inner = [];
 			foreach ( $args['_properties'] as $propArgs ) {
-				$name  .= $args['name'] . '[' . $propArgs['name'] . ']';
-				$id    .= $this->_form_id_prefix . $args['name'] . '-' . $propArgs['name'];
-				$label .= $propArgs['label'];
-
-				$_id = $id;
+				$name .= $args['name'] . '[' . $propArgs['name'] . ']';
+				$id   .= $this->_form_id_prefix . $args['name'] . '-' . $propArgs['name'];
+				$_id   = $id;
 
 				if ( $propDom = $this->generate_dom_array( $propArgs ) ) {
-
 					$inner[] = [
 						'element'  => 'tr',
 						'children' => [
@@ -127,7 +120,7 @@ class meta_box_inner {
 									[
 										'element'   => 'label',
 										'attribute' => [ 'for' => esc_attr( $_id ) ],
-										'text'      => esc_html( $label )
+										'text'      => esc_html( $propArgs['label'] )
 									]
 								]
 							], [
@@ -136,9 +129,8 @@ class meta_box_inner {
 							]
 						]
 					];
-
 				}
-				$name = $id = $label = '';
+				$name = $id = '';
 			}
 			if ( ! empty( $inner ) ) {
 				$block['children'][0]['children'] = $inner;

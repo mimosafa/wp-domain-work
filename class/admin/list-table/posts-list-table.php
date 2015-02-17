@@ -54,7 +54,6 @@ class posts_list_table {
 		}
 		$new_columns = [];
 		$new_columns['cb'] = $columns['cb'];
-		$hide_columns = [];
 		foreach ( $this->columns as $column_name ) {
 			if ( array_key_exists( $column_name, $columns ) ) {
 				/**
@@ -114,12 +113,16 @@ class posts_list_table {
 		return $vars;
 	}
 
+	/**
+	 * filter hook 'wp_domain_work_{$domain}_hide_columns'
+	 */
 	public function hide_columns_style() {
 		if ( empty( $this->columns ) ) {
 			return;
 		}
 		$selector = '';
-		foreach ( $this->columns as $column ) {
+		$columns = apply_filters( 'wp_domain_work_' . $this->domain . '_hide_columns', $this->columns );
+		foreach ( $columns as $column ) {
 			if ( in_array( $column, self::$built_in_column_types ) ) {
 				continue;
 			}
@@ -167,19 +170,6 @@ EOF;
 			return false;
 		}
 		return new $propClass( $property, $propArgs );
-		/*
-		if ( array_key_exists( 'type', $propArgs ) ) {
-			if ( in_array( $propArgs['type'], [ 'group', 'set' ] ) ) {
-				return false;
-			}
-			$propClass = sprintf( '\\property\\%s', $propArgs['type'] );
-			if ( ! class_exists( $propClass ) ) {
-				return false;
-			}
-			return new $propClass( $property, $propArgs );
-		}
-		return false;
-		*/
 	}
 
 }

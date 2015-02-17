@@ -17,7 +17,7 @@ class string extends simple {
 	protected $_max_length;
 
 	public function __construct( $var, Array $arg ) {
-		if ( !parent::__construct( $var, $arg ) ) {
+		if ( ! parent::__construct( $var, $arg ) ) {
 			return false;
 		}
 	}

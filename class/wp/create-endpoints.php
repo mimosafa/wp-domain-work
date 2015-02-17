@@ -18,7 +18,7 @@ class create_endpoints {
 	/**
 	 */
 	protected function __construct() {
-		$this -> init();
+		$this->init();
 	}
 
 	/**
@@ -34,11 +34,12 @@ class create_endpoints {
 	 *
 	 * @param  string $endpoint (required)
 	 */
-	public function set( $endpoint ) {
-		if ( !$endpoint || !is_string( $endpoint ) ) {
+	public static function set( $endpoint ) {
+		if ( ! $endpoint || ! is_string( $endpoint ) ) {
 			return;
 		}
-		self::$endpoints[] = $endpoint;
+		$_CE = self::getInstance();
+		$_CE::$endpoints[] = $endpoint;
 	}
 
 	/**
@@ -53,7 +54,7 @@ class create_endpoints {
 		 * rewrite rulesを取得
 		 */
 		global $wp_rewrite;
-		$rules = $wp_rewrite -> wp_rewrite_rules();
+		$rules = $wp_rewrite->wp_rewrite_rules();
 
 		foreach ( self::$endpoints as $endpoint ) {
 			/**
@@ -73,7 +74,7 @@ class create_endpoints {
 	 *
 	 */
 	public function add_query_vars( $vars ) {
-		if ( !empty( self::$endpoints ) ) {
+		if ( ! empty( self::$endpoints ) ) {
 			foreach ( self::$endpoints as $endpoint ) {
 				$vars[] = $endpoint;
 			}
@@ -86,7 +87,7 @@ class create_endpoints {
 	 */
 	public static function is_endpoint( $endpoint ) {
 		global $wp_query;
-		return isset( $wp_query -> query[$endpoint] );
+		return isset( $wp_query->query[$endpoint] );
 	}
 
 }

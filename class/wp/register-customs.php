@@ -20,15 +20,14 @@ class register_customs {
 	 */
 	private static $_taxonomies = [];
 
-	/*
-	private static $_cpt_labels = [];
-	private static $_ct_labels = [];
-	*/
+	// private static $_cpt_labels = [];
+	// private static $_ct_labels = [];
+
 
 	/**
 	 */
 	protected function __construct() {
-		$this -> init();
+		$this->init();
 	}
 
 	/**
@@ -36,7 +35,7 @@ class register_customs {
 	 */
 	private function init() {
 		add_action( 'init', [ $this, 'register_post_type' ], 1 );
-		add_action( 'init', [ $this, 'register_taxonomy' ], 1 );
+		add_action( 'init', [ $this, 'register_taxonomy'  ], 1 );
 	}
 
 	/**
@@ -47,13 +46,14 @@ class register_customs {
 	 * @param  array $options
 	 * @return (void)
 	 */
-	public function add_post_type( $post_type, $label, $options = [] ) {
+	public static function add_post_type( $post_type, $label, $options = [] ) {
 		$cpt = [
 			'post_type' => $post_type,
 			'label'     => $label,
 			'options'   => $options
 		];
-		self::$_post_types[] = $cpt;
+		$_RC = self::getInstance();
+		$_RC::$_post_types[] = $cpt;
 	}
 
 	/**
@@ -64,14 +64,15 @@ class register_customs {
 	 * @param  array $options
 	 * @return (void)
 	 */
-	public function add_taxonomy( $taxonomy, $label, $post_types = [], $options = [] ) {
+	public static function add_taxonomy( $taxonomy, $label, $post_types = [], $options = [] ) {
 		$ct = [
 			'taxonomy'   => $taxonomy,
 			'label'      => $label,
 			'post_types' => $post_types,
 			'options'    => $options
 		];
-		self::$_taxonomies[] = $ct;
+		$_RC = self::getInstance();
+		$_RC::$_taxonomies[] = $ct;
 	}
 
 	/**
@@ -86,13 +87,13 @@ class register_customs {
 		}
 		foreach ( self::$_post_types as $pt ) {
 			$pt['options']['label'] = $pt['label'];
-			if ( !empty( $this -> _taxonomies ) ) {
+			if ( ! empty( $this->_taxonomies ) ) {
 				$taxonomies = [];
-				foreach ( $this -> _taxonomies as $tax ) {
+				foreach ( $this->_taxonomies as $tax ) {
 					if ( in_array( $pt['post_type'], $tax['post_types'] ) )
 						$taxonomies[] = $tax['taxonomy'];
 				}
-				if ( !empty( $taxonomies ) ) {
+				if ( ! empty( $taxonomies ) ) {
 					$pt['options'] = array_merge(
 						$pt['options'],
 						[ 'taxonomies' => $taxonomies ]

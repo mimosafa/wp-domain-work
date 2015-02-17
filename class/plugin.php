@@ -119,13 +119,13 @@ class Plugin {
 	 * @access public
 	 */
 	public static function __callStatic( $name, $args ) {
-		$_WPDW = self::getInstance();
+		$_DW = self::getInstance();
 		if ( 'get_' === substr( $name, 0, 4 ) ) {
 			array_unshift( $args, substr( $name, 4 ) );
-			return call_user_func_array( [ $_WPDW, 'get_option' ], $args );
+			return call_user_func_array( [ $_DW, 'get_option' ], $args );
 		} else if ( 'update_' === substr( $name, 0, 7 ) ) {
 			array_unshift( $args, substr( $name, 7 ) );
-			return call_user_func_array( [ $_WPDW, 'update_option' ], $args );
+			return call_user_func_array( [ $_DW, 'update_option' ], $args );
 		} else {
 			// throw error
 		}
@@ -152,7 +152,7 @@ class Plugin {
 	 * @return mixed
 	 */
 	private function get_option( $option, $default = false ) {
-		if ( !array_key_exists( $option, self::$option_keys ) ) {
+		if ( ! array_key_exists( $option, self::$option_keys ) ) {
 			return; // throw error
 		}
 		return \get_option( self::$option_keys[$option], $default );
@@ -168,10 +168,25 @@ class Plugin {
 	 * @return boolean
 	 */
 	private function update_option( $option, $newvalue ) {
-		if ( !array_key_exists( $option, self::$option_keys ) ) {
+		if ( ! array_key_exists( $option, self::$option_keys ) ) {
 			return false;
 		}
 		return \update_option( self::$option_keys[$option], $newvalue );
+	}
+
+	/**
+	 * Delete plugin's option
+	 *
+	 * @access private
+	 *
+	 * @param  string $option
+	 * @return boolean
+	 */
+	private function delete_option( $option ) {
+		if ( ! array_key_exists( $option, self::$option_keys ) ) {
+			return false;
+		}
+		return \delete_option( self::$option_keys[$option] );
 	}
 
 	/**
@@ -189,30 +204,15 @@ class Plugin {
 	}
 
 	/**
-	 * Delete plugin's option
-	 *
-	 * @access private
-	 *
-	 * @param  string $option
-	 * @return boolean
-	 */
-	private function delete_option( $option ) {
-		if ( !array_key_exists( $option, self::$option_keys ) ) {
-			return false;
-		}
-		return \delete_option( self::$option_keys[$option] );
-	}
-
-	/**
 	 * @access private
 	 *
 	 * @todo   When un-use_domain, flush rewrite rules does not work well...
 	 */
 	public function pre_update_option( $value, $option, $old_value ) {
 		switch ( $option ) {
-			case $this -> get_option_key( 'use_domains' ) :
+			case $this->get_option_key( 'use_domains' ) :
 				if ( $value !== $old_value ) {
-					if ( !$value ) {
+					if ( ! $value ) {
 						self::flush_rewrite_rules(); // does not work well...
 					} else {
 						self::installed_level();
@@ -222,7 +222,7 @@ class Plugin {
 			/**
 			 * forcibly scan domain directories
 			 */
-			case $this -> get_option_key( 'force_dir_scan' ) :
+			case $this->get_option_key( 'force_dir_scan' ) :
 				if ( $value ) {
 					self::Domains( true );
 				}
@@ -231,19 +231,15 @@ class Plugin {
 			/**
 			 * domains
 			 */
-			case $this -> get_option_key( 'domains' ) :
+			case $this->get_option_key( 'domains' ) :
 				if ( $value !== $old_value ) {
-					$msg = 'Domains are updated ! ';
-					$added   = [];
-					$updated = [];
+					$msg = 'Domains are updated !  ';
 					if ( $old_value && is_array( $old_value ) ) {
 						foreach ( $value as $domain => $arg ) {
-							if ( !array_key_exists( $domain, $old_value ) ) {
-								# $added[$domain] = $arg;
+							if ( ! array_key_exists( $domain, $old_value ) ) {
 								$msg .= '"' . $domain . '" is added. ';
 							} else {
 								if ( $arg !== $old_value[$domain] ) {
-									# $updated[$domain] = $arg;
 									$msg .= '"' . $domain . '" is updated. ';
 								}
 								unset( $old_value[$domain] );
@@ -259,7 +255,6 @@ class Plugin {
 				}
 				break;
 		}
-
 		return $value;
 	}
 
@@ -267,34 +262,31 @@ class Plugin {
 	 * Plugin init
 	 */
 	public static function init() {
-		$_WPDW = self::getInstance();
-		self::$error = new \WP_Error();
-
+		$_DW = self::getInstance();
+		$_DW::$error = new \WP_Error();
+		
 		if ( is_admin() ) {
-			$_WPDW -> permalink_structure();
-
+			$_DW->permalink_structure();
 			/**
 			 * Settings page in admin menu
 			 * アドオンプラグインでサブページを追加できるようにするため init にフック
 			 */
-			add_action( 'init', [ $_WPDW, 'settings_page' ] );
+			add_action( 'init', [ $_DW, 'settings_page' ] );
 		}
-
 		/**
 		 * init services
 		 */
-		if ( $_WPDW -> get_option( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
+		if ( $_DW->get_option( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
 			self::Domains();
-			if ( $_WPDW -> get_option( 'home_level' ) !== false && $_WPDW -> get_option( 'site_level' ) !== false ) {
+			if ( $_DW->get_option( 'home_level' ) !== false && $_DW->get_option( 'site_level' ) !== false ) {
 				new \WP_Domain_Work\Service\Router();
 			}
 		}
-
 		/**
 		 * Catch error
 		 */
-		if ( self::$error -> get_error_code() ) {
-			add_action( 'admin_menu', [ $_WPDW, 'notice' ] );
+		if ( self::$error->get_error_code() ) {
+			add_action( 'admin_menu', [ $_DW, 'notice' ] );
 		}
 	}
 
@@ -304,16 +296,16 @@ class Plugin {
 	 * @uses wordpress\installed_level
 	 */
 	private static function installed_level() {
-		$_WPDW = self::getInstance();
+		$_DW = self::getInstance();
 		$level = new \WP_Domain_Work\WP\installed_level();
 
-		if ( false === $_WPDW -> get_option( 'home_level' ) ) {
-			$homeLevel = $level -> get_level( 'home' );
-			$_WPDW -> update_option( 'home_level', $homeLevel );
+		if ( false === $_DW->get_option( 'home_level' ) ) {
+			$homeLevel = $level->get_level( 'home' );
+			$_DW->update_option( 'home_level', $homeLevel );
 		}
-		if ( false === $_WPDW -> get_option( 'site_level' ) ) {
-			$siteLevel = $level -> get_level( 'site' );
-			$_WPDW -> update_option( 'site_level', $siteLevel );
+		if ( false === $_DW->get_option( 'site_level' ) ) {
+			$siteLevel = $level->get_level( 'site' );
+			$_DW->update_option( 'site_level', $siteLevel );
 		}
 	}
 
@@ -321,11 +313,11 @@ class Plugin {
 	 *
 	 */
 	private function permalink_structure() {
-		if ( !$this -> get_option( 'use_domains' ) ) {
+		if ( ! $this->get_option( 'use_domains' ) ) {
 			return;
 		}
-		if ( !\get_option( 'permalink_structure' ) ) {
-			self::$error -> add(
+		if ( ! \get_option( 'permalink_structure' ) ) {
+			self::$error->add(
 				'permalink_structure',
 				'Set the permalink to something other than the default.',
 				[ '"WP Domain Work" plugin require customized permalink structure.' ]
@@ -352,31 +344,31 @@ EOF;
 		 * Page: WP Domain Work Settings
 		 */
 		$_PAGE
-		-> init( 'wp-domain-work', 'WP Domain Work Settings', 'WP Domain Work' )
-			-> description( $top_page_desc )
-			-> section( 'default-setting' )
-				-> field( 'domains-activation' )
-				-> option_name( $this -> get_option_key( 'use_domains' ), 'checkbox', [ 'label' => 'Use domains' ] )
+		->init( 'wp-domain-work', 'WP Domain Work Settings', 'WP Domain Work' )
+			->description( $top_page_desc )
+			->section( 'default-setting' )
+				->field( 'domains-activation' )
+				->option_name( $this->get_option_key( 'use_domains' ), 'checkbox', [ 'label' => 'Use domains' ] )
 		;
-		if ( !$this -> get_option( 'use_domains' ) ) {
+		if ( ! $this->get_option( 'use_domains' ) ) {
 			$_PAGE
-					-> description( 'ドメインディレクトリーを有効にする場合はチェックを入れてください' )
+					->description( 'ドメインディレクトリーを有効にする場合はチェックを入れてください' )
 			;
 		} else {
 			$_PAGE
-					-> description( 'ドメインディレクトリーは有効です' )
-				-> field( 'force-directories-search' )
-				-> option_name( $this -> get_option_key( 'force_dir_scan' ), 'checkbox' )
+					->description( 'ドメインディレクトリーは有効です' )
+				->field( 'force-directories-search' )
+				->option_name( $this->get_option_key( 'force_dir_scan' ), 'checkbox' )
 			;
 		}
 
 		/**
 		 * Subpage: Your Domains
 		 */
-		if ( $this -> get_option( 'use_domains' ) ) {
+		if ( $this->get_option( 'use_domains' ) ) {
 			$_PAGE
-			-> init( 'wp-domains', 'Your Domains' )
-				-> html( '<pre>' . var_export( $this -> get_option( 'domains' ), true ) . '<pre>' )
+			->init( 'wp-domains', 'Your Domains' )
+				->html( '<pre>' . var_export( $this->get_option( 'domains' ), true ) . '<pre>' )
 			;
 		}
 		/**
@@ -384,7 +376,7 @@ EOF;
 		 */
 		$_PAGE = apply_filters( 'wp-domain-work-settings-page', $_PAGE );
 
-		$_PAGE -> done();
+		$_PAGE->done();
 	}
 
 	/**
@@ -400,10 +392,10 @@ EOF;
 	 * Show error message
 	 */
 	public function notice() {
-		$codes = self::$error -> get_error_codes();
+		$codes = self::$error->get_error_codes();
 		foreach ( $codes as $code ) {
-			$msg  = self::$error -> get_error_message( $code );
-			$data = self::$error -> get_error_data( $code );
+			$msg  = self::$error->get_error_message( $code );
+			$data = self::$error->get_error_data( $code );
 			foreach ( $data as $d ) {
 				$msg .= ' ' . $d;
 			}

@@ -116,12 +116,7 @@ class Domains {
 	/**
 	 */
 	private function init( $force_scan ) {
-		/**
-		 * Get instance plugin class
-		 */
-		#$_WPDW = \WP_Domain_Work\Plugin::getInstance();
-
-		if ( !$force_scan && $domains = DW::get_domains() ) {
+		if ( ! $force_scan && $domains = DW::get_domains() ) {
 			$this->domains = $domains;
 			$this->domains_directories = DW::get_domains_dirs();
 			$this->functions_files = DW::get_functions_files();
@@ -175,7 +170,7 @@ class Domains {
 			if ( $path === $done ) {
 				break;
 			}
-			if ( !is_readable( $path ) ) {
+			if ( ! is_readable( $path ) ) {
 				continue;
 			}
 			/**
@@ -186,7 +181,7 @@ class Domains {
 			 * Inner loop
 			 */
 			foreach ( $dir as $fileinfo ) {
-				if ( $fileinfo->isDot() || !$fileinfo->isDir() ) {
+				if ( $fileinfo->isDot() || ! $fileinfo->isDir() ) {
 					continue;
 				}
 				/**
@@ -215,7 +210,7 @@ class Domains {
 				/**
 				 * 親テーマの場合はそのまま代入、子テーマの場合 (すでに $domainsに要素がある場合)はマージする。
 				 */
-				if ( !array_key_exists( $domain, $this->domains ) ) {
+				if ( ! array_key_exists( $domain, $this->domains ) ) {
 					$this->domains[$domain] = $property;
 				} else {
 					$this->domains[$domain] = array_merge( $this->domains[$domain], $property );
@@ -256,8 +251,6 @@ class Domains {
 				$this->taxonomy_setting( $domain, $array );
 			} elseif ( 'Custom Endpoint' === $array['register'] ) {
 				$this->endpoint_setting( $domain, $array );
-			} else {
-				unset( $this->domains[$domain] );
 			}
 		}
 	}
@@ -319,23 +312,10 @@ class Domains {
 		 */
 		$opt = \utility\md_array_merge( $opt, $this->_cpt_option );
 
-		/**
-		 * Get instance \wordpress\register_customs
-		 */
-		$registerCustoms = \WP_Domain_Work\WP\register_customs::getInstance();
-		$registerCustoms->add_post_type( $post_type, $label, $opt );
+		\WP_Domain_Work\WP\register_customs::add_post_type( $post_type, $label, $opt );
 
-		/**
-		 * 
-		 */
 		if ( array_key_exists( 'rewrite', $array ) && 'ID' === $array['rewrite'] ) {
-
-			/**
-			 * Get instance \wordpress\int_permalink
-			 */
-			$intPermalink = \WP_Domain_Work\WP\int_permalink::getInstance();
-			$intPermalink->set( $post_type );
-
+			\WP_Domain_Work\WP\int_permalink::set( $post_type );
 		}
 	}
 
@@ -378,19 +358,14 @@ class Domains {
 		// ~
 		$opt = \utility\md_array_merge( $opt, $this->_ct_option );
 
-		/**
-		 * Get instance \wordpress\register_customs, if not constructed.
-		 */
-		$registerCustoms = \WP_Domain_Work\WP\register_customs::getInstance();
-		$registerCustoms->add_taxonomy( $taxonomy, $label, $post_types, $opt );
+		\WP_Domain_Work\WP\register_customs::add_taxonomy( $taxonomy, $label, $post_types, $opt );
 	}
 
 	/**
 	 */
 	private function endpoint_setting( $domain, Array $array ) {
 		// ~ some settings from $array, but yet...
-		$createEndpoints = \WP_Domain_Work\WP\create_endpoints::getInstance();
-		$createEndpoints->set( $domain );
+		\WP_Domain_Work\WP\create_endpoints::set( $domain );
 	}
 
 	/**

@@ -66,38 +66,3 @@ add_filter( 'get_terms_orderby', function( $orderby, $args ) {
 	#return $orderby;
 	return 't.term_order';
 }, 10, 2 );
-
-/*
-function my_custom_post_status(){
-	register_post_status( 'unread', array(
-		'label'                     => _x( 'Unread', 'post' ),
-		'public'                    => true,
-		'exclude_from_search'       => false,
-		'show_in_admin_all_list'    => true,
-		'show_in_admin_status_list' => true,
-		'label_count'               => _n_noop( 'Unread <span class="count">(%s)</span>', 'Unread <span class="count">(%s)</span>' ),
-	) );
-}
-add_action( 'init', 'my_custom_post_status' );
-
-add_action('admin_footer-post.php', 'jc_append_post_status_list');
-function jc_append_post_status_list(){
-	global $post;
-	$complete = '';
-	$label = '';
-	if($post->post_type == 'space'){
-		if($post->post_status == 'unread'){
-			$complete = ' selected="selected"';
-			$label = '<span id="post-status-display"> Unread</span>';
-		}
-		echo <<<EOF
-<script>
-  jQuery(document).ready(function($){
-    $('#post_status').append('<option value="archive"{$complete}>Unread</option>');
-    $('.misc-pub-section label').append('{$label}');
-  });
-</script>
-EOF;
-	}
-}
-*/

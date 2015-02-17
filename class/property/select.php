@@ -10,10 +10,10 @@ class select extends simple {
 	public $options = [];
 
 	public function __construct( $var, Array $arg ) {
-		if ( !parent::__construct( $var, $arg ) ) {
+		if ( ! parent::__construct( $var, $arg ) ) {
 			return false;
 		}
-		if ( !array_key_exists( 'options', $arg ) || !is_array( $arg['options'] ) ) {
+		if ( ! array_key_exists( 'options', $arg ) || !is_array( $arg['options'] ) ) {
 			return false;
 		}
 		$this->options = $arg['options'];
@@ -28,7 +28,7 @@ class select extends simple {
 		if ( $value  = $this->value ) {
 			$return = $this->options[$this->value];
 		}
-		$tag    = sprintf( 'wpdw_get_%s_%s_value', $this->domain, $this->name );
+		$tag = sprintf( 'wpdw_get_%s_%s_value', $this->domain, $this->name );
 		return apply_filters( $tag, $return, $value );
 	}
 

@@ -26,61 +26,38 @@ class metadata {
 	 * @param string $type
 	 */
 	public function __construct( $object, $type = null ) {
-
 		if ( is_object( $object ) ) {
-
 			$class = get_class( $object );
-
 			if ( 'WP_Post' === $class ) {
-
-				$this -> meta_type = 'post';
-				$this -> object_id = $object -> ID;
-
+				$this->meta_type = 'post';
+				$this->object_id = $object->ID;
 			} else if ( 'WP_User' === $class ) {
-
-				$this -> meta_type = 'user';
-				$this -> object_id = $object -> ID;
-
+				$this->meta_type = 'user';
+				$this->object_id = $object->ID;
 			} else {
-
 				// 'comment', & new custom ... yet!
-
 			}
-
 		} else if ( ( $object_id = absint( $object ) ) && is_string( $type ) ) {
-
 			if ( 'post' === $type ) {
-
 				if ( !$post_id = wp_is_post_revision( $object_id ) ) {
 					$post_id = $object_id;
 				}
-
-				$this -> meta_type = 'post';
-				$this -> object_id = $post_id;
-
+				$this->meta_type = 'post';
+				$this->object_id = $post_id;
 			} else if ( 'user' === $type ) {
-
 				if ( get_user_by( 'id', $object_id ) ) {
-					$this -> meta_type = 'user';
-					$this -> object_id = $object_id;
+					$this->meta_type = 'user';
+					$this->object_id = $object_id;
 				}
-
 			} else {
-
 				// 'comment', & new custom ... yet!
-
 			}
-
 		} else {
-
-			// throw error
-
-		}
-
-		if ( is_null( $this -> meta_type ) ) {
 			// throw error
 		}
-
+		if ( is_null( $this->meta_type ) ) {
+			// throw error
+		}
 	}
 
 	/**
@@ -88,21 +65,21 @@ class metadata {
 	 */
 
 	/**
-	 * isset( $this -> name );
+	 * isset( $this->name );
 	 *
 	 * @return bool
 	 */
 	public function __isset( $name ) {
-		return metadata_exists( $this -> meta_type, $this -> object_id, $name );
+		return metadata_exists( $this->meta_type, $this->object_id, $name );
 	}
 
 	/**
-	 * $this -> name;
+	 * $this->name;
 	 *
 	 * @return mixed
 	 */
 	public function __get( $name ) {
-		$value = $this -> get( $name );
+		$value = $this->get( $name );
 
 		if ( false === $value ) {
 			return false; // throw error: invalid
@@ -115,7 +92,7 @@ class metadata {
 	}
 
 	/**
-	 * $this -> name = 'value';
+	 * $this->name = 'value';
 	 *
 	 * @uses  \utility\is_vector
 	 *
@@ -125,25 +102,25 @@ class metadata {
 
 		if ( \utility\is_vector( $value ) && 1 < count( $value ) ) {
 			foreach ( $value as $val ) {
-				$this -> add( $name, $val );
+				$this->add( $name, $val );
 			}
 		} else {
-			$this -> update( $name, $value );
+			$this->update( $name, $value );
 		}
 
 	}
 
 	/**
-	 * unset( $this -> name );
+	 * unset( $this->name );
 	 * - Delete all entries with the specified meta_key.
 	 *
 	 * @return void
 	 */
 	public function __unset( $name ) {
-		if ( !isset( $this -> $name ) ) {
+		if ( !isset( $this->$name ) ) {
 			return false; // throw error: cannot unset metadata, not exists.
 		}
-		return $this -> delete( $name );
+		return $this->delete( $name );
 	}
 
 	/**
@@ -158,7 +135,7 @@ class metadata {
 	 * @see http://codex.wordpress.org/Function_Reference/add_metadata
 	 */
 	public function add( $meta_key, $meta_value, $unique = false ) {
-		return add_metadata( $this -> meta_type, $this -> object_id, $meta_key, $meta_value, $unique );
+		return add_metadata( $this->meta_type, $this->object_id, $meta_key, $meta_value, $unique );
 	}
 
 	/**
@@ -167,7 +144,7 @@ class metadata {
 	 * @see http://codex.wordpress.org/Function_Reference/update_metadata
 	 */
 	public function update( $meta_key, $meta_value, $prev_value = '' ) {
-		return update_metadata( $this -> meta_type, $this -> object_id, $meta_key, $meta_value, $prev_value );
+		return update_metadata( $this->meta_type, $this->object_id, $meta_key, $meta_value, $prev_value );
 	}
 
 	/**
@@ -176,7 +153,7 @@ class metadata {
 	 * @see http://codex.wordpress.org/Function_Reference/delete_metadata
 	 */
 	public function delete( $meta_key, $meta_value = '' ) {
-		return delete_metadata( $this -> meta_type, $this -> object_id, $meta_key, $meta_value );
+		return delete_metadata( $this->meta_type, $this->object_id, $meta_key, $meta_value );
 	}
 
 	/**
@@ -185,12 +162,12 @@ class metadata {
 	 * @see http://codex.wordpress.org/Function_Reference/get_metadata
 	 */
 	public function get( $meta_key, $single = false ) {
-		$value = get_metadata( $this -> meta_type, $this -> object_id, $meta_key, $single );
+		$value = get_metadata( $this->meta_type, $this->object_id, $meta_key, $single );
 		if ( $single === false && count( $value ) === 1 && $value === array_values( $value ) ) {
 			return $value[0];
 		}
 		return $value ? $value : false;
-		# return get_metadata( $this -> meta_type, $this -> object_id, $meta_key, $single );
+		# return get_metadata( $this->meta_type, $this->object_id, $meta_key, $single );
 	}
 
 }

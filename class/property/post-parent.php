@@ -37,30 +37,4 @@ class post_parent {
 		return apply_filters( 'wpdw_get_' . $this->domain . '_post_parent_value', $title, $this->value );
 	}
 
-	/*
-	public $name;
-	public $label;
-	protected $_type = 'post_parent';
-
-	public function __construct( $var, Array $arg ) {
-		
-		if ( !is_string( $var ) ) {
-			return null;
-		}
-		$this -> name = $var;
-		$this -> label = array_key_exists( 'label', $arg ) && is_string( $arg['label'] )
-			? $arg['label']
-			: ucwords( str_replace( [ '_', '-' ], ' ', trim( $var ) ) );
-		;
-		if ( array_key_exists( 'description', $arg ) ) {
-			$this -> description = $arg['description'];
-		}
-
-	}
-
-	public function getArray() {
-		return get_object_vars( $this );
-	}
-	*/
-
 }
