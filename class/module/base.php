@@ -3,6 +3,7 @@
 namespace WP_Domain_Work\Module;
 
 trait base {
+	use \WP_Domain_Work\Utility\classname;
 
 	/**
 	 * @var string Dmain's name.
@@ -47,16 +48,14 @@ trait base {
 	 */
 	protected function _domain_settings() {
 		/**
-		 * define domain's name
-		 *
-		 * @uses \utility\getObjectNamespace
+		 * Define domain's name by namespace string
+		 * @uses \WP_Domain_Work\Utility\classname::getNamespace
 		 */
-		$domainNS     = \utility\getObjectNamespace( $this );
+		$domainNS = self::getNamespace( $this );
 		$this->domain = substr( $domainNS, strripos( $domainNS, '\\' ) + 1 );
 
 		/**
 		 * Get domain's setting stored in option table
-		 *
 		 * @var array
 		 */
 		$setting = \WP_Domain_Work\Plugin::get_domains()[$this->domain];

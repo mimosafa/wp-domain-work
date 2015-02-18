@@ -19,11 +19,6 @@ if ( ! requirement_wp_domain_work_plugin() ) {
 }
 
 /**
- * Include utility file
- */
-require_once dirname( __FILE__ ) . '/inc/utility.php';
-
-/**
  * include classloader file
  */
 require_once dirname( __FILE__ ) . '/lib/ClassLoader.php';

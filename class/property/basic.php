@@ -6,6 +6,7 @@ namespace WP_Domain_Work\Property;
  * Abstract class for basic property class
  */
 abstract class basic {
+	use \WP_Domain_Work\Utility\classname;
 
 	/**
 	 * \module\properties ですべてのプロパティインスタンスに追加されている
@@ -33,7 +34,11 @@ abstract class basic {
 		if ( ! $var || ! is_string( $var )  ) {
 			return false;
 		}
-		$this->_type  = \utility\getEndOfClassname( $this );
+		/**
+		 * Define type name by class name string
+		 * @uses \WP_Domain_Work\Utility\classname::getClassName
+		 */
+		$this->_type  = self::getClassName( $this );
 		$this->name   = $var;
 		$this->label  = array_key_exists( 'label', $arg ) && is_string( $arg['label'] )
 			? $arg['label']

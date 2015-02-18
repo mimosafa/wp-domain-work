@@ -9,12 +9,16 @@ namespace WP_Domain_Work\Module;
  * @uses 
  */
 trait properties {
+	use \WP_Domain_Work\Utility\classname;
 
 	/**
 	 * @var WP_Post
 	 */
 	private $_post;
 
+	/**
+	 * @var string
+	 */
 	private $domain;
 
 	/**
@@ -23,7 +27,7 @@ trait properties {
 	private $_data = [];
 
 	/**
-	 * @var array \wordpress\model\~ instance
+	 * @var array WP_Domain_Work\WP\model\~
 	 */
 	private static $models = [];
 
@@ -31,13 +35,8 @@ trait properties {
 	 *
 	 */
 	public static $defaultPropSettings = [
-		'metadata' => [
-			'type'       => 'string',
-			'multi_byte' => true,
-		],
-		'taxonomy' => [
-			'type' => 'term',
-		],
+		'metadata' => [ 'type' => 'string', 'multi_byte' => true, ],
+		'taxonomy' => [ 'type' => 'term', ],
 	];
 
 	private static $falseVal = false;
@@ -56,11 +55,10 @@ trait properties {
 		}
 		$this->_post = $post;
 		/**
-		 * define domain's name
-		 *
-		 * @uses \utility\getObjectNamespace
+		 * Define domain's name by namespace string
+		 * @uses \WP_Domain_Work\Utility\classname::getNamespace
 		 */
-		$domainNS     = \utility\getObjectNamespace( $this );
+		$domainNS = self::getNamespace( $this );
 		$this->domain = substr( $domainNS, strripos( $domainNS, '\\' ) + 1 );
 	}
 
@@ -131,7 +129,11 @@ trait properties {
 		if ( ! $property = $this->$name  ) {
 			return;
 		}
-		$type = \utility\getEndOfClassname( $property );
+		/**
+		 * Define type name by classname string
+		 * @uses \WP_Domain_Work\Utility\classname::getClassname
+		 */
+		$type = self::getClassname( $property );
 
 		if ( 'group' === $type || 'set' === $type ) {
 			if ( !is_array( $value ) ) {
@@ -172,7 +174,7 @@ trait properties {
 			/**
 			 * Post's default attributes
 			 */
-			$typeClass = "\\WP_Domain_Work\\Property\\{$name}";
+			$typeClass = "WP_Domain_Work\\Property\\{$name}";
 			$instance = new $typeClass( $this->_post, (array) $args ); // (array)... default で良い場合は 1 とか入れる場合もあるので
 		} else if ( array_key_exists( 'model', $args ) ) {
 			$modelName = $args['model'];
@@ -180,7 +182,7 @@ trait properties {
 				return false;
 			}
 			$args = array_merge( self::$defaultPropSettings[$modelName], $args );
-			$typeClass = '\\WP_Domain_Work\\Property\\' . $args['type'];
+			$typeClass = 'WP_Domain_Work\\Property\\' . $args['type'];
 			if ( !class_exists( $typeClass ) ) {
 				return false;
 			}
@@ -190,12 +192,15 @@ trait properties {
 			$instance = new \WP_Domain_Work\Property\post_children( $name, $args, $this->_post );
 		} else if ( in_array( $args['type'], [ 'group', 'set' ] ) ) {
 			/**
-			 * Grouped property
+			 * Idiom: $array !== array_values( $array )
+			 *        - Check $array is associative array or not
+			 *
+			 * @see http://qiita.com/Hiraku/items/721cc3a385cb2d7daebd
 			 */
-			if ( !array_key_exists( 'elements', $args ) || !\utility\is_vector( $args['elements'] ) ) {
+			if ( !array_key_exists( 'elements', $args ) || $args['elements'] !== array_values( $args['elements']) ) {
 				return false;
 			}
-			$typeClass = '\\WP_Domain_Work\\Property\\' . $args['type'];
+			$typeClass = 'WP_Domain_Work\\Property\\' . $args['type'];
 			if ( !class_exists( $typeClass ) ) {
 				return false;
 			}
@@ -239,7 +244,7 @@ trait properties {
 			self::$models = [];
 		}
 		if ( ! array_key_exists( $modelName, self::$models ) ) {
-			$modelClass = "\\WP_Domain_Work\\WP\\model\\{$modelName}";
+			$modelClass = "WP_Domain_Work\\WP\\model\\{$modelName}";
 			if ( ! class_exists( $modelClass ) ) {
 				return self::$falseVal;
 			}

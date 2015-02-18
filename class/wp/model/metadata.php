@@ -99,15 +99,19 @@ class metadata {
 	 * @return void
 	 */
 	public function __set( $name, $value ) {
-
-		if ( \utility\is_vector( $value ) && 1 < count( $value ) ) {
+		/**
+		 * Idiom: $array === array_values( $array )
+		 *        - Check $array is vector array or not
+		 *
+		 * @see http://qiita.com/Hiraku/items/721cc3a385cb2d7daebd
+		 */
+		if ( is_array( $value ) && $value === array_values( $value ) && 1 < count( $value ) ) {
 			foreach ( $value as $val ) {
 				$this->add( $name, $val );
 			}
 		} else {
 			$this->update( $name, $value );
 		}
-
 	}
 
 	/**
@@ -163,6 +167,12 @@ class metadata {
 	 */
 	public function get( $meta_key, $single = false ) {
 		$value = get_metadata( $this->meta_type, $this->object_id, $meta_key, $single );
+		/**
+		 * Idiom: $array === array_values( $array )
+		 *        - Check $array is vector array or not
+		 *
+		 * @see http://qiita.com/Hiraku/items/721cc3a385cb2d7daebd
+		 */
 		if ( $single === false && count( $value ) === 1 && $value === array_values( $value ) ) {
 			return $value[0];
 		}

@@ -33,7 +33,7 @@ trait status {
 			if ( ! in_array( $status, self::$builtin_statuses ) ) {
 				continue;
 			}
-			$class = sprintf( '\\WP_Domain_Work\\WP\\post\\post_status\\%s', $status );
+			$class = sprintf( 'WP_Domain_Work\\WP\\post\\post_status\\%s', $status );
 			if ( class_exists( $class ) ) {
 				new $class( $args );
 			}
