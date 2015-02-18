@@ -7,7 +7,7 @@ namespace WP_Domain_Work\WP\admin\plugin;
  *
  * Usage:
  * - Get instance <code>$instance = new \wordpress\admin\settings_page();</code>
- * - Initialize with page sulug <code>$instance -> init( 'my-plugin' );</code>
+ * - Initialize with page sulug <code>$instance->init( 'my-plugin' );</code>
  *   - You can also set page title & menu title by this method
  * ...
  *
@@ -65,7 +65,7 @@ class settings_page {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this -> init();
+		$this->init();
 	}
 
 	/**
@@ -76,9 +76,9 @@ class settings_page {
 	 * @return object self
 	 */
 	public function init( $page = null, $page_title = null, $menu_title = null ) {
-		$this -> init_page();
+		$this->init_page();
 		if ( $page !== null ) {
-			$this -> page( $page, $page_title, $menu_title );
+			$this->page( $page, $page_title, $menu_title );
 		}
 		return $this;
 	}
@@ -89,8 +89,8 @@ class settings_page {
 	 * @access public
 	 */
 	public function done() {
-		$this -> init();
-		if ( $this -> pages ) {
+		$this->init();
+		if ( $this->pages ) {
 			add_action( 'admin_menu', [ $this, 'add_pages' ] );
 			add_action( 'admin_init', [ $this, 'add_settings' ] );
 		}
@@ -102,9 +102,9 @@ class settings_page {
 	 * @access private
 	 */
 	private function init_page() {
-		$this -> init_section();
-		if ( !empty( self::$page ) ) {
-			$this -> pages[] = self::$page;
+		$this->init_section();
+		if ( ! empty( self::$page ) ) {
+			$this->pages[] = self::$page;
 		}
 		self::$page = [];
 	}
@@ -115,10 +115,10 @@ class settings_page {
 	 * @access private
 	 */
 	private function init_section() {
-		$this -> init_field();
-		if ( !empty( self::$section ) ) {
+		$this->init_field();
+		if ( ! empty( self::$section ) ) {
 			if ( self::$page ) {
-				if ( !array_key_exists( 'sections', self::$page ) ) {
+				if ( ! array_key_exists( 'sections', self::$page ) ) {
 					self::$page['sections'] = [];
 				}
 				self::$page['sections'][] = self::$section;
@@ -133,14 +133,14 @@ class settings_page {
 	 * @access private
 	 */
 	private function init_field() {
-		if ( !empty( self::$field ) ) {
+		if ( ! empty( self::$field ) ) {
 			if ( self::$section ) {
-				if ( !array_key_exists( 'fields', self::$section ) ) {
+				if ( ! array_key_exists( 'fields', self::$section ) ) {
 					self::$section['fields'] = [];
 				}
 				self::$section['fields'][] = self::$field;
 			} else if ( self::$page ) {
-				if ( !array_key_exists( 'fields', self::$page ) ) {
+				if ( ! array_key_exists( 'fields', self::$page ) ) {
 					self::$page['fields'] = [];
 				}
 				self::$page['fields'][] = self::$field;
@@ -155,11 +155,11 @@ class settings_page {
 	 * @access private
 	 */
 	public function add_pages() {
-		if ( !doing_action( 'admin_menu' ) || !$this -> pages ) {
+		if ( ! doing_action( 'admin_menu' ) || ! $this->pages ) {
 			return;
 		}
-		foreach ( $this -> pages as $page ) {
-			$this -> add_page( $page, $this -> toplevel );
+		foreach ( $this->pages as $page ) {
+			$this->add_page( $page, $this->toplevel );
 		}
 	}
 
@@ -173,7 +173,7 @@ class settings_page {
 	 * @return void
 	 */
 	private function add_page( $page_arg, $toplevel ) {
-		if ( !array_key_exists( 'page', $page_arg ) ) {
+		if ( ! array_key_exists( 'page', $page_arg ) ) {
 			return;
 		}
 		global $admin_page_hooks;
@@ -186,19 +186,19 @@ class settings_page {
 			return;
 		}
 
-		if ( !isset( $title ) ) {
+		if ( ! isset( $title ) ) {
 			$title = ucwords( trim( str_replace( [ '-', '_', '/', '.php' ], ' ', $page ) ) );
 			$page_arg['title'] = $title;
 		}
-		if ( !isset( $menu_title ) ) {
+		if ( ! isset( $menu_title ) ) {
 			$menu_title = $title;
 			$page_arg['menu_title'] = $menu_title;
 		}
-		if ( !isset( $capability ) ) {
+		if ( ! isset( $capability ) ) {
 			$capability = 'manage_options';
 			$page_arg['capability'] = $capability;
 		}
-		if ( !isset( $callback ) ) {
+		if ( ! isset( $callback ) ) {
 			if ( ( isset( $sections ) && $sections ) || ( isset( $fields ) && $fields ) ) {
 				$callback = [ $this, 'page_body' ];
 			} else {
@@ -208,12 +208,12 @@ class settings_page {
 			unset( $page_arg['callback'] ); // Optimize vars
 		}
 
-		if ( $page === $toplevel && !array_key_exists( $page, $admin_page_hooks ) ) {
+		if ( $page === $toplevel && ! array_key_exists( $page, $admin_page_hooks ) ) {
 
-			if ( !isset( $icon_url ) ) {
+			if ( ! isset( $icon_url ) ) {
 				$icon_url = '';
 			}
-			if ( !isset( $position ) ) {
+			if ( ! isset( $position ) ) {
 				$position = null;
 			}
 
@@ -234,7 +234,7 @@ class settings_page {
 		 */
 		if ( isset( $sections ) && $sections ) {
 			foreach ( $sections as $section ) {
-				$this -> add_section( $section, $page );
+				$this->add_section( $section, $page );
 			}
 			unset( $page_arg['sections'] ); // Optimize vars
 		}
@@ -244,7 +244,7 @@ class settings_page {
 		 */
 		if ( isset( $fields ) && $fields ) {
 			foreach ( $fields as $field ) {
-				$this -> add_field( $field, $page );
+				$this->add_field( $field, $page );
 			}
 			unset( $page_arg['fields'] ); // Optimize vars
 		}
@@ -265,28 +265,28 @@ class settings_page {
 	 * @return void
 	 */
 	private function add_section( $section, $menu_slug ) {
-		if ( !array_key_exists( 'id', $section ) ) {
+		if ( ! array_key_exists( 'id', $section ) ) {
 			return;
 		}
 		extract( $section ); // $id must be generated
 
-		if ( !isset( $title ) ) {
+		if ( ! isset( $title ) ) {
 			$title = ucwords( str_replace( [ '-', '_' ], ' ', $id ) );
 			$section['title'] = $title;
 		}
-		if ( !isset( $callback ) ) {
+		if ( ! isset( $callback ) ) {
 			$callback = [ $this, 'section_body' ];
 		} else {
 			unset( $section['callback'] ); // Optimize vars
 		}
-		$this -> sections[] = [ $id, $title, $callback, $menu_slug ];
+		$this->sections[] = [ $id, $title, $callback, $menu_slug ];
 
 		/**
 		 * fields
 		 */
 		if ( isset( $fields ) && $fields ) {
 			foreach ( $fields as $field ) {
-				$this -> add_field( $field, $menu_slug, $id );
+				$this->add_field( $field, $menu_slug, $id );
 			}
 			unset( $section['fields'] ); // Optimize vars
 		}
@@ -308,31 +308,31 @@ class settings_page {
 	 * @return void
 	 */
 	private function add_field( $field, $menu_slug, $section_id = '' ) {
-		if ( !array_key_exists( 'id', $field ) ) {
+		if ( ! array_key_exists( 'id', $field ) ) {
 			return;
 		}
 		extract( $field ); // $id must be generated
 
-		if ( !isset( $title ) ) {
+		if ( ! isset( $title ) ) {
 			$title = ucwords( str_replace( [ '-', '_' ], ' ', $id ) );
 			$field['title'] = $title;
 		}
-		if ( !isset( $callback ) ) {
+		if ( ! isset( $callback ) ) {
 			$callback = [ $this, 'field_body' ];
 		} else {
 			unset( $field['callback'] ); // Optimize vars
 		}
 		if ( isset( $option_name ) ) {
 			$option_group = 'group_' . $menu_slug;
-			if ( !isset( $sanitize ) || ( !method_exists( $this, $sanitize ) && !is_callable( $sanitize ) ) ) {
+			if ( ! isset( $sanitize ) || ( ! method_exists( $this, $sanitize ) && ! is_callable( $sanitize ) ) ) {
 				$sanitize = '';
 			} else if ( isset( $sanitize ) ) {
 				unset( $field['sanitize'] ); // Optimize vars
 			}
-			$this -> settings[] = [ $option_group, $field['option_name'], $sanitize ];
+			$this->settings[] = [ $option_group, $field['option_name'], $sanitize ];
 		}
 
-		$this -> fields[] = [ $id, $title, $callback, $menu_slug, $section_id, $field ]; // $field is argument for callback method
+		$this->fields[] = [ $id, $title, $callback, $menu_slug, $section_id, $field ]; // $field is argument for callback method
 	}
 
 	/**
@@ -341,16 +341,16 @@ class settings_page {
 	 * @access private
 	 */
 	public function add_settings() {
-		if ( !doing_action( 'admin_init' ) || !$this -> pages ) {
+		if ( ! doing_action( 'admin_init' ) || ! $this->pages ) {
 			return;
 		}
-		foreach ( $this -> sections as $section_arg ) {
+		foreach ( $this->sections as $section_arg ) {
 			call_user_func_array( 'add_settings_section', $section_arg );
 		}
-		foreach ( $this -> fields as $field_arg ) {
+		foreach ( $this->fields as $field_arg ) {
 			call_user_func_array( 'add_settings_field', $field_arg );
 		}
-		foreach ( $this -> settings as $setting_arg ) {
+		foreach ( $this->settings as $setting_arg ) {
 			call_user_func_array( 'register_setting', $setting_arg );
 		}
 	}
@@ -366,21 +366,21 @@ class settings_page {
 	 * @return object self
 	 */
 	private function page( $page = null, $page_title = null, $menu_title = null ) {
-		if ( !$page ) {
+		if ( ! $page ) {
 			$page = 'options.php';
 		}
-		if ( !is_string( $page ) ) {
+		if ( ! is_string( $page ) ) {
 			return; // error
 		}
 		self::$page['page'] = $page;
-		if ( !$this -> toplevel ) {
-			$this -> toplevel = $page;
+		if ( ! $this->toplevel ) {
+			$this->toplevel = $page;
 		}
 		if ( $page_title ) {
-			$this -> title( $page_title );
+			$this->title( $page_title );
 		}
 		if ( $menu_title ) {
-			$this -> menu_title( $menu_title );
+			$this->menu_title( $menu_title );
 		}
 		return $this;
 	}
@@ -395,9 +395,9 @@ class settings_page {
 	 * @return object self
 	 */
 	public function section( $section_id, $section_title = null ) {
-		$this -> init_section();
+		$this->init_section();
 
-		if ( !$section_id || !is_string( $section_id ) ) {
+		if ( ! $section_id || ! is_string( $section_id ) ) {
 			return;
 		}
 		self::$section['id'] = $section_id;
@@ -415,9 +415,9 @@ class settings_page {
 	 * @return object self
 	 */
 	public function field( $field_id, $field_title = null ) {
-		$this -> init_field();
+		$this->init_field();
 
-		if ( !$field_id || !is_string( $field_id ) ) {
+		if ( ! $field_id || ! is_string( $field_id ) ) {
 			return;
 		}
 		self::$field['id'] = $field_id;
@@ -435,10 +435,10 @@ class settings_page {
 	 * @return object self
 	 */
 	public function option_name( $option_name, $callback, $callback_args = [] ) {
-		if ( !self::$field || !$option_name || !is_string( $option_name ) ) {
+		if ( ! self::$field || ! $option_name || ! is_string( $option_name ) ) {
 			return; // error
 		}
-		if ( !$this -> callback( $callback, $callback_args ) ) {
+		if ( ! $this->callback( $callback, $callback_args ) ) {
 			return;
 		}
 		self::$field['option_name'] = $option_name;
@@ -454,10 +454,10 @@ class settings_page {
 	 * @return object self
 	 */
 	public function title( $title ) {
-		if ( !$title || !is_string( $title ) ) {
+		if ( ! $title || ! is_string( $title ) ) {
 			return;
 		}
-		if ( !$cache =& $this -> get_cache() ) {
+		if ( ! $cache =& $this->get_cache() ) {
 			return;
 		}
 		$cache['title'] = $title;
@@ -531,14 +531,14 @@ class settings_page {
 	 * @return object self|(void)
 	 */
 	public function description( $text, $wrap_p = true ) {
-		if ( !$text || !is_string( $text ) ) {
+		if ( ! $text || ! is_string( $text ) ) {
 			return;
 		}
-		if ( !$cache =& $this -> get_cache() ) {
+		if ( ! $cache =& $this->get_cache() ) {
 			return;
 		}
 		$format = $wrap_p ? '<p>%s</p>' : '%s';
-		if ( !array_key_exists( 'description', $cache ) ) {
+		if ( ! array_key_exists( 'description', $cache ) ) {
 			$cache['description'] = sprintf( $format, $text );
 		} else {
 			$format = "\n{$format}";
@@ -557,11 +557,11 @@ class settings_page {
 	 * @return object self|(void)
 	 */
 	public function html( $html, $wrap_div = false ) {
-		if ( !$cache =& $this -> get_cache() ) {
+		if ( ! $cache =& $this->get_cache() ) {
 			return;
 		}
-		$format = !$wrap_div ? '%s' : '<div>%s</div>';
-		if ( !array_key_exists( 'html', $cache ) ) {
+		$format = ! $wrap_div ? '%s' : '<div>%s</div>';
+		if ( ! array_key_exists( 'html', $cache ) ) {
 			$cache['html'] = sprintf( $format, $html );
 		} else {
 			$format = "\n{$format}";
@@ -581,19 +581,19 @@ class settings_page {
 	 */
 	public function callback( $callback, $callback_args = [] ) {
 		if (
-			( is_array( $callback ) && ( count( $callback ) !== 2 || !is_callable( $callback ) ) )
-			&& ( !method_exists( $this, $callback ) && !is_callable( $callback ) )
+			( is_array( $callback ) && ( count( $callback ) !== 2 || ! is_callable( $callback ) ) )
+			&& ( ! method_exists( $this, $callback ) && ! is_callable( $callback ) )
 		) {
 			return;
 		}
 
-		if ( !$cache =& $this -> get_cache() ) {
+		if ( ! $cache =& $this->get_cache() ) {
 			return;
 		}
 		$cache['callback'] = is_callable( $callback ) ? $callback : [ $this, $callback ];
 		if ( $callback_args ) {
 			foreach ( $callback_args as $key => $val ) {
-				if ( !array_key_exists( $key, $cache ) ) {
+				if ( ! array_key_exists( $key, $cache ) ) {
 					$cache[$key] = $val;
 				}
 			}
@@ -632,7 +632,7 @@ class settings_page {
 		if ( $parent_file !== 'options-general.php' ) {
 			require ABSPATH . 'wp-admin/options-head.php';
 		}
-		?>
+?>
 <div class="wrap">
   <h2><?= $arg['title'] ?></h2>
   <?php if ( array_key_exists( 'description', $arg ) ) { ?>
@@ -648,7 +648,7 @@ class settings_page {
     <?php submit_button(); ?>
   </form>
 </div>
-		<?php
+<?php
 	}
 
 	/**
@@ -659,7 +659,7 @@ class settings_page {
 	public function page_plane_body() {
 		$menu_slug = $_GET['page'];
 		$arg = self::$callback_args[$menu_slug];
-		?>
+?>
 <div class="wrap">
   <h2><?= $arg['title'] ?></h2>
   <?php if ( array_key_exists( 'description', $arg ) ) { ?>
@@ -669,7 +669,7 @@ class settings_page {
   <?= $arg['html'] ?>
   <?php } ?>
 </div>
-		<?php
+<?php
 	}
 
 	/**
@@ -678,14 +678,14 @@ class settings_page {
 	public function section_body( $array ) {
 		$arg = self::$callback_args[$array['id']];
 		if ( array_key_exists( 'description', $arg ) ) {
-			?>
+?>
       <?= $arg['description'] ?>
-			<?php
+<?php
 		}
 		if ( array_key_exists( 'html', $arg ) ) {
-			?>
+?>
       <?= $arg['html'] ?>
-			<?php
+<?php
 		}
 	}
 
@@ -694,14 +694,14 @@ class settings_page {
 	 */
 	public function field_body( $arg ) {
 		if ( array_key_exists( 'description', $arg ) ) {
-			?>
+?>
         <?= $arg['description'] ?>
-			<?php
+<?php
 		}
 		if ( array_key_exists( 'html', $arg ) ) {
-			?>
+?>
         <?= $arg['html'] ?>
-			<?php
+<?php
 		}
 	}
 
@@ -709,13 +709,13 @@ class settings_page {
 	 *
 	 */
 	public function checkbox( $arg ) {
-		if ( !array_key_exists( 'option_name', $arg ) ) {
+		if ( ! array_key_exists( 'option_name', $arg ) ) {
 			return; // error
 		}
 		$option = $arg['option_name'];
 		$checked = \get_option( $option ) ? 'checked="checked" ' : '';
 		$label = array_key_exists( 'label', $arg ) ? esc_html( $arg['label'] ) : '';
-		?>
+?>
         <fieldset>
           <label for="<?= $option ?>">
             <input type="checkbox" name="<?= $option ?>" id="<?= $option ?>" value="1" <?= $checked ?>/>
@@ -725,7 +725,7 @@ class settings_page {
           <p class="description"><?= $arg['description'] ?></p>
           <?php } ?>
         </fieldset>
-		<?php
+<?php
 	}
 
 }
