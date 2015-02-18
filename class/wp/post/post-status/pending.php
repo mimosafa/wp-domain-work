@@ -4,38 +4,45 @@ namespace WP_Domain_Work\WP\post\post_status;
 
 /**
  * Pending state's texts (if 2nd string is exists, that is context)
+ * 
  *
  * << PHP >>
  *
  * 'Pending', 'post'
  * - label of status
- * @see https://github.com/WordPress/WordPress/blob/4.1-branch/wp-includes/post.php#L133
+ * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-includes/post.php#L133
  *
  * 'Pending <span class="count">(%s)</span>'
  * - label count
- * @see https://github.com/WordPress/WordPress/blob/4.1-branch/wp-includes/post.php#L136
+ * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-includes/post.php#L136
  *
  * 'Pending Review'
  * - description of status (used by get_post_statuses)
- * @see https://github.com/WordPress/WordPress/blob/4.1-branch/wp-includes/post.php#L906
+ * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-includes/post.php#L906
  * - submit meta box for display status & selectable option's label
- * @see https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L82
- * @see https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L104
+ * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L82
+ * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L104
  *
  * 'Save as Pending'
  * - submit meta box for saving as pending
- * @see https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L33
+ * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L33
+ *
+ * 'Submit for Review' ################# yet #################
+ * - submit button label for no capability to publish post
+ * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L257
+ * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L258
  * 
  * 'Pending', 'post state'
  * - in posts list table (@edit.php) pending status post's sufix (used by _post_states)
- * @see https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/template.php#L1648
+ * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/template.php#L1648
+ * 
  *
  * << JavaScript >>
+ * - json data 'postL10n' in admin page
  *
  * 'Save as Pending'
- * - this text exists in json data 'postL10n' in admin page.
- * - Key is 'savePending'
- * @see https://github.com/WordPress/WordPress/blob/4.1-branch/wp-includes/script-loader.php#L454
+ * - key: 'savePending'
+ * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-includes/script-loader.php#L454
  */
 class pending {
 
@@ -64,7 +71,7 @@ class pending {
 		$this->init();
 	}
 
-	private function set_texts( Array $args ) {
+	protected function set_texts( Array $args ) {
 		if ( ! array_key_exists( 'label', $args ) || ! is_string( $args['label'] ) || ! $args['label'] ) {
 			return false;
 		}
@@ -86,7 +93,7 @@ class pending {
 		return true;
 	}
 
-	private function init() {
+	protected function init() {
 		$this->register_post_status();
 		if ( is_admin() ) {
 			$this->gettext();
@@ -95,15 +102,17 @@ class pending {
 		}
 	}
 
-	private function register_post_status() {
+	protected function register_post_status() {
 		global $wp_post_statuses;
 		$statusObj = $wp_post_statuses['pending'];
 		$statusObj->label = $this->labels['label'];
-		$label_count_string = sprintf( '%s <span class="count">(%%s)</span>', $this->labels['label'] );
-		$statusObj->label_count = _n_noop( $label_count_string, $label_count_string );
+		if ( is_admin() ) {
+			$label_count_string = sprintf( '%s <span class="count">(%%s)</span>', $this->labels['label'] );
+			$statusObj->label_count = _n_noop( $label_count_string, $label_count_string );
+		}
 	}
 
-	private function gettext() {
+	protected function gettext() {
 		add_filter( 'gettext', function( $translated, $text ) {
 			if ( array_key_exists( $text, $this->texts ) ) {
 				$translated = $this->texts[$text];
@@ -112,7 +121,7 @@ class pending {
 		}, 10, 2 );
 	}
 
-	private function gettext_with_context() {
+	protected function gettext_with_context() {
 		add_filter( 'gettext_with_context', function( $translated, $text, $context ) {
 			$text_context = $text . '__' . $context;
 			if ( array_key_exists( $text_context, $this->texts_with_contexts ) ) {
@@ -126,18 +135,8 @@ class pending {
 	 * gettext へのフィルター処理が、postL10n のローカライズ('wp_default_scripts')に間に合わないため、やむを得ず js で上書き
 	 * @see https://github.com/WordPress/WordPress/blob/4.1-branch/wp-includes/script-loader.php#L1041
 	 */
-	private function js_texts() {
-		add_action( 'admin_footer-post.php', [ $this, 'js_postL10n' ], 99 );
-		add_action( 'admin_footer-post-new.php', [ $this, 'js_postL10n' ], 99 );
-	}
-
-	public function js_postL10n() {
-		$saveAction = wp_json_encode( $this->labels['save_action'] );
-		echo <<<EOF
-<script type="text/javascript">
-  postL10n.savePending = {$saveAction};
-</script>
-EOF;
+	protected function js_texts() {
+		\WP_Domain_Work\WP\admin\js\L10n::set( 'postL10n', 'savePending', $this->labels['save_action'] );
 	}
 
 }
