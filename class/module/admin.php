@@ -20,7 +20,7 @@ trait admin {
 				$this->post_type_columns();
 			}
 			\WP_Domain_Work\Admin\post\post_type_supports::init( $this->registeredName );
-			new \WP_Domain_Work\WP\admin\save_post( $this->registeredName );
+			new \WP_Domain_Work\Post\save_post( $this->registeredName );
 		}
 	}
 

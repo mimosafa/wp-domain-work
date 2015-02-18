@@ -1,10 +1,10 @@
 <?php
 
-namespace WP_Domain_Work\WP\admin;
+namespace WP_Domain_Work\Post;
 
 /**
- * @uses \(domain)\properties
- * @uses \admin\nonce (*important)
+ * @uses WP_Domain\(domain)\properties
+ * @uses WP_Domain_Work\WP\admin\nonce
  */
 class save_post {
 
@@ -19,12 +19,12 @@ class save_post {
 	private $domain;
 
 	/**
-	 * @var object \(domain)\properties
+	 * @var object WP_Domain\(domain)\properties
 	 */
 	private static $properties;
 
 	/**
-	 * @var object \admin\nonce
+	 * @var object WP_Domain_Work\WP\admin\nonce
 	 */
 	private static $nonceInstance;
 
@@ -32,13 +32,13 @@ class save_post {
 	 * @param string $post_type
 	 */
 	public function __construct( $post_type ) {
-		if ( !post_type_exists( $post_type ) ) {
-			return false; // throw error
+		if ( ! post_type_exists( $post_type ) ) {
+			return;
 		}
 		$this->post_type = $post_type;
 		$this->domain = get_post_type_object( $post_type )->rewrite['slug'];
 
-		self::$nonceInstance = new nonce( $post_type );
+		self::$nonceInstance = new \WP_Domain_Work\WP\admin\nonce( $post_type );
 
 		$this->init();
 	}
@@ -58,28 +58,26 @@ class save_post {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return $post_id;
 		}
-
 		/**
-		 * @uses \(domain)\properties
+		 * @uses WP_Domain\(domain)\properties
 		 */
 		$propClass = sprintf( 'WP_Domain\\%s\\properties', $this->domain );
-		#$propClass = '\\' . $this->domain . '\\properties';
 		if ( !class_exists( $propClass ) ) {
 			return $post_id;
 		}
 		self::$properties = new $propClass( $post_id );
 
-		if ( !$propSettings = self::$properties->get_property_setting() ) {
+		if ( ! $propSettings = self::$properties->get_property_setting() ) {
 			return $post_id;
 		}
 
 		foreach ( $propSettings as $key => $arg ) {
 
 			$nonce = self::$nonceInstance->get_nonce( $key );
-			if ( !array_key_exists( $nonce, $_POST ) ) {
+			if ( ! array_key_exists( $nonce, $_POST ) ) {
 				continue;
 			}
-			if ( !self::$nonceInstance->check_admin_referer( $key ) ) {
+			if ( ! self::$nonceInstance->check_admin_referer( $key ) ) {
 				continue;
 			}
 
