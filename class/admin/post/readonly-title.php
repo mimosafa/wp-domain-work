@@ -36,11 +36,9 @@ class readonly_title {
 		if ( get_post_status( $post_id ) !== 'publish' ) {
 			return;
 		}
-		/*
 		if ( current_user_can( 'edit_others_posts', $post_id ) ) {
-			return;
+			# return; // -------------------------------------------------------- 開発中のためコメントアウト
 		}
-		*/
 		$ttl = get_the_title( $post_id );
 		if ( !$ttl || __( 'Auto Draft' ) === $ttl ) {
 			return; // Return if auto-draft or no-title

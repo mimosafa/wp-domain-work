@@ -25,11 +25,9 @@ class readonly_slug {
 		if ( get_post_status( $post_id ) !== 'publish' ) {
 			return;
 		}
-		/*
 		if ( current_user_can( 'edit_others_posts', $post_id ) ) {
-			return;
+			# return; // -------------------------------------------------------- 開発中のためコメントアウト
 		}
-		*/
 		add_filter( 'get_sample_permalink_html', [ $this, 'sample_permalink_html' ], 10, 2 );
 		/**
 		 * @see http://ja.forums.wordpress.org/topic/21239

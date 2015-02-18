@@ -282,7 +282,6 @@ class Router {
 			foreach ( $dirs as $dir ) {
 				$path = $dir . $file;
 				if ( is_readable( $path ) ) {
-					_var_dump( $path );
 					return $path;
 				}
 			}

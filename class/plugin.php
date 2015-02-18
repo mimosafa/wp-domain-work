@@ -190,20 +190,6 @@ class Plugin {
 	}
 
 	/**
-	 * Domains initialize
-	 *
-	 * @access private
-	 *
-	 * @uses   WP_Domain_Work\Service\Domains
-	 *
-	 * @param  boolean $force_scan (optional) if true, domains directories are forcibly scaned.
-	 * @return (void)
-	 */
-	private static function Domains( $force_scan = false ) {
-		new \WP_Domain_Work\Service\Domains( $force_scan );
-	}
-
-	/**
 	 * @access private
 	 *
 	 * @todo   When un-use_domain, flush rewrite rules does not work well...
@@ -224,7 +210,7 @@ class Plugin {
 			 */
 			case $this->get_option_key( 'force_dir_scan' ) :
 				if ( $value ) {
-					self::Domains( true );
+					new Service\Domains( true );
 				}
 				$value = $old_value; // never saved on wp-options table
 				break;
@@ -277,9 +263,9 @@ class Plugin {
 		 * init services
 		 */
 		if ( $_DW->get_option( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
-			self::Domains();
+			new Service\Domains();
 			if ( $_DW->get_option( 'home_level' ) !== false && $_DW->get_option( 'site_level' ) !== false ) {
-				new \WP_Domain_Work\Service\Router();
+				new Service\Router();
 			}
 		}
 		/**
@@ -297,7 +283,7 @@ class Plugin {
 	 */
 	private static function installed_level() {
 		$_DW = self::getInstance();
-		$level = new \WP_Domain_Work\WP\installed_level();
+		$level = new WP\installed_level();
 
 		if ( false === $_DW->get_option( 'home_level' ) ) {
 			$homeLevel = $level->get_level( 'home' );
@@ -334,7 +320,7 @@ class Plugin {
 		/**
 		 * Get instance settings page generator
 		 */
-		$_PAGE = new \WP_Domain_Work\WP\admin\plugin\settings_page();
+		$_PAGE = new WP\admin\plugin\settings_page();
 
 		$top_page_desc = <<<EOF
 This is awesome plugin!

@@ -5,7 +5,7 @@ namespace WP_Domain_Work\Service;
 /**
  * alias
  */
-use \WP_Domain_Work\Plugin as DW;
+use WP_Domain_Work\Plugin as _;
 
 /**
  * 
@@ -116,10 +116,10 @@ class Domains {
 	/**
 	 */
 	private function init( $force_scan ) {
-		if ( ! $force_scan && $domains = DW::get_domains() ) {
+		if ( ! $force_scan && $domains = _::get_domains() ) {
 			$this->domains = $domains;
-			$this->domains_directories = DW::get_domains_dirs();
-			$this->functions_files = DW::get_functions_files();
+			$this->domains_directories = _::get_domains_dirs();
+			$this->functions_files = _::get_functions_files();
 		} else {
 			// wp-content/domains
 			$this->directories[] = \WP_CONTENT_DIR . '/' . self::DOMAINS_DIR_NAME;
@@ -127,7 +127,7 @@ class Domains {
 			$this->directories[] = get_template_directory() . '/' . self::DOMAINS_DIR_NAME;
 			// wp-content/themes/your-child-theme/domains
 			$this->directories[] = get_stylesheet_directory() . '/' . self::DOMAINS_DIR_NAME;
-			if ( $excepted_domains = DW::get_excepted_domains() ) {
+			if ( $excepted_domains = _::get_excepted_domains() ) {
 				self::$_excepted = array_merge( $excepted_domains, self::$_excepted );
 			}
 			$this->scan_directories();
@@ -135,12 +135,12 @@ class Domains {
 			 * update options
 			 */
 			if ( $this->domains ) {
-				DW::update_domains( $this->domains );
-				DW::update_domains_dirs( $this->domains_directories );
-				DW::update_functions_files( $this->functions_files );
-				DW::update_post_type_supports( $this->supports );
+				_::update_domains( $this->domains );
+				_::update_domains_dirs( $this->domains_directories );
+				_::update_functions_files( $this->functions_files );
+				_::update_post_type_supports( $this->supports );
 			}
-			DW::flush_rewrite_rules();
+			_::flush_rewrite_rules();
 		}
 
 		if ( $this->domains ) {

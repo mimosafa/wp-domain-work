@@ -76,7 +76,7 @@ class post_type_supports {
 			if ( 'support' === $string ) {
 				add_post_type_support( self::$post_type, $feature );
 			} else if ( 'readonly' === $string ) {
-				$cl = sprintf( '\\WP_Domain_Work\\Admin\\post\\readonly_%s', $feature );
+				$cl = sprintf( 'WP_Domain_Work\\Admin\\post\\readonly_%s', $feature );
 				if ( class_exists( $cl ) ) {
 					new $cl( self::$post_type );
 				}
