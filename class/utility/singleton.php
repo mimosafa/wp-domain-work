@@ -1,5 +1,7 @@
 <?php
 
+namespace WP_Domain_Work\Utility;
+
 /**
  * Singleton trait
  *

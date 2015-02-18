@@ -6,7 +6,7 @@ namespace WP_Domain_Work;
  *
  */
 class Plugin {
-	use \Singleton;
+	use Utility\Singleton;
 
 	/**
 	 * @var WP_Error

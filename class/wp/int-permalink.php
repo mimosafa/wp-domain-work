@@ -6,7 +6,7 @@ namespace WP_Domain_Work\WP;
  * Rewrite slug to post_id for custom post types.
  */
 class int_permalink {
-	use \Singleton;
+	use \WP_Domain_Work\Utility\Singleton;
 
 	/**
 	 * Post types

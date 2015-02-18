@@ -3,7 +3,7 @@
 namespace WP_Domain_Work\Admin\meta_boxes;
 
 class property_meta_box {
-	use \Singleton;
+	use \WP_Domain_Work\Utility\Singleton;
 
 	private $post_type;
 

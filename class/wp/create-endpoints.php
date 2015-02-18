@@ -8,7 +8,7 @@ namespace WP_Domain_Work\WP;
  * @todo  flush rewrite rules...
  */
 class create_endpoints {
-	use \Singleton;
+	use \WP_Domain_Work\Utility\Singleton;
 
 	/**
 	 *

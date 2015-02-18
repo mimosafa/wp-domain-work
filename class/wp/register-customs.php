@@ -8,7 +8,7 @@ namespace WP_Domain_Work\WP;
  * @uses \singleton
  */
 class register_customs {
-	use \Singleton;
+	use \WP_Domain_Work\Utility\Singleton;
 
 	/**
 	 * @var array

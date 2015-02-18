@@ -3,7 +3,7 @@
 namespace WP_Domain_Work\WP;
 
 class gettext {
-	use \Singleton;
+	use \WP_Domain_Work\Utility\Singleton;
 
 	private static $texts = [];
 

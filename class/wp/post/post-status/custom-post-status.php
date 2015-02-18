@@ -3,7 +3,7 @@
 namespace WP_Domain_Work\WP\post\post_status;
 
 class custom_post_status {
-	use \Singleton;
+	use \WP_Domain_Work\Utility\Singleton;
 
 	private static $displays = [];
 
