@@ -3,6 +3,7 @@
 namespace WP_Domain_Work\Admin\list_table;
 
 class posts_list_table {
+	use \WP_Domain_Work\Utility\Classname;
 
 	private $domain;
 	private $post_type;
@@ -10,6 +11,7 @@ class posts_list_table {
 	private $properties;
 
 	private $columns          = [];
+	private $column_labels    = [];
 	private $sortable_columns = [];
 
 	private static $built_in_column_types = [
@@ -29,8 +31,11 @@ class posts_list_table {
 
 	public function add( $column, $args ) {
 		$this->columns[] = $column;
-		if ( ! is_array( $args ) ) {
+		if ( ! is_array( $args ) || ! $args ) {
 			return;
+		}
+		if ( array_key_exists( 'label', $args ) && is_string( $args['label'] ) && $args['label'] ) {
+			$this->column_labels[$column] = $args['label'];
 		}
 		if ( array_key_exists( 'sortable', $args ) && $args['sortable'] === true ) {
 			$this->sortable_columns[] = $column;
@@ -56,10 +61,8 @@ class posts_list_table {
 		$new_columns['cb'] = $columns['cb'];
 		foreach ( $this->columns as $column_name ) {
 			if ( array_key_exists( $column_name, $columns ) ) {
-				/**
-				 * Built-in Columns
-				 */
-				$new_columns[$column_name] = $columns[$column_name];
+				// Built-in Columns
+				$new_columns[$column_name] = ! array_key_exists( $column_name, $this->column_labels ) ? $columns[$column_name] : $this->column_labels[$column_name];
 				continue;
 			}
 			/**
@@ -101,7 +104,7 @@ class posts_list_table {
 		}
 		if ( isset( $vars['orderby'] ) && in_array( $vars['orderby'], $this->sortable_columns ) ) {
 			$prop = $this->_get_property_obj( $vars['orderby'] );
-			$type = \utility\getEndOfClassName( $prop );
+			$type = self::getClassName( $prop );
 			if ( $type === 'menu_order' ) {
 				$vars = array_merge( $vars, [ 'orderby' => 'menu_order' ] );
 			} else if ( $type === 'integer' ) {
