@@ -13,26 +13,38 @@ use WP_Domain_Work\Plugin as _;
 class Domains {
 
 	/**
+	 * Domains directory name
 	 */
 	const DOMAINS_DIR_NAME = 'domains';
 
 	/**
+	 * Array of directories expected to have domains directory
+	 * - wp-content
+	 * - wp-content/themes/your-parent-theme
+	 * - wp-content/themes/your-child-theme
+	 * @var array
 	 */
 	private $directories = [];
 
 	/**
+	 * Paths of existed 'domains' directory
+	 * - use for domains' classloader registration & template include
+	 * @var array
 	 */
 	private $domains_directories = [];
 
 	/**
+	 * @var array
 	 */
 	private $domains = [];
 
 	/**
+	 * @var array
 	 */
 	private $supports = [];
 
 	/**
+	 * @var array
 	 */
 	private $functions_files = [];
 
@@ -85,6 +97,7 @@ class Domains {
 	];
 
 	/**
+	 * @var array
 	 */
 	private static $property_data = [
 		'name'              => 'Name',
@@ -99,21 +112,30 @@ class Domains {
 	];
 
 	/**
+	 * @var array
 	 */
 	private static $admin_data = [
 		'support'  => 'Support',
 		'readonly' => 'Read Only',
 	];
 
-	//
-
 	/**
+	 * @access public
+	 *
+	 * @param  boolean $force_scan (optional)
+	 * @return (void)
 	 */
 	public function __construct( $force_scan = false ) {
 		$this->init( $force_scan );
 	}
 
 	/**
+	 * @access private
+	 *
+	 * @uses   WP_Domain_Work\Plugin (as _)
+	 *
+	 * @param  boolean $force_scan
+	 * @return (void)
 	 */
 	private function init( $force_scan ) {
 		if ( ! $force_scan && $domains = _::get_domains() ) {
@@ -153,6 +175,7 @@ class Domains {
 	}
 
 	/**
+	 * @access private
 	 */
 	private function scan_directories() {
 		$done = '';
@@ -242,6 +265,7 @@ class Domains {
 	}
 
 	/**
+	 * @access private
 	 */
 	private function classify_domains() {
 		foreach ( $this->domains as $domain => $array ) {
@@ -256,11 +280,14 @@ class Domains {
 	}
 
 	/**
+	 * @access private
+	 *
+	 * @param  string $domain
+	 * @param  array $array
+	 * @return (void)
 	 */
 	private function post_type_setting( $domain, Array $array ) {
-		/**
-		 * Name (slug)
-		 */
+		// post_type name
 		if ( array_key_exists( 'post_type', $array ) ) {
 			$post_type = strtolower( $array['post_type'] );
 			if ( in_array( $post_type, self::$_excepted ) ) {
@@ -270,61 +297,42 @@ class Domains {
 			$post_type = $domain;
 		}
 
-		/**
-		 * Label
-		 */
-		$label = ( array_key_exists( 'name', $array ) )
-			? esc_html( $array['name'] )
-			: ucwords( str_replace( '_', ' ', $post_type ) )
-		;
+		// Label
+		$label = array_key_exists( 'name', $array ) ? esc_html( $array['name'] ) : ucwords( str_replace( '_', ' ', $post_type ) );
 
-		/**
-		 * Options (rewrite, capability_type, )
-		 */
-		
-		/**
-		 * Rewrite slug
-		 */
+		// Rewrite slug
 		$opt = [ 'rewrite' => [ 'slug' => $domain ] ];
-
-		/**
-		 * Capability type
-		 */
-		/*
+		if ( array_key_exists( 'rewrite', $array ) && 'ID' === $array['rewrite'] ) {
+			\WP_Domain_Work\WP\int_permalink::set( $post_type );
+		}
+		
+		// Capability type
 		if ( array_key_exists( 'capability_type', $array ) ) {
 			$cap_type = array_map( function( $var ) {
 				return trim( $var );
 			}, explode( ',', $array['capability_type'] ) );
-			if ( 2 === count( $cap_type ) ) {
+			if ( 2 === count( $cap_type ) && $cap_type[0] !== $cap_type[1] ) {
 				$opt['capability_type'] = $cap_type;
-				$opt['map_meta_cap'] = true
-
-				if ( null === self::$roles ) {
-					self::$roles = new \wordpress\roles();
-				}
-				self::$roles->add_cap( $cap_type );
+				$opt['map_meta_cap'] = true;
+				\WP_Domain_Work\WP\roles::add_cap( $cap_type );
 			}
 		}
-		*/
 
-		/**
-		 * Merge default setting to each post type setting
-		 */
+		// Merge default setting to each post type setting
 		$opt = self::array_merge( $opt, $this->_cpt_option );
 
 		\WP_Domain_Work\WP\register_customs::add_post_type( $post_type, $label, $opt );
-
-		if ( array_key_exists( 'rewrite', $array ) && 'ID' === $array['rewrite'] ) {
-			\WP_Domain_Work\WP\int_permalink::set( $post_type );
-		}
 	}
 
 	/**
+	 * @access private
+	 *
+	 * @param  string $domain
+	 * @param  array $array
+	 * @return (void)
 	 */
 	private function taxonomy_setting( $domain, Array $array ) {
-		/**
-		 * Name (slug)
-		 */
+		// taxonomy name
 		if ( array_key_exists( 'taxonomy', $array ) ) {
 			$taxonomy = strtolower( $array['taxonomy'] );
 			if ( in_array( $taxonomy, self::$_excepted ) ) {
@@ -333,35 +341,34 @@ class Domains {
 		} else {
 			$taxonomy = $domain;
 		}
-		/**
-		 * Label
-		 */
-		$label = array_key_exists( 'name', $array )
-			? esc_html( $array['name'] )
-			: ucwords( str_replace( '_', ' ', $taxonomy ) )
-		;
-		/**
-		 * Post types
-		 */
+
+		// Label
+		$label = array_key_exists( 'name', $array ) ? esc_html( $array['name'] ) : ucwords( str_replace( '_', ' ', $taxonomy ) );
+
+		// Post types
 		$post_types = explode( ',', $array['related_post_type'] );
 		$post_types = array_map( function( $string ) {
 			return trim( $string );
 		}, $post_types );
-		/**
-		 * Rewrite
-		 */
+
+		// Rewrite
 		$opt = [ 'rewrite' => [ 'slug' => $domain ] ];
 		if ( array_key_exists( 'taxonomy_type', $array ) && 'Category' === $array['taxonomy_type'] ) {
 			$opt['hierarchical'] = true;
 			$opt['rewrite']['hierarchical'] = true;
 		}
-		// ~
+
 		$opt = self::array_merge( $opt, $this->_ct_option );
 
 		\WP_Domain_Work\WP\register_customs::add_taxonomy( $taxonomy, $label, $post_types, $opt );
 	}
 
 	/**
+	 * @access private
+	 *
+	 * @param  string $domain
+	 * @param  array $array
+	 * @return (void)
 	 */
 	private function endpoint_setting( $domain, Array $array ) {
 		// ~ some settings from $array, but yet...
@@ -369,6 +376,7 @@ class Domains {
 	}
 
 	/**
+	 * @access private
 	 */
 	private function register_class_loaders() {
 		foreach ( $this->domains_directories as $dir ) {
@@ -384,6 +392,7 @@ class Domains {
 	}
 
 	/**
+	 * @access private
 	 */
 	private function include_functions_files() {
 		foreach ( $this->functions_files as $file ) {
