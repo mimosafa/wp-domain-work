@@ -30,7 +30,7 @@ trait admin {
 		}
 		if ( isset( $this->meta_boxes ) && is_array( $this->meta_boxes ) && $this->meta_boxes ) {
 			foreach ( $this->meta_boxes as $arg ) {
-				if ( is_string($arg) && $prop = $props->$arg ) {
+				if ( is_string( $arg ) && $prop = $props->$arg ) {
 					if ( in_array( $arg, [ 'post_parent', 'menu_order' ] ) ) {
 						\WP_Domain_Work\Admin\meta_boxes\attributes_meta_box::set( $arg, $prop->getArray() );
 					} else {
@@ -44,7 +44,9 @@ trait admin {
 					if ( ! $prop = $props->$propName ) {
 						continue;
 					}
-					\WP_Domain_Work\Admin\meta_boxes\property_meta_box::set( $propName, $prop->getArray() );
+					unset( $arg['property'] );
+					$metabox = wp_parse_args( $arg, $prop->getArray() );
+					\WP_Domain_Work\Admin\meta_boxes\property_meta_box::set( $propName, $metabox );
 				}
 			}
 		}
