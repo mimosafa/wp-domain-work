@@ -6,7 +6,10 @@ namespace WP_Domain_Work\Module;
  * This is 'Trait',
  * must be used in '\(domain)\admin' class.
  *
- * @uses
+ * << Class properties >>
+ * @var array $meta_boxes
+ * @var array $columns
+ *
  */
 trait admin {
 	use base;
