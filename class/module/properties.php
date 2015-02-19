@@ -1,6 +1,6 @@
 <?php
 
-namespace module;
+namespace WP_Domain_Work\Module;
 
 /**
  * This is 'Trait',
@@ -9,6 +9,7 @@ namespace module;
  * @uses 
  */
 trait properties {
+	use \WP_Domain_Work\Utility\classname;
 
 	/**
 	 * @var WP_Post
@@ -16,17 +17,29 @@ trait properties {
 	private $_post;
 
 	/**
+	 * @var string
+	 */
+	private $domain;
+
+	/**
 	 * @var array
 	 */
 	private $_data = [];
 
 	/**
-	 * @var array \wordpress\model\~ instance
+	 * @var array WP_Domain_Work\WP\model\~
 	 */
-	private static $models = [
-		'metadata' => null,
-		'posts'    => null,
+	private static $models = [];
+
+	/**
+	 *
+	 */
+	public static $defaultPropSettings = [
+		'metadata' => [ 'type' => 'string', 'multi_byte' => true, ],
+		'taxonomy' => [ 'type' => 'term', ],
 	];
+
+	private static $falseVal = false;
 
 	/**
 	 * Constructor
@@ -37,10 +50,16 @@ trait properties {
 	 * @return (void)
 	 */
 	public function __construct( $post = 0 ) {
-		if ( !$post = get_post( $post ) ) {
+		if ( ! $post = get_post( $post ) ) {
 			return null;
 		}
-		$this -> _post = $post;
+		$this->_post = $post;
+		/**
+		 * Define domain's name by namespace string
+		 * @uses \WP_Domain_Work\Utility\classname::getNamespace
+		 */
+		$domainNS = self::getNamespace( $this );
+		$this->domain = substr( $domainNS, strripos( $domainNS, '\\' ) + 1 );
 	}
 
 	/**
@@ -51,26 +70,20 @@ trait properties {
 	 * @param  string|null $prop (optional) property name, if null value, get all settings.
 	 * @return array
 	 */
-	public function get_property_setting( $prop = null ) {
-		if ( !isset( $this -> properties ) ) {
+	public static function get_property_setting( $prop = null ) {
+		if ( ! isset( self::$properties ) || ! is_array( self::$properties ) || ! self::$properties ) {
 			return null;
 		}
 		if ( null === $prop ) {
-			/**
-			 * All properties setting
-			 */
-			return $this -> properties;
+			return self::$properties;
 		}
-		return is_string( $prop ) && array_key_exists( $prop, $this -> properties )
-			? $this -> properties[$prop]
-			: null
-		;
+		return array_key_exists( $prop, self::$properties ) ? self::$properties[$prop] : null;
 	}
 
 	/**
 	 * Overloading method, '__isset'
 	 * Check property definition, and set property instance, if defined.
-	 * e.g. isset( $this -> var )
+	 * e.g. isset( $this->var )
 	 *
 	 * @access public
 	 *
@@ -80,116 +93,14 @@ trait properties {
 	 * @return bool
 	 */
 	public function __isset( $var ) {
-
-		/**
-		 * If already set, return true
-		 */
-		if ( isset( $this -> _data[$var] ) ) {
+		if ( array_key_exists( $var, $this->_data ) ) {
 			return true;
 		}
-
-		/**
-		 * Get property setting, if not exist, return false
-		 */
-		if ( !$propSetting = $this -> get_property_setting( $var ) ) {
-			return false; // throw error: not exist
+		if ( ! $propSetting = self::get_property_setting( $var ) ) {
+			return false;
 		}
-
-		if ( !array_key_exists( 'type', $propSetting ) ) {
-			return false; // invalid setting
-		}
-
-		/**
-		 * TASK: insert conditional logic here
-		 */
-
-		/**
-		 * Set property instance
-		 */
-		if ( array_key_exists( 'model', $propSetting ) ) {
-
-			/**
-			 * Set model instance
-			 */
-			$propModel = $propSetting['model'];
-			if ( !array_key_exists( $propModel, self::$models ) ) {
-				return false;
-			}
-
-			if ( null === self::$models[$propModel] ) {
-				$modelClass = '\\wordpress\\model\\' . $propModel;
-				self::$models[$propModel] = new $modelClass( $this -> _post );
-			}
-			$model =& self::$models[$propModel];
-
-			/**
-			 * Get property type instance
-			 */
-			$typeClass = '\\property\\' . $propSetting['type'];
-			if ( !class_exists( $typeClass ) ) {
-				return false;
-			}
-			$instance = new $typeClass( $var, $propSetting );
-
-			/**
-			 * Set value (get by model instance) to type instance
-			 */
-			$instance -> val( $model -> $var );
-
-			/**
-			 * Set $var to self::$_data
-			 */
-			$this -> _data[$var] = $instance;
-
-		} else if ( 'post_children' === $propSetting['type'] ) {
-
-			$instance = new \property\post_children( $var, $propSetting );
-
-			if ( null === self::$models['posts'] ) {
-				self::$models['posts'] = new \wordpress\model\posts();
-			}
-			$model =& self::$models['posts'];
-			$queryArgs = $instance -> getQueryArgs();
-
-			$instance -> value = $model -> get( $queryArgs );
-
-			$this -> _data[$var] = $instance;
-
-		} else if ( 'post_parent' === $propSetting['type'] ) {
-
-			$instance = new \property\post_parent( $var, $propSetting );
-
-			$parent_id = $this -> _post -> post_parent;
-			$instance -> value = $parent_id ? intval( $parent_id ) : null;
-
-			$this -> _data[$var] = $instance;
-
-		} else if ( 'group' === $propSetting['type'] ) {
-
-			/**
-			 * Grouped property
-			 */
-			if ( !array_key_exists( 'elements', $propSetting ) || !\utility\is_vector( $propSetting['elements'] ) ) {
-				return false;
-			}
-			$instance = new \property\group( $var, $propSetting );
-
-			foreach ( $propSetting['elements'] as $element ) {
-				if ( $elementData = $this -> $element ) {
-					$instance -> set_element( $element, $elementData );
-				}
-			}
-
-			if ( empty( $instance -> properties ) ) {
-				return false;
-			}
-
-			$this -> _data[$var] = $instance;
-
-		}
-
-		return array_key_exists( $var, $this -> _data );
-
+		$this->_set_property( $var, $propSetting );
+		return array_key_exists( $var, $this->_data );
 	}
 
 	/**
@@ -202,7 +113,7 @@ trait properties {
 	 * @return null|object
 	 */
 	public function __get( $var ) {
-		return isset( $this -> $var ) ? $this -> _data[$var] : null;
+		return isset( $this->$var ) ? $this->_data[$var] : null;
 	}
 
 	/**
@@ -215,66 +126,135 @@ trait properties {
 	 * @param mixed $value (required) new value. if null value, delete property's value.
 	 */
 	public function __set( $name, $value ) {
-
-		/**
-		 * Check capability
-		 */
-		if ( !current_user_can( 'edit_post', $this -> _post -> ID ) ) {
+		if ( ! $property = $this->$name  ) {
 			return;
 		}
-
 		/**
-		 * Get property instance
+		 * Define type name by classname string
+		 * @uses \WP_Domain_Work\Utility\classname::getClassname
 		 */
-		$property = $this -> $name;
+		$type = self::getClassname( $property );
 
-		if ( is_null( $property ) ) {
-			return;
-		}
-
-		$type = \utility\getEndOfClassname( $property );
-
-		if ( 'group' === $type ) {
-
+		if ( 'group' === $type || 'set' === $type ) {
 			if ( !is_array( $value ) ) {
 				return;
 			}
-
-			$elements = array_keys( $property -> properties );
+			$elements = array_keys( $property->properties );
 			foreach ( $elements as $element ) {
-				$newValue = array_key_exists( $element, $value )
-					? $value[$element]
-					: ''
-				;
-				$this -> $element = $newValue;
+				$newValue = array_key_exists( $element, $value ) ? $value[$element] : '';
+				$this->$element = $newValue;
 			}
-
 		} else if ( 'post_children' === $type ) {
 
 			//
 
 		} else {
-
-			$modelStr = $property -> getModel();
-			$model =& self::$models[$modelStr];
-
-			$newValue = $property -> filter( $value );
-
+			$modelName = $property->getModel();
+			$model =& $this->_get_model( $modelName, $this->_post->ID );
+			$newValue = $property->filter( $value );
 			if ( null === $newValue ) {
-
-				unset( $model -> $name );
-
-			} else if ( $newValue !== $property -> value ) {
-
-				$model -> $name = $newValue;
-				unset( $this -> _data[$name] );
-
+				unset( $model->$name );
+			} else if ( $newValue !== $property->value ) {
+				$model->$name = $newValue;
+				unset( $this->_data[$name] );
 			}
-
 		}
+		return isset( $this->$name );
+	}
 
-		return isset( $name );
+	/**
+	 * @access private
+	 *
+	 * @param  string $name
+	 * @param  array  $args
+	 */
+	private function _set_property( $name, $args ) {
+		$instance = null;
+		if ( in_array( $name, [ 'post_parent', 'menu_order' ] ) ) {
+			/**
+			 * Post's default attributes
+			 */
+			$typeClass = "WP_Domain_Work\\Property\\{$name}";
+			$instance = new $typeClass( $this->_post, (array) $args ); // (array)... default で良い場合は 1 とか入れる場合もあるので
+		} else if ( array_key_exists( 'model', $args ) ) {
+			$modelName = $args['model'];
+			if ( ! $_Model =& $this->_get_model( $modelName, $this->_post->ID ) ) {
+				return false;
+			}
+			$args = array_merge( self::$defaultPropSettings[$modelName], $args );
+			$typeClass = 'WP_Domain_Work\\Property\\' . $args['type'];
+			if ( !class_exists( $typeClass ) ) {
+				return false;
+			}
+			$instance = new $typeClass( $name, $args );
+			$instance->val( $_Model->get( $name ) );
+		} else if ( 'post_children' === $args['type'] ) {
+			$instance = new \WP_Domain_Work\Property\post_children( $name, $args, $this->_post );
+		} else if ( in_array( $args['type'], [ 'group', 'set' ] ) ) {
+			/**
+			 * Idiom: $array !== array_values( $array )
+			 *        - Check $array is associative array or not
+			 *
+			 * @see http://qiita.com/Hiraku/items/721cc3a385cb2d7daebd
+			 */
+			if ( !array_key_exists( 'elements', $args ) || $args['elements'] !== array_values( $args['elements']) ) {
+				return false;
+			}
+			$typeClass = 'WP_Domain_Work\\Property\\' . $args['type'];
+			if ( !class_exists( $typeClass ) ) {
+				return false;
+			}
+			$instance = new $typeClass( $name, $args );
+			foreach ( $args['elements'] as $element ) {
+				if ( $elementData = $this->$element ) {
+					$instance->set_element( $element, $elementData );
+				}
+			}
+			if ( empty( $instance->properties ) ) {
+				return false;
+			}
+		}
+		/**
+		 * 各プロパティの出力関数(getValue)で、各プロパティ固有のフィルターフックを追加させる際に、異なるドメインで同一のプロパティ名が
+		 * 存在した場合に不具合が発生しないように、フィルター名に追加するための domain 名を引数に追加した。
+		 */
+		if ( $instance ) {
+			$instance->domain = $this->domain;
+			$this->_data[$name] = $instance;
+		}
+		return array_key_exists( $name, $this->_data );
+	}
 
+	/**
+	 * 無駄にモデルインスタンスをコンストラクトしない用の関数
+	 * 1) 問題でイマイチいけていない関数になっている気がする… orz
+	 *
+	 * @access private
+	 * 
+	 * @param  string $modelName
+	 * @return reference
+	 */
+	private function &_get_model( $modelName, $post_id ) {
+		/**
+		 * 1) アーカイブや wp-admin での一覧表示の際に model が上書きされない不具合発生。
+		 * $_post_id をフラグとして引数に追加。
+		 */
+		static $_post_id = 0;
+		if ( $post_id !== $_post_id ) {
+			self::$models = [];
+		}
+		if ( ! array_key_exists( $modelName, self::$models ) ) {
+			$modelClass = "WP_Domain_Work\\WP\\model\\{$modelName}";
+			if ( ! class_exists( $modelClass ) ) {
+				return self::$falseVal;
+			}
+			self::$models[$modelName] = new $modelClass( $this->_post );
+			/**
+			 * フラグとして $_post_id を上書き
+			 */
+			$_post_id = $post_id;
+		}
+		return self::$models[$modelName];
 	}
 
 }

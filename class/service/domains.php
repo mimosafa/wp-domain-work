@@ -1,6 +1,11 @@
 <?php
 
-namespace service;
+namespace WP_Domain_Work\Service;
+
+/**
+ * alias
+ */
+use WP_Domain_Work\Plugin as _;
 
 /**
  * 
@@ -8,22 +13,38 @@ namespace service;
 class Domains {
 
 	/**
+	 * Domains directory name
 	 */
 	const DOMAINS_DIR_NAME = 'domains';
 
 	/**
+	 * Array of directories expected to have domains directory
+	 * - wp-content
+	 * - wp-content/themes/your-parent-theme
+	 * - wp-content/themes/your-child-theme
+	 * @var array
 	 */
 	private $directories = [];
 
 	/**
+	 * Paths of existed 'domains' directory
+	 * - use for domains' classloader registration & template include
+	 * @var array
+	 */
+	private $domains_directories = [];
+
+	/**
+	 * @var array
 	 */
 	private $domains = [];
 
 	/**
+	 * @var array
 	 */
-	private $class_loaders = [];
+	private $supports = [];
 
 	/**
+	 * @var array
 	 */
 	private $functions_files = [];
 
@@ -76,69 +97,85 @@ class Domains {
 	];
 
 	/**
+	 * @var array
 	 */
 	private static $property_data = [
-		'name'            => 'Name',
-		'plural_name'     => 'Plural Name',
-		'register'        => 'Register As',
-		'post_type'       => 'Post Type Name',
-		'taxonomy'        => 'Taxonomy Name',
-		'taxonomy_type'   => 'Taxonomy Type',
+		'name'              => 'Name',
+		'plural_name'       => 'Plural Name',
+		'register'          => 'Register As',
+		'post_type'         => 'Post Type Name',
+		'taxonomy'          => 'Taxonomy Name',
+		'taxonomy_type'     => 'Taxonomy Type',
 		'related_post_type' => 'Related Post Type',
-		'rewrite'         => 'Permalink Format',
-		'capability_type' => 'Capability Type',
+		'rewrite'           => 'Permalink Format',
+		'capability_type'   => 'Capability Type',
 	];
 
-	//
+	/**
+	 * @var array
+	 */
+	private static $admin_data = [
+		'support'  => 'Support',
+		'readonly' => 'Read Only',
+	];
 
 	/**
+	 * @access public
+	 *
+	 * @param  boolean $force_scan (optional)
+	 * @return (void)
 	 */
 	public function __construct( $force_scan = false ) {
-		$this -> init( $force_scan );
+		$this->init( $force_scan );
 	}
 
 	/**
+	 * @access private
+	 *
+	 * @uses   WP_Domain_Work\Plugin (as _)
+	 *
+	 * @param  boolean $force_scan
+	 * @return (void)
 	 */
 	private function init( $force_scan ) {
-		if ( $force_scan || !\WP_Domain_Work::get_option_value( 'domains' ) ) {
+		if ( ! $force_scan && $domains = _::get_domains() ) {
+			$this->domains = $domains;
+			$this->domains_directories = _::get_domains_dirs();
+			$this->functions_files = _::get_functions_files();
+		} else {
 			// wp-content/domains
-			$this -> directories[] = \WP_CONTENT_DIR . '/' . self::DOMAINS_DIR_NAME;
+			$this->directories[] = \WP_CONTENT_DIR . '/' . self::DOMAINS_DIR_NAME;
 			// wp-content/themes/your-parent-theme/domains
-			$this -> directories[] = get_template_directory()   . '/' . self::DOMAINS_DIR_NAME;
+			$this->directories[] = get_template_directory() . '/' . self::DOMAINS_DIR_NAME;
 			// wp-content/themes/your-child-theme/domains
-			$this -> directories[] = get_stylesheet_directory() . '/' . self::DOMAINS_DIR_NAME;
-			if ( $excepted_domains = \WP_Domain_Work::get_option_value( 'excepted_domains' ) ) {
+			$this->directories[] = get_stylesheet_directory() . '/' . self::DOMAINS_DIR_NAME;
+			if ( $excepted_domains = _::get_excepted_domains() ) {
 				self::$_excepted = array_merge( $excepted_domains, self::$_excepted );
 			}
-			$this -> scan_directories();
-
+			$this->scan_directories();
 			/**
 			 * update options
 			 */
-			if ( $this -> domains ) {
-				\WP_Domain_Work::update_option( 'domains', $this -> domains );
-				\WP_Domain_Work::update_option( 'class_loaders', $this -> class_loaders );
-				\WP_Domain_Work::update_option( 'functions_files', $this -> functions_files );
+			if ( $this->domains ) {
+				_::update_domains( $this->domains );
+				_::update_domains_dirs( $this->domains_directories );
+				_::update_functions_files( $this->functions_files );
+				_::update_post_type_supports( $this->supports );
 			}
-			add_action( 'init', function() { flush_rewrite_rules(); }, 99 );
-		} else {
-			$this -> domains = \WP_Domain_Work::get_option_value( 'domains' );
-			$this -> class_loaders = \WP_Domain_Work::get_option_value( 'class_loaders' );
-			$this -> functions_files = \WP_Domain_Work::get_option_value( 'functions_files' );
+			_::flush_rewrite_rules();
 		}
 
-		if ( $this -> domains ) {
-			$this -> classify_domains();
+		if ( $this->domains ) {
+			$this->classify_domains();
+			$this->register_class_loaders();
 		}
-		if ( $this -> class_loaders ) {
-			$this -> register_class_loaders();
-		}
-		if ( $this -> functions_files ) {
-			$this -> include_functions_files();
+		if ( $this->functions_files ) {
+			$this->include_functions_files();
 		}
 	}
 
 	/**
+	 * @access private
 	 */
 	private function scan_directories() {
 		$done = '';
@@ -149,205 +186,231 @@ class Domains {
 		 * 2. wp-content/themes/your-parent-theme/domains (parent theme)
 		 * 3. wp-content/themes/your-child-theme/domains (child theme)
 		 */
-		foreach ( $this -> directories as $path ) {
+		foreach ( $this->directories as $path ) {
 			/**
 			 * Outer loop will be end in first loop, if TEMPLATEPATH equals STYLESHEETPATH
 			 */
 			if ( $path === $done ) {
 				break;
 			}
-
-			if ( !is_readable( $path ) ) {
+			if ( ! is_readable( $path ) ) {
 				continue;
 			}
-
 			/**
 			 * Files & dires in domains directory
 			 */
 			$dir = new \DirectoryIterator( $path );
-
 			/**
 			 * Inner loop
 			 */
 			foreach ( $dir as $fileinfo ) {
-				if ( $fileinfo -> isDot() || !$fileinfo -> isDir() ) {
+				if ( $fileinfo->isDot() || ! $fileinfo->isDir() ) {
 					continue;
 				}
-
 				/**
 				 * Directory's name will be used as domain name
 				 */
-				$domain = $fileinfo -> getFilename();
-
+				$domain = $fileinfo->getFilename();
 				/**
 				 * Refuse registering, if the domain set as excepted domain
 				 */
 				if ( in_array( $domain, self::$_excepted ) ) {
 					continue;
 				}
-
-				/**
-				 * (*2) クラスのオートローダーとヘルパー関数が定義されたファイル (functions.php)
-				 * - ディレクトリーループ (*1)で 2巡目以降のみを対象。
-				 * - あとに読み込んだローダー、ファイルを優先したいので、array_unshiftで配列の先頭に追加する。
-				 */
-				if ( array_key_exists( $domain, $this -> class_loaders ) ) {
-					array_unshift( $this -> class_loaders[$domain], self::remove_path_prefix( $path ) );
-					if ( $functions_path = self::returnReadableFilePath( $fileinfo, 'functions.php' ) ) {
-						array_unshift( $this -> functions_files, self::remove_path_prefix( $functions_path ) );
-					}
-				}
-
 				/**
 				 * Retrieve metadata from properties.php
 				 * if file is not exist, continue
 				 *
 				 * @see http://dogmap.jp/2014/09/10/post-3109/
 				 */
-				if ( !$property_file = self::returnReadableFilePath( $fileinfo, 'properties.php' ) ) {
+				if ( ! $property_file = self::returnReadableFilePath( $fileinfo, 'properties.php' ) ) {
 					continue;
 				}
-				$property = array_filter( get_file_data( $property_file, self::$property_data ) );
-
-				// 親テーマの場合はそのまま代入、子テーマの場合 (すでに $domainsに要素がある場合)はマージする。
-				if ( !array_key_exists( $domain, $this -> domains ) ) {
-					$this -> domains[$domain] = $property;
-				} else {
-					array_merge( $this -> domains[$domain], $property );
+				if ( ! $property = array_filter( get_file_data( $property_file, self::$property_data ) ) ) {
+					continue;
 				}
 
 				/**
-				 * クラスのオートローダーとヘルパー関数が定義されたファイル (functions.php)
-				 * - (*2) 以外が対象
+				 * 親テーマの場合はそのまま代入、子テーマの場合 (すでに $domainsに要素がある場合)はマージする。
 				 */
-				if ( !array_key_exists( $domain, $this -> class_loaders ) ) {
-					$this -> class_loaders[$domain][] = self::remove_path_prefix( $path );
-					if ( $functions_path = self::returnReadableFilePath( $fileinfo, 'functions.php' ) ) {
-						array_unshift( $this -> functions_files, self::remove_path_prefix( $functions_path ) );
+				if ( ! array_key_exists( $domain, $this->domains ) ) {
+					$this->domains[$domain] = $property;
+				} else {
+					$this->domains[$domain] = array_merge( $this->domains[$domain], $property );
+				}
+				/**
+				 * Custom Post Types' support data
+				 */
+				if ( $admin_file = self::returnReadableFilePath( $fileinfo, 'admin.php' ) ) {
+					$supports = array_filter( get_file_data( $admin_file, self::$admin_data ) );
+					if ( $supports ) {
+						foreach ( $supports as $key => $string ) {
+							$array = array_map( function( $str ) {
+								return trim( $str );
+							}, explode( ',', $string ) );
+							foreach ( $array as $var ) {
+								$this->supports[$domain][$var] = $key;
+							}
+						}
 					}
 				}
+
+				if ( $functions_path = self::returnReadableFilePath( $fileinfo, 'functions.php' ) ) {
+					array_unshift( $this->functions_files, self::remove_path_prefix( $functions_path ) );
+				}
 			}
+			array_unshift( $this->domains_directories, self::remove_path_prefix( $path ) );
 			$done = $path;
 		}
 	}
 
 	/**
+	 * @access private
 	 */
 	private function classify_domains() {
-		foreach ( $this -> domains as $domain => $array ) {
+		foreach ( $this->domains as $domain => $array ) {
 			if ( 'Custom Post Type' === $array['register'] ) {
-				$this -> post_type_setting( $domain, $array );
+				$this->post_type_setting( $domain, $array );
 			} elseif ( 'Custom Taxonomy' === $array['register'] ) {
-				$this -> taxonomy_setting( $domain, $array );
+				$this->taxonomy_setting( $domain, $array );
 			} elseif ( 'Custom Endpoint' === $array['register'] ) {
-				$this -> endpoint_setting( $domain, $array );
-			} else {
-				unset( $this -> domains[$domain] );
+				$this->endpoint_setting( $domain, $array );
 			}
 		}
 	}
 
 	/**
+	 * @access private
+	 *
+	 * @param  string $domain
+	 * @param  array $array
+	 * @return (void)
 	 */
 	private function post_type_setting( $domain, Array $array ) {
-		/**
-		 * Name (slug)
-		 */
-		$post_type = ( array_key_exists( 'post_type', $array ) )
-			? esc_html( $array['post_type'] )
-			: esc_html( $domain )
-		;
+		// post_type name
+		if ( array_key_exists( 'post_type', $array ) ) {
+			$post_type = strtolower( $array['post_type'] );
+			if ( in_array( $post_type, self::$_excepted ) ) {
+				return;
+			}
+		} else {
+			$post_type = $domain;
+		}
 
-		/**
-		 * Label
-		 */
-		$label = ( array_key_exists( 'name', $array ) )
-			? esc_html( $array['name'] )
-			: ucwords( str_replace( '_', ' ', $post_type ) )
-		;
+		// Label
+		$label = array_key_exists( 'name', $array ) ? esc_html( $array['name'] ) : ucwords( str_replace( '_', ' ', $post_type ) );
 
-		/**
-		 * Options (rewrite, capability_type, )
-		 */
-		
-		/**
-		 * Rewrite slug
-		 */
+		// Rewrite slug
 		$opt = [ 'rewrite' => [ 'slug' => $domain ] ];
-
-		/**
-		 * Capability type
-		 */
-		/*
+		if ( array_key_exists( 'rewrite', $array ) && 'ID' === $array['rewrite'] ) {
+			\WP_Domain_Work\WP\int_permalink::set( $post_type );
+		}
+		
+		// Capability type
 		if ( array_key_exists( 'capability_type', $array ) ) {
 			$cap_type = array_map( function( $var ) {
 				return trim( $var );
 			}, explode( ',', $array['capability_type'] ) );
-			if ( 2 === count( $cap_type ) ) {
+			if ( 2 === count( $cap_type ) && $cap_type[0] !== $cap_type[1] ) {
 				$opt['capability_type'] = $cap_type;
-				$opt['map_meta_cap'] = true
-
-				if ( null === self::$roles ) {
-					self::$roles = new \wordpress\roles();
-				}
-				self::$roles -> add_cap( $cap_type );
+				$opt['map_meta_cap'] = true;
+				\WP_Domain_Work\WP\roles::add_cap( $cap_type );
 			}
 		}
-		*/
 
-		/**
-		 * Merge default setting to each post type setting
-		 */
-		$opt = \utility\md_array_merge( $opt, $this -> _cpt_option );
+		// Merge default setting to each post type setting
+		$opt = self::array_merge( $opt, $this->_cpt_option );
 
-		/**
-		 * Get instance \wordpress\register_customs
-		 */
-		$registerCustoms = \wordpress\register_customs::getInstance();
-		$registerCustoms -> add_post_type( $post_type, $label, $opt );
-
-		/**
-		 * 
-		 */
-		if ( array_key_exists( 'rewrite', $array ) && 'ID' === $array['rewrite'] ) {
-
-			/**
-			 * Get instance \wordpress\int_permalink
-			 */
-			$intPermalink = \wordpress\int_permalink::getInstance();
-			$intPermalink -> set( $post_type );
-
-		}
+		\WP_Domain_Work\WP\register_customs::add_post_type( $post_type, $label, $opt );
 	}
 
 	/**
+	 * @access private
+	 *
+	 * @param  string $domain
+	 * @param  array $array
+	 * @return (void)
 	 */
 	private function taxonomy_setting( $domain, Array $array ) {
-		//
+		// taxonomy name
+		if ( array_key_exists( 'taxonomy', $array ) ) {
+			$taxonomy = strtolower( $array['taxonomy'] );
+			if ( in_array( $taxonomy, self::$_excepted ) ) {
+				return;
+			}
+		} else {
+			$taxonomy = $domain;
+		}
+
+		// Label
+		$label = array_key_exists( 'name', $array ) ? esc_html( $array['name'] ) : ucwords( str_replace( '_', ' ', $taxonomy ) );
+
+		// Post types
+		$post_types = explode( ',', $array['related_post_type'] );
+		$post_types = array_map( function( $string ) {
+			return trim( $string );
+		}, $post_types );
+
+		// Rewrite
+		$opt = [ 'rewrite' => [ 'slug' => $domain ] ];
+		if ( array_key_exists( 'taxonomy_type', $array ) && 'Category' === $array['taxonomy_type'] ) {
+			$opt['hierarchical'] = true;
+			$opt['rewrite']['hierarchical'] = true;
+		}
+
+		$opt = self::array_merge( $opt, $this->_ct_option );
+
+		\WP_Domain_Work\WP\register_customs::add_taxonomy( $taxonomy, $label, $post_types, $opt );
 	}
 
 	/**
+	 * @access private
+	 *
+	 * @param  string $domain
+	 * @param  array $array
+	 * @return (void)
 	 */
 	private function endpoint_setting( $domain, Array $array ) {
-		//
+		// ~ some settings from $array, but yet...
+		\WP_Domain_Work\WP\create_endpoints::set( $domain );
 	}
 
 	/**
+	 * @access private
 	 */
 	private function register_class_loaders() {
-		foreach ( $this -> class_loaders as $domain => $somePath ) {
-			foreach ( $somePath as $path ) {
-				$path = self::add_path_prefix( $path );
-				\ClassLoader::register( $domain, $path, \ClassLoader::UNDERBAR_AS_HYPHEN );
+		foreach ( $this->domains_directories as $dir ) {
+			$path = self::add_path_prefix( $dir );
+			if ( is_readable( $path ) ) {
+				\ClassLoader::register( 'WP_Domain', $path, \ClassLoader::REMOVE_FIRST_NAMESPACE_STRING );
+			} else {
+				new self( true );
+				//
+				break;
 			}
 		}
 	}
 
 	/**
+	 * @access private
 	 */
 	private function include_functions_files() {
-		foreach ( $this -> functions_files as $file ) {
-			require_once self::add_path_prefix( $file );
+		foreach ( $this->functions_files as $file ) {
+			$file = self::add_path_prefix( $file );
+			if ( file_exists( $file ) ) {
+				require_once $file;
+			} else {
+				new self( true );
+					add_action( 'admin_init', function() {
+						add_settings_error(
+							'wp-domain-work',
+							'function-file-removed',
+							'1 or more domain\'s functions.php are deleted. You shoud do "Force Directories Search".',
+							'error'
+						);
+					} );
+				break;
+			}
 		}
 	}
 
@@ -360,7 +423,7 @@ class Domains {
 	 */
 	private static function returnReadableFilePath( $fileinfo, $file ) {
 		if ( 'DirectoryIterator' === get_class( $fileinfo ) ) {
-			$path = $fileinfo -> getPathname() . '/' . ltrim( $file, '/' );
+			$path = $fileinfo->getPathname() . '/' . ltrim( $file, '/' );
 			if ( is_readable( $path ) ) {
 				return $path;
 			}
@@ -371,29 +434,47 @@ class Domains {
 	/**
 	 * add wp-content directory's path to path string
 	 *
-	 * @access private
+	 * @access public
 	 *
 	 * @param  string $path
 	 * @return string
 	 */
-	private static function add_path_prefix( $path ) {
+	public static function add_path_prefix( $path ) {
 		return \WP_CONTENT_DIR . $path;
 	}
 
 	/**
 	 * remove wp-content directory's path from path string
 	 *
-	 * @access private
+	 * @access public
 	 *
 	 * @param  string $path
 	 * @return string
 	 */
-	private static function remove_path_prefix( $path ) {
+	public static function remove_path_prefix( $path ) {
 		static $start = null;
 		if ( null === $start ) {
 			$start = strlen( \WP_CONTENT_DIR );
 		}
 		return substr( $path, $start );
+	}
+
+	/**
+	 * Merging a multi-dimensional array
+	 *
+	 * @param  array $a
+	 * @param  array $b
+	 * @return array
+	 */
+	private static function array_merge( Array $a, Array $b ) {
+		foreach ( $a as $key => $val ) {
+			if ( !isset( $b[$key] ) ) {
+				$b[$key] = $val;
+			} elseif ( is_array( $val ) ) {
+				$b[$key] = self::array_merge( $val, $b[$key] );
+			}
+		}
+		return $b;
 	}
 
 }

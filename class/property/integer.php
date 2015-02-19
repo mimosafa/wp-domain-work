@@ -1,34 +1,39 @@
 <?php
 
-namespace property;
+namespace WP_Domain_Work\Property;
 
 /**
  *
  */
-class integer extends single {
+class integer extends simple {
 
 	/**
 	 * 0値を許可するか否か
 	 *
 	 * @var bool
 	 */
-	private $_allow_0 = false;
+	protected $_allow_0 = false;
 
-	/**
-	 *
-	 */
-	protected function construct( $arg ) {
-
-		if ( isset( $arg['allow_0'] ) && true === $arg['allow_0'] ) {
-			$this -> _allow_0 = true;
+	public function __construct( $var, Array $arg ) {
+		if ( !parent::__construct( $var, $arg ) ) {
+			return false;
 		}
-
-		return true;
+		if ( array_key_exists( 'allow_0', $arg )  && $arg['allow_0'] === true ) {
+			$this->_allow_0 = true;
+		}
 	}
 
-	/**
-	 *
-	 */
+	public function filter( $value ) {
+		if ( $value === false && $this->_model === 'metadata' ) {
+			return null;
+		}
+		if ( strval( $value ) === '0' ) {
+			return $this->_allow_0 ? 0 : null;
+		}
+		return preg_match( '/\A[1-9][0-9]*\z/', $value ) ? intval( $value ) : null;
+	}
+
+	/*
 	public function filter( $value ) {
 		// multiple
 		if ( is_array( $value ) ) {
@@ -68,5 +73,6 @@ class integer extends single {
 
 		// throw error
 	}
+	*/
 
 }
