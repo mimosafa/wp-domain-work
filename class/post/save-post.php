@@ -38,7 +38,7 @@ class save_post {
 		$this->post_type = $post_type;
 		$this->domain = get_post_type_object( $post_type )->rewrite['slug'];
 
-		self::$nonceInstance = new \WP_Domain_Work\WP\admin\nonce( $post_type );
+		self::$nonceInstance = new \WP_Domain_Work\WP\nonce( $post_type );
 
 		$this->init();
 	}
