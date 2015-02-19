@@ -15,6 +15,7 @@ class readonly_title {
 
 	private function init() {
 		if ( ! post_type_supports( $this->post_type, 'title' ) ) {
+			add_action( 'load-edit.php',     [ $this, 'add_support'] );
 			add_action( 'load-post-new.php', [ $this, 'add_support'] );
 			add_action( 'admin_action_edit', [ $this, 'add_support'] );
 		}
