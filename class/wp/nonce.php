@@ -1,9 +1,12 @@
 <?php
 
-namespace WP_Domain_Work\WP\admin;
+namespace WP_Domain_Work\WP;
 
 /**
  * Create & Verify nonce in admin
+ *
+ * - used @ WP_Domain_Work\Admin\templates\meta_box_inner
+ * 	      @ WP_Domain_Work\Post\save_post
  */
 class nonce {
 
