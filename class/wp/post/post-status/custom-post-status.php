@@ -2,18 +2,36 @@
 
 namespace WP_Domain_Work\WP\post\post_status;
 
+/**
+ *
+ */
 class custom_post_status {
 	use \WP_Domain_Work\Utility\Singleton;
 
+	/**
+	 * custom statuses array (use if didn't do action 'init')
+	 * @var array
+	 */
+	private $statuses = [];
+
 	private static $displays = [];
 
+	/**
+	 * register_post_status default arguments
+	 * @see https://github.com/WordPress/WordPress/blob/4.1-branch/wp-includes/post.php#L983
+	 * @var array
+	 */
 	private static $defaults = [
-		'label'                     => '',
-		'public'                    => false,
-		'exclude_from_search'       => false,
-		'show_in_admin_all_list'    => true,
-		'show_in_admin_status_list' => true,
-		'label_count'               => null
+		'label'                     => false,
+		'label_count'               => false,
+		'exclude_from_search'       => null,
+		'public'                    => null,
+		'internal'                  => null,
+		'protected'                 => null,
+		'private'                   => null,
+		'publicly_queryable'        => null,
+		'show_in_admin_status_list' => null,
+		'show_in_admin_all_list'    => null,
 	];
 
 	protected function __construct() {
@@ -21,29 +39,45 @@ class custom_post_status {
 	}
 
 	protected function init() {
+		if ( ! did_action( 'init' ) ) {
+			add_action( 'init', [ $this, '_register_post_statuses'], 11 );
+		}
 		if ( is_admin() ) {
 			add_action( 'admin_footer', [ $this, 'custom_status_display_in_admin' ] );
 		}
+	}
+
+	public static function set( $status, $args = [] ) {
+		if ( ! is_string( $status ) || ! $status ) {
+			return false;
+		}
+		$_CPS = self::getInstance();
+		$_CPS->_post_status( $status, $args );
 	}
 
 	/**
 	 * did_action( 'init' ) === true な前提なので、即座にregister しています
 	 * - 最初は'wp' action にフックしていたけど、edit.php で絞込表示ができなかったので…
 	 */
-	public static function set( $status, $args = [] ) {
-		if ( ! is_string( $status ) || ! $status ) {
-			return false;
-		}
-		$_CPS = self::getInstance();
-		$_CPS->register_post_status( $status, $args );
-	}
-
-	private function register_post_status( $status, Array $args ) {
+	private function _post_status( $status, Array $args ) {
 		$args = wp_parse_args( $args, self::$defaults );
 		if ( $args['show_in_admin_status_list'] ) {
 			self::$displays[] = [ $status, $args['label'] ];
 		}
-		register_post_status( $status, $args );
+		if ( did_action( 'init' ) ) {
+			register_post_status( $status, $args );
+		} else {
+			self::$statuses[$status] = $args;
+		}
+	}
+
+	public function _register_post_statuses() {
+		if ( ! self::$statuses ) {
+			return;
+		}
+		foreach ( self::$statuses as $status => $args ) {
+			register_post_status( $status, $args );
+		}
 	}
 
 	public function custom_status_display_in_admin() {
