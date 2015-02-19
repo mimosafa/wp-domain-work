@@ -75,6 +75,8 @@ class ClassLoader {
 	 */
 	private $_namespace_separator = '\\';
 
+	private $_cacheGroup = 'wp-domain-work-classloader';
+
 	/**
 	 * @access private
 	 *
@@ -120,56 +122,62 @@ class ClassLoader {
 			! $this->_namespace
 			|| $this->_namespace . $sep === substr( $className, 0, strlen( $this->_namespace . $sep ) )
 		) {
-			$fileName  = '';
-			$namespace = '';
-			if ( false !== ( $lastNsPos = strripos( $className, $sep ) ) ) {
-				if (
-					self::REMOVE_FIRST_NAMESPACE_STRING & $this->flag
-					&& false !== ( $firstNsPos = strpos( $className, $sep ) )
-				) {
-					$className = substr( $className, $firstNsPos + 1 );
-					$lastNsPos = $lastNsPos - $firstNsPos - 1;
-				}
-				if ( $lastNsPos > 0 ) {
-					$namespace = substr( $className, 0, $lastNsPos );
-					$className = substr( $className, $lastNsPos + 1 );
-
-					if ( self::NAMESPACE_UNDERBAR_AS_HYPHEN & $this->flag ) {
-						$namespace = str_replace( '_', '-', $namespace );
-					} else if ( self::NAMESPACE_UNDERBAR_AS_DIR_SEP & $this->flag ) {
-						$namespace = str_replace( '_', '/', $namespace );
+			// WordPress Object Cache API - get
+			if ( ! $fileName = wp_cache_get( $className, $this->_cacheGroup ) ) {
+				$fileName  = '';
+				$namespace = '';
+				if ( false !== ( $lastNsPos = strripos( $className, $sep ) ) ) {
+					if (
+						self::REMOVE_FIRST_NAMESPACE_STRING & $this->flag
+						&& false !== ( $firstNsPos = strpos( $className, $sep ) )
+					) {
+						$className = substr( $className, $firstNsPos + 1 );
+						$lastNsPos = $lastNsPos - $firstNsPos - 1;
 					}
+					if ( $lastNsPos > 0 ) {
+						$namespace = substr( $className, 0, $lastNsPos );
+						$className = substr( $className, $lastNsPos + 1 );
 
-					$fileName = str_replace( $sep, '/', $namespace ) . '/';
+						if ( self::NAMESPACE_UNDERBAR_AS_HYPHEN & $this->flag ) {
+							$namespace = str_replace( '_', '-', $namespace );
+						} else if ( self::NAMESPACE_UNDERBAR_AS_DIR_SEP & $this->flag ) {
+							$namespace = str_replace( '_', '/', $namespace );
+						}
 
-					if ( self::NAMESPACE_STRTOLOWER & $this->flag ) {
-						$fileName = strtolower( $fileName );
+						$fileName = str_replace( $sep, '/', $namespace ) . '/';
+
+						if ( self::NAMESPACE_STRTOLOWER & $this->flag ) {
+							$fileName = strtolower( $fileName );
+						}
 					}
 				}
-			}
 
-			/**
-			 * Analys flag 'FILENAME_STRTOLOWER'
-			 */
-			if ( self::FILENAME_STRTOLOWER & $this->flag ) {
-				$className = strtolower( $className );
-			}
+				/**
+				 * Analys flag 'FILENAME_STRTOLOWER'
+				 */
+				if ( self::FILENAME_STRTOLOWER & $this->flag ) {
+					$className = strtolower( $className );
+				}
 
-			/**
-			 * Analys flag 'FILENAME_UNDERBAR_AS_HYPHEN' or 'FILENAME_UNDERBAR_AS_DIR_SEP'
-			 */
-			if ( self::FILENAME_UNDERBAR_AS_HYPHEN & $this->flag ) {
-				$replace = '-';
-			} else if ( self::FILENAME_UNDERBAR_AS_DIR_SEP & $this->flag ) {
-				$replace = '/';
-			}
+				/**
+				 * Analys flag 'FILENAME_UNDERBAR_AS_HYPHEN' or 'FILENAME_UNDERBAR_AS_DIR_SEP'
+				 */
+				if ( self::FILENAME_UNDERBAR_AS_HYPHEN & $this->flag ) {
+					$replace = '-';
+				} else if ( self::FILENAME_UNDERBAR_AS_DIR_SEP & $this->flag ) {
+					$replace = '/';
+				}
 
-			if ( isset( $replace ) ) {
-				$fileName .= str_replace( '_', $replace, $className );
-			} else {
-				$fileName .= $className;
+				if ( isset( $replace ) ) {
+					$fileName .= str_replace( '_', $replace, $className );
+				} else {
+					$fileName .= $className;
+				}
+				$fileName .= '.php';
+
+				// WordPress Object Cache API - add
+				wp_cache_add( $className, $fileName, $this->_cacheGroup );
 			}
-			$fileName .= '.php';
 			$filePath = $this->_includePath . '/' . $fileName;
 
 			if ( file_exists( $filePath ) ) {
