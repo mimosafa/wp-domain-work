@@ -354,8 +354,8 @@ EOF;
 		if ( $this->get_option( 'use_domains' ) ) {
 			$_PAGE
 			->init( 'wp-domains', 'Your Domains' )
-				->html( '<pre>' . var_export( $this->get_option( 'domains' ), true ) . '<pre>' )
-			;
+				->section( 'your-domains' )
+				->callback( [ $this, 'subpage_your_domain' ] );
 		}
 		/**
 		 * アドオンプラグインで管理画面を追加する用
@@ -363,6 +363,12 @@ EOF;
 		$_PAGE = apply_filters( 'wp-domain-work-settings-page', $_PAGE );
 
 		$_PAGE->done();
+	}
+
+	public function subpage_your_domain() {
+		$lt = new \WP_Domain_Work\Admin\list_table\your_domain();
+		$lt->prepare_items();
+		$lt->display();
 	}
 
 	/**
