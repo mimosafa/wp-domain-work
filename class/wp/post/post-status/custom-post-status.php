@@ -109,7 +109,9 @@ class custom_post_status {
 
 	public function inline_edit_status() {
 		global $post;
-		$statusNow = $post->post_status;
+		if ( $post ) {
+			$statusNow = $post->post_status;
+		}
 ?>
 <script type='text/javascript'>
   jQuery(document).ready(function($){
