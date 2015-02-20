@@ -61,6 +61,8 @@ class settings_page {
 	 */
 	private static $callback_args = [];
 
+	private static $falseVal = false;
+
 	/**
 	 * Constructor
 	 */
@@ -271,8 +273,7 @@ class settings_page {
 		extract( $section ); // $id must be generated
 
 		if ( ! isset( $title ) ) {
-			$title = ucwords( str_replace( [ '-', '_' ], ' ', $id ) );
-			$section['title'] = $title;
+			$title = null;
 		}
 		if ( ! isset( $callback ) ) {
 			$callback = [ $this, 'section_body' ];
@@ -602,6 +603,19 @@ class settings_page {
 	}
 
 	/**
+	 * Set submit button ---- yet !!
+	 *
+	 * @access public
+	 *
+	 * @param  string $text
+	 * @return object self
+	 */
+	public function submit_button( $text ) {
+		//
+		return $this;
+	}
+
+	/**
 	 * Return var references cache
 	 *
 	 * @return references
@@ -613,6 +627,8 @@ class settings_page {
 			return self::$section;
 		} else if ( self::$page ) {
 			return self::$page;
+		} else {
+			return self::$falseVal;
 		}
 	}
 
