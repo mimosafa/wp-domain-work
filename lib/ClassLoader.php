@@ -75,8 +75,6 @@ class ClassLoader {
 	 */
 	private $_namespace_separator = '\\';
 
-	private $_cacheGroup = 'wp-domain-work-classloader';
-
 	/**
 	 * @access private
 	 *
@@ -123,7 +121,7 @@ class ClassLoader {
 			|| $this->_namespace . $sep === substr( $className, 0, strlen( $this->_namespace . $sep ) )
 		) {
 			// WordPress Object Cache API - get
-			if ( ! $fileName = wp_cache_get( $className, $this->_cacheGroup ) ) {
+			if ( ! $fileName = wp_cache_get( $className, __CLASS__ ) ) {
 				$fileName  = '';
 				$namespace = '';
 				if ( false !== ( $lastNsPos = strripos( $className, $sep ) ) ) {
@@ -176,7 +174,7 @@ class ClassLoader {
 				$fileName .= '.php';
 
 				// WordPress Object Cache API - add
-				wp_cache_add( $className, $fileName, $this->_cacheGroup );
+				wp_cache_add( $className, $fileName, __CLASS__ );
 			}
 			$filePath = $this->_includePath . '/' . $fileName;
 
