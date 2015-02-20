@@ -5,7 +5,7 @@ namespace WP_Domain_Work\Service;
 /**
  * alias
  */
-use WP_Domain_Work\Plugin as _;
+use WP_Domain_Work\Plugin as DW;
 
 /**
  * 
@@ -47,6 +47,11 @@ class Domains {
 	 * @var array
 	 */
 	private $functions_files = [];
+
+	/**
+	 * @var boolean
+	 */
+	private $update = false;
 
 	/**
 	 * Default arguments for registering custom post type
@@ -132,24 +137,28 @@ class Domains {
 	/**
 	 * @access private
 	 *
-	 * @uses   WP_Domain_Work\Plugin (as _)
+	 * @uses   WP_Domain_Work\Plugin (as DW)
 	 *
 	 * @param  boolean $force_scan
 	 * @return (void)
 	 */
 	private function init( $force_scan ) {
-		if ( ! $force_scan && $domains = _::get_domains() ) {
-			$this->domains = $domains;
-			$this->domains_directories = _::get_domains_dirs();
-			$this->functions_files = _::get_functions_files();
+		if ( ! $force_scan && $domains = DW::get_domains() ) {
+			$this->domains = array_filter( $domains, function( $array ) {
+				return $array['status'] === 'ok';
+			} );
+			$this->domains_directories = DW::get_domains_dirs();
+			$this->functions_files     = DW::get_functions_files();
 		} else {
+			$this->update = true;
+
 			// wp-content/domains
 			$this->directories[] = \WP_CONTENT_DIR . '/' . self::DOMAINS_DIR_NAME;
 			// wp-content/themes/your-parent-theme/domains
 			$this->directories[] = get_template_directory() . '/' . self::DOMAINS_DIR_NAME;
 			// wp-content/themes/your-child-theme/domains
 			$this->directories[] = get_stylesheet_directory() . '/' . self::DOMAINS_DIR_NAME;
-			if ( $excepted_domains = _::get_excepted_domains() ) {
+			if ( $excepted_domains = DW::get_excepted_domains() ) {
 				self::$_excepted = array_merge( $excepted_domains, self::$_excepted );
 			}
 			$this->scan_directories();
@@ -157,12 +166,12 @@ class Domains {
 			 * update options
 			 */
 			if ( $this->domains ) {
-				_::update_domains( $this->domains );
-				_::update_domains_dirs( $this->domains_directories );
-				_::update_functions_files( $this->functions_files );
-				_::update_post_type_supports( $this->supports );
+				// DW::update_domains( $this->domains );
+				DW::update_domains_dirs( $this->domains_directories );
+				DW::update_functions_files( $this->functions_files );
+				DW::update_post_type_supports( $this->supports );
 			}
-			_::flush_rewrite_rules();
+			DW::flush_rewrite_rules();
 		}
 
 		if ( $this->domains ) {
@@ -234,9 +243,11 @@ class Domains {
 				 * 親テーマの場合はそのまま代入、子テーマの場合 (すでに $domainsに要素がある場合)はマージする。
 				 */
 				if ( ! array_key_exists( $domain, $this->domains ) ) {
+					$property['files'] = [ self::remove_path_prefix( $path ) . '/' . $domain ];
 					$this->domains[$domain] = $property;
 				} else {
 					$this->domains[$domain] = array_merge( $this->domains[$domain], $property );
+					$this->domains[$domain]['files'][] = self::remove_path_prefix( $path ) . '/' . $domain;
 				}
 				/**
 				 * Custom Post Types' support data
@@ -268,14 +279,20 @@ class Domains {
 	 * @access private
 	 */
 	private function classify_domains() {
-		foreach ( $this->domains as $domain => $array ) {
+		foreach ( $this->domains as $domain => &$array ) {
 			if ( 'Custom Post Type' === $array['register'] ) {
 				$this->post_type_setting( $domain, $array );
 			} elseif ( 'Custom Taxonomy' === $array['register'] ) {
 				$this->taxonomy_setting( $domain, $array );
 			} elseif ( 'Custom Endpoint' === $array['register'] ) {
 				$this->endpoint_setting( $domain, $array );
+			} else {
+				unset( $this->domains[$domain] );
 			}
+		}
+		if ( $this->update ) {
+			DW::update_domains( $this->domains );
+			DW::update_domains( $this->domains );
 		}
 	}
 
@@ -286,7 +303,7 @@ class Domains {
 	 * @param  array $array
 	 * @return (void)
 	 */
-	private function post_type_setting( $domain, Array $array ) {
+	private function post_type_setting( $domain, Array &$array ) {
 		// post_type name
 		if ( array_key_exists( 'post_type', $array ) ) {
 			$post_type = strtolower( $array['post_type'] );
@@ -322,6 +339,7 @@ class Domains {
 		$opt = self::array_merge( $opt, $this->_cpt_option );
 
 		\WP_Domain_Work\WP\register_customs::add_post_type( $post_type, $label, $opt );
+		$array['status'] = 'ok';
 	}
 
 	/**
@@ -331,7 +349,7 @@ class Domains {
 	 * @param  array $array
 	 * @return (void)
 	 */
-	private function taxonomy_setting( $domain, Array $array ) {
+	private function taxonomy_setting( $domain, Array &$array ) {
 		// taxonomy name
 		if ( array_key_exists( 'taxonomy', $array ) ) {
 			$taxonomy = strtolower( $array['taxonomy'] );
@@ -361,6 +379,7 @@ class Domains {
 		$opt = self::array_merge( $opt, $this->_ct_option );
 
 		\WP_Domain_Work\WP\register_customs::add_taxonomy( $taxonomy, $label, $post_types, $opt );
+		$array['status'] = 'ok';
 	}
 
 	/**
@@ -370,9 +389,10 @@ class Domains {
 	 * @param  array $array
 	 * @return (void)
 	 */
-	private function endpoint_setting( $domain, Array $array ) {
+	private function endpoint_setting( $domain, Array &$array ) {
 		// ~ some settings from $array, but yet...
 		\WP_Domain_Work\WP\create_endpoints::set( $domain );
+		$array['status'] = 'ok';
 	}
 
 	/**
