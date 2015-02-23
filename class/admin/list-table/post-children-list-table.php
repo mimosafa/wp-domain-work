@@ -18,10 +18,6 @@ class Post_Children_List_Table extends \WP_List_Table {
 		$args = wp_parse_args( $args, $this->defaults );
 
 		parent::__construct( $args );
-		/*
-		echo '<pre>';
-		var_dump( $this );
-		echo '</pre>';*/
 	}
 
 	protected function set_items() {
@@ -57,6 +53,10 @@ class Post_Children_List_Table extends \WP_List_Table {
 		];
 	}
 
+	public function column_default( $item, $column_name ) {
+		return $item[$column_name];
+	}
+
 	public function column_cb( $item ) {
 		return sprintf( '<input type="checkbox" name="%s[]" value="%s" />', $this->_args['singular'], $item['ID'] );
 	}
@@ -64,9 +64,12 @@ class Post_Children_List_Table extends \WP_List_Table {
 	public function column_title( $item ) {
 		$actions = [
 			'edit'   => sprintf( '<a href="?post=%s&action=edit&id=%s">Edit</a>',     $_REQUEST['post'], $item['ID'] ),
-			'except' => sprintf( '<a href="?post=%s&action=except&id=%s">Except</a>', $_REQUEST['post'], $item['ID'] ),
 		];
 		return sprintf( '<strong>%s</strong>%s', esc_html( $item['title'] ), $this->row_actions( $actions ) );
+	}
+
+	public function get_bulk_actions() {
+		return [ 'edit' => 'Edit' ];
 	}
 
 	public function prepare_items() {

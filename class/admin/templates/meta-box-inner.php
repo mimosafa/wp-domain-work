@@ -315,9 +315,9 @@ class meta_box_inner {
 				} else {
 					$dom = [
 						'element'   => 'label',
-						'attribute' => [ 'for' => esc_attr( $id ) ],
+						'attribute' => [ 'for' => esc_attr( $id ), 'class' => $this->_form_id_prefix . 'checkbox' ],
+						'children'  => [ $_dom ],
 						'text'      => esc_html( $args['label'] ),
-						'children'  => [ $_dom ]
 					];
 				}
 
