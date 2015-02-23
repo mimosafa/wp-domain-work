@@ -103,6 +103,9 @@ class posts_list_table {
 			return $vars;
 		}
 		if ( isset( $vars['orderby'] ) && in_array( $vars['orderby'], $this->sortable_columns ) ) {
+			if ( in_array( $vars['orderby'], self::$built_in_column_types ) ) {
+				return $vars;
+			}
 			$prop = $this->_get_property_obj( $vars['orderby'] );
 			$type = self::getClassName( $prop );
 			if ( $type === 'menu_order' ) {

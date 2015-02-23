@@ -292,7 +292,6 @@ class Domains {
 		}
 		if ( $this->update ) {
 			DW::update_domains( $this->domains );
-			DW::update_domains( $this->domains );
 		}
 	}
 
