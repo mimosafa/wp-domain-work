@@ -176,6 +176,7 @@ class Plugin {
 			return false;
 		}
 		\update_option( $this->get_option_key( $option ), $newvalue );
+		wp_cache_delete( $option, __CLASS__ );
 		return $this->get_option( $option );
 	}
 

@@ -146,6 +146,12 @@ class meta_box_inner {
 			if ( !  empty( $inline ) ) {
 				return; // error
 			}
+			if ( '' === $name ) {
+				$name .= $args['name'];
+			}
+			if ( '' === $id ) {
+				$id .= $this->_form_id_prefix . $name;
+			}
 			$_name = $name;
 			$_id   = $id;
 			foreach ( $args['_properties'] as $propArgs ) {
@@ -158,13 +164,17 @@ class meta_box_inner {
 
 		} else if ( $type === 'post_children' ) {
 
-			if ( $args['value'] ) {
+			$table = new \WP_Domain_Work\Admin\list_table\Post_Children_List_Table( $args );
+			$table->prepare_items();
+			$table->display();
 
+			/*
+			if ( $args['value'] ) {
 				echo '<pre>';
 				var_dump( $args['value'] );
 				echo '</pre>';
-
 			}
+			*/
 
 		} else {
 
@@ -224,6 +234,8 @@ class meta_box_inner {
 						$attr['class'] = 'small-text';
 
 					}
+
+					$attr['placeholder'] = $args['label'];
 
 				} else if ( 'date' === $type ) {
 
@@ -313,7 +325,22 @@ class meta_box_inner {
 			}
 
 			if ( ! empty( $block ) || ! empty( $inline ) ) {
-				$return[] = $dom;
+				if (
+					( array_key_exists( 'prefix', $args ) && is_string( $args['prefix'] ) && ( $prefix = $args['prefix'] ) )
+					|| ( array_key_exists( 'safix', $args ) && is_string( $args['safix'] ) && ( $safix = $args['safix'] ) )
+				) {
+					$_dom = [ 'element' => 'label', 'children' => [], 'attribute' => [ 'class' => $this->_form_id_prefix . 'label', 'for' => esc_attr( $id ) ], ];
+					if ( isset( $prefix ) && $prefix ) {
+						$_dom['children'][] = [ 'element' => 'span', 'text' => $prefix ];
+					}
+					$_dom['children'][] = $dom;
+					if ( isset( $safix ) && $safix ) {
+						$_dom['children'][] = [ 'element' => 'span', 'text' => $safix ];
+					}
+					$return[] = $_dom;
+				} else {
+					$return[] = $dom;
+				}
 			} else {
 				$return[] = [ 'element' => 'p', 'children' => [ $dom ] ];
 			}
@@ -356,6 +383,13 @@ class meta_box_inner {
 <style>
   [id^="{$id_prefix}"] {
     max-width: 100%;
+  }
+  .{$id_prefix}label {
+    padding-right: .5em;
+  }
+  .{$id_prefix}label span {
+    font-size: .8em;
+    color: #aaa;
   }
   #side-sortables .form-table {
     -webkit-box-sizing: border-box;

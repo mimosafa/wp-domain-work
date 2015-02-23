@@ -9,6 +9,9 @@ abstract class simple extends basic {
 	 */
 	public $value;
 
+	public $prefix;
+	public $safix;
+
 	/**
 	 * @var string
 	 */
@@ -57,6 +60,12 @@ abstract class simple extends basic {
 		}
 		if ( array_key_exists( 'unique',   $arg ) && $arg['unique']   === true ) {
 			$this->_unique   = true;
+		}
+		if ( array_key_exists( 'prefix', $arg ) && is_string( $arg['prefix'] ) && $arg['prefix'] ) {
+			$this->prefix = $arg['prefix'];
+		}
+		if ( array_key_exists( 'safix', $arg ) && is_string( $arg['safix'] ) && $arg['safix'] ) {
+			$this->safix = $arg['safix'];
 		}
 		return true;
 	}

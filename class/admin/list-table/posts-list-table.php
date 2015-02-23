@@ -37,8 +37,8 @@ class posts_list_table {
 		if ( array_key_exists( 'label', $args ) && is_string( $args['label'] ) && $args['label'] ) {
 			$this->column_labels[$column] = $args['label'];
 		}
-		if ( array_key_exists( 'sortable', $args ) && $args['sortable'] === true ) {
-			$this->sortable_columns[] = $column;
+		if ( array_key_exists( 'sortable', $args ) && is_bool( $args['sortable'] ) ) {
+			$this->sortable_columns[] = [ $column, $args['sortable'] ]; // 'sortable' => true の場合はソート済み
 		}
 	}
 
@@ -89,7 +89,7 @@ class posts_list_table {
 	public function manage_sortable_columns( $sortable_columns ) {
 		if ( ! empty( $this->sortable_columns ) ) {
 			foreach ( $this->sortable_columns as $column ) {
-				$sortable_columns[$column] = $column;
+				$sortable_columns[$column[0]] = $column;
 			}
 		}
 		return $sortable_columns;
