@@ -24,16 +24,18 @@ class Post_Children_List_Table extends \WP_List_Table {
 		$children = $this->_args['value'];
 		foreach ( $children as $child ) {
 			$this->items[] = [
-				'ID' => $child->ID,
-				'title' => get_the_title( $child ),
+				'ID'         => $child->ID,
+				'menu_order' => (integer) $child->menu_order,
+				'title'      => get_the_title( $child ),
 			];
 		}
 	}
 
 	public function get_columns() {
 		return [
-			'cb'       => '<input type="checkbox" />',
-			'title'    => 'Title',
+			'cb'         => '<input type="checkbox" />',
+			'menu_order' => 'Order',
+			'title'      => 'Title',
 			/*
 			'register' => 'Registered As',
 			'status'   => 'Status',
@@ -63,7 +65,7 @@ class Post_Children_List_Table extends \WP_List_Table {
 
 	public function column_title( $item ) {
 		$actions = [
-			'edit'   => sprintf( '<a href="?post=%s&action=edit&id=%s">Edit</a>',     $_REQUEST['post'], $item['ID'] ),
+			'edit' => sprintf( '<a href="%s">Edit</a>', get_edit_post_link( $item['ID'] ) ),
 		];
 		return sprintf( '<strong>%s</strong>%s', esc_html( $item['title'] ), $this->row_actions( $actions ) );
 	}

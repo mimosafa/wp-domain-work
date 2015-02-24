@@ -2,7 +2,7 @@
 
 namespace WP_Domain_Work\Admin\list_table;
 
-class posts_list_table {
+class posts_admin_columns {
 	use \WP_Domain_Work\Utility\Classname;
 
 	private $domain;

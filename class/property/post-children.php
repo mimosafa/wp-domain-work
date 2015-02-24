@@ -26,6 +26,7 @@ class post_children extends basic {
 				return post_type_exists( $post_type );
 			} );
 		}
+		
 		$query_args = array_key_exists( 'query_args', $args ) && is_array( $args['query_args'] )
 			? $args['query_args'] : []
 		;

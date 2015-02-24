@@ -59,7 +59,7 @@ trait admin {
 		if ( ! isset( $this->columns ) || ! is_array( $this->columns ) || ! $this->columns ) {
 			return;
 		}
-		$_PLT = new \WP_Domain_Work\Admin\list_table\posts_list_table( $this->registeredName );
+		$_PLT = new \WP_Domain_Work\Admin\list_table\posts_admin_columns( $this->registeredName );
 		foreach ( $this->columns as $column => $args ) {
 			$_PLT->add( $column, $args );
 		}
