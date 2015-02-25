@@ -30,14 +30,13 @@ trait base {
 	/**
 	 * constructor
 	 *
-	 * @access public
+	 * @access protected
 	 */
-	public function __construct() {
+	protected function __construct() {
 		$this->_domain_settings();
-		$this->init();
 	}
 
-	protected function init() {
+	public static function init() {
 		//
 	}
 

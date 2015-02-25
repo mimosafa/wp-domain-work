@@ -5,7 +5,8 @@ namespace WP_Domain_Work\Service;
 /**
  * alias
  */
-use WP_Domain_Work\Plugin as DW;
+use WP_Domain_Work\Plugin  as DW;
+use WP_Domain_Work\Utility as Util;
 
 /**
  * 
@@ -335,7 +336,7 @@ class Domains {
 		}
 
 		// Merge default setting to each post type setting
-		$opt = self::array_merge( $opt, $this->_cpt_option );
+		$opt = Util\Array_Function::md_merge( $opt, $this->_cpt_option );
 
 		\WP_Domain_Work\WP\register_customs::add_post_type( $post_type, $label, $opt );
 		$array['status'] = 'ok';
@@ -375,7 +376,7 @@ class Domains {
 			$opt['rewrite']['hierarchical'] = true;
 		}
 
-		$opt = self::array_merge( $opt, $this->_ct_option );
+		$opt = Util\Array_Function::md_merge( $opt, $this->_ct_option );
 
 		\WP_Domain_Work\WP\register_customs::add_taxonomy( $taxonomy, $label, $post_types, $opt );
 		$array['status'] = 'ok';
@@ -476,24 +477,6 @@ class Domains {
 			$start = strlen( \WP_CONTENT_DIR );
 		}
 		return substr( $path, $start );
-	}
-
-	/**
-	 * Merging a multi-dimensional array
-	 *
-	 * @param  array $a
-	 * @param  array $b
-	 * @return array
-	 */
-	private static function array_merge( Array $a, Array $b ) {
-		foreach ( $a as $key => $val ) {
-			if ( !isset( $b[$key] ) ) {
-				$b[$key] = $val;
-			} elseif ( is_array( $val ) ) {
-				$b[$key] = self::array_merge( $val, $b[$key] );
-			}
-		}
-		return $b;
 	}
 
 }

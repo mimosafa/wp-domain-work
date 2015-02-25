@@ -254,7 +254,8 @@ class Router {
 		}
 		$cl = sprintf( 'WP_Domain\\%s\\%s', $this->_ns, $class );
 		if ( class_exists( $cl ) ) {
-			new $cl();
+			//new $cl();
+			$cl::init();
 		}
 	}
 

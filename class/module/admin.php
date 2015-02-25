@@ -14,16 +14,17 @@ namespace WP_Domain_Work\Module;
 trait admin {
 	use base;
 
-	protected function init() {
+	public static function init() {
+		$self = new self();
 		global $pagenow;
-		if ( $this->registered === 'post_type' ) {
+		if ( $self->registered === 'post_type' ) {
 			if ( $pagenow === 'post.php' || $pagenow === 'post-new.php' ) {
-				add_action( 'add_meta_boxes', [ $this, 'post_type_meta_boxes' ] );
+				add_action( 'add_meta_boxes', [ $self, 'post_type_meta_boxes' ] );
 			} else if ( $pagenow === 'edit.php' ) {
-				$this->post_type_columns();
+				$self->post_type_columns();
 			}
-			\WP_Domain_Work\Admin\post\post_type_supports::init( $this->registeredName );
-			new \WP_Domain_Work\Post\save_post( $this->registeredName );
+			\WP_Domain_Work\Admin\post\post_type_supports::init( $self->registeredName );
+			new \WP_Domain_Work\Post\save_post( $self->registeredName );
 		}
 	}
 

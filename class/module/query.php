@@ -11,33 +11,39 @@ namespace WP_Domain_Work\Module;
 trait query {
 
 	public function __construct() {
+		//
+	}
+
+	public static function init() {
+
+		$self = new self();
 
 		/**
 		 * Custom init method defined each domains
 		 */
-		if ( method_exists( $this, 'init' ) ) {
-			$this->init();
+		if ( method_exists( $self, 'prepare' ) ) {
+			$self->init();
 		}
 
 		/**
 		 * Hide in front-end
 		 */
-		if ( ! is_admin() && property_exists( $this, 'private_in_frontend' ) && true === $this->private_in_frontend ) {
-			$this->forbidden();
+		if ( ! is_admin() && property_exists( $self, 'private_in_frontend' ) && true === $self->private_in_frontend ) {
+			$self->forbidden();
 		}
 
 		/**
 		 * 
 		 */
-		if ( is_admin() && property_exists( $this, 'filter_others') && true === $this->filter_others ) {
-			add_action( 'pre_get_posts', [ $this, 'filter_others' ], 11 );
+		if ( is_admin() && property_exists( $self, 'filter_others') && true === $self->filter_others ) {
+			add_action( 'pre_get_posts', [ $self, 'filter_others' ], 11 );
 		}
 
 		/**
 		 * Main query
 		 */
-		if ( property_exists( $this, 'query_args' ) && is_array( $this->query_args ) ) {
-			add_action( 'pre_get_posts', [ $this, 'main_query' ], 10 );
+		if ( property_exists( $self, 'query_args' ) && is_array( $self->query_args ) ) {
+			add_action( 'pre_get_posts', [ $self, 'main_query' ], 10 );
 		}
 
 	}
