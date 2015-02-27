@@ -10,11 +10,13 @@ class Post_Children_List_Table extends \WP_List_Table {
 	protected $_actions = [ 'remove' => 'Remove', ];
 
 	public function __construct( Array $args ) {
+		/*
 		$config = [
 			'singular' => $args['singular'],
 			'plural'   => $args['plural'],
 		];
-		parent::__construct( $config );
+		*/
+		parent::__construct( $args );
 
 		$this->query_args = $args['query_args'];
 		$this->data = $args['value'];
@@ -57,12 +59,40 @@ class Post_Children_List_Table extends \WP_List_Table {
 		];
 	}
 
+	public function get_bulk_actions() {
+		return [ 'edit' => 'Edit' ];
+	}
+
+	public function column_default( $item, $column_name ) {
+		return $item[$column_name];
+	}
+
+	public function column_cb( $item ) {
+		return sprintf( '<input type="checkbox" name="%s[]" value="%s" />', $this->_args['singular'], $item['ID'] );
+	}
+
+	public function column_title( $item ) {
+		$actions = [
+			'edit' => sprintf( '<a href="%s">Edit</a>', get_edit_post_link( $item['ID'] ) ),
+		];
+		return sprintf( '<strong>%s</strong>%s', esc_html( $item['title'] ), $this->row_actions( $actions ) );
+	}
+
 	public function prepare_items() {
 		$this->_column_headers = [
 			$this->get_columns(),
 			$this->get_hidden_columns(),
 			$this->get_sortable_columns()
 		];
+		#var_dump( $this->_args ); die();
+		$children = $this->_args['value'];
+		foreach ( $children as $child ) {
+			$this->items[] = [
+				'ID'         => $child->ID,
+				'menu_order' => (integer) $child->menu_order,
+				'title'      => get_the_title( $child ),
+			];
+		}
 		/*
 		global $avail_post_stati, $wp_query, $per_page, $mode;
 		$avail_post_stati = wp_edit_posts_query();
@@ -117,7 +147,7 @@ class Post_Children_List_Table extends \WP_List_Table {
 	 * @param string $which
 	 */
 	protected function display_tablenav( $which ) {
-		if ( 'top' == $which )
+		if ( 'top' == $which ) {
 			// wp_nonce_field( 'bulk-' . $this->_args['plural'] );
 ?>
 	<div class="tablenav <?php echo esc_attr( $which ); ?>">
@@ -126,8 +156,8 @@ class Post_Children_List_Table extends \WP_List_Table {
 			<?php $this->bulk_actions( $which ); ?>
 		</div>
 
-		<div class="alignleft">
-			<input type="button" name="" id="addnewchild" class="button action" value="<?php _e( 'Add' ); ?>">
+		<div class="alignleft actions">
+			<input type="button" name="" id="addnewchild" class="button action" value="<?php _e( 'Add New' ); ?>">
 		</div>
 <?php
 		$this->extra_tablenav( $which );
@@ -137,6 +167,7 @@ class Post_Children_List_Table extends \WP_List_Table {
 		<br class="clear" />
 	</div>
 <?php
+		}
 	}
 
 }

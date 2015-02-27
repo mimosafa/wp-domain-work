@@ -4,13 +4,34 @@ namespace WP_Domain_Work\Property;
 
 class posts extends basic {
 
+	/**
+	 * @var string
+	 */
 	public $singular;
+
+	/**
+	 * @var string
+	 */
 	public $plural;
 
+	/**
+	 * @var array
+	 */
 	protected $query_args;
 
+	/**
+	 * @var array
+	 */
 	public $value = [];
 
+	/**
+	 * Constructer
+	 *
+	 * @param  string $var
+	 * @param  array $args
+	 * @param  integer|WP_Post $post
+	 * @return bool
+	 */
 	public function __construct( $var, Array $args, $post = 0 ) {
 		if ( ! parent::__construct( $var, $args ) ) {
 			return false;

@@ -34,7 +34,9 @@ class readonly_title {
 			return;
 		}
 		$post_id = $_GET['post'];
-		if ( get_post_status( $post_id ) !== 'publish' ) {
+		$status = get_post_status( $post_id );
+		$publicStatus = array_values( get_post_stati( [ 'public' => true ] ) );
+		if ( ! in_array( $status, $publicStatus ) ) {
 			return;
 		}
 		if ( current_user_can( 'edit_others_posts', $post_id ) ) {

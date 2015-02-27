@@ -10,58 +10,45 @@ namespace WP_Domain_Work\Module;
  */
 trait query {
 
-	public function __construct() {
-		//
-	}
-
-	public static function init() {
-
-		$self = new self();
-
+	protected function __construct() {
 		/**
 		 * Custom init method defined each domains
 		 */
-		if ( method_exists( $self, 'prepare' ) ) {
-			$self->init();
+		if ( method_exists( $this, 'prepare' ) ) {
+			$this->prepare();
 		}
+	}
 
+	public static function init() {
+		$self = new self();
 		/**
 		 * Hide in front-end
 		 */
-		if ( ! is_admin() && property_exists( $self, 'private_in_frontend' ) && true === $self->private_in_frontend ) {
+		if ( ! is_admin() && property_exists( $self, 'private_in_frontend' ) && $self->private_in_frontend === true ) {
 			$self->forbidden();
 		}
-
-		/**
-		 * 
-		 */
-		if ( is_admin() && property_exists( $self, 'filter_others') && true === $self->filter_others ) {
-			add_action( 'pre_get_posts', [ $self, 'filter_others' ], 11 );
-		}
-
 		/**
 		 * Main query
 		 */
 		if ( property_exists( $self, 'query_args' ) && is_array( $self->query_args ) ) {
 			add_action( 'pre_get_posts', [ $self, 'main_query' ], 10 );
 		}
-
 	}
 
 	/**
 	 *
 	 */
 	public function main_query( $query ) {
-		if ( ! $query->is_main_query() || $query->is_singular() ) {
+		if ( ! $query->is_main_query() || $query->is_singular ) {
 			return;
 		}
 
-		/**
-		 * 管理画面(edit.php)でカラムでソートを掛けた際に並び替えがされない不具合を解消。
-		 *
-		 * @see WP_Domain_Work\Admin\list_table\posts_list_table::columns_order( $vars )
-		 */
-		if ( is_admin() ) {
+		if ( $query->is_admin ) {
+			/**
+			 * 管理画面(edit.php)でカラムでソートを掛けた際に並び替えがされない不具合を解消。
+			 *
+			 * @see WP_Domain_Work\Admin\list_table\posts_list_table::columns_order( $vars )
+			 */
 			if ( array_key_exists( 'order', $this->query_args ) && array_key_exists( 'order', $query->query ) ) {
 				if ( strtolower( $query->query['order'] ) !== strtolower( $this->query_args['order'] ) ) {
 					unset( $this->query_args['order'] );
@@ -74,20 +61,21 @@ trait query {
 					// meta_key should be unset...
 				}
 			}
+
+			/**
+			 * 自分以外のポストの編集権限がない人
+			 */
+			if ( property_exists( $this, 'filter_others') && $this->filter_others === true ) {
+				if ( ! current_user_can( 'edit_others_posts', $query->query_vars['post_type'] ) ) {
+					$user_id = get_current_user_id();
+					$this->query_args['author'] = $user_id;
+				}
+			}
 		}
 
 		foreach ( $this->query_args as $key => $val ) {
 			$query->set( $key, $val );
 		}
-	}
-
-	public function filter_others( $query ) {
-		$post_type = $query->query_vars['post_type'];
-		if ( current_user_can( 'edit_others_posts', $post_type ) ) {
-			return;
-		}
-		$user_id = get_current_user_id();
-		$query->set( 'author', $user_id );
 	}
 
 	/**

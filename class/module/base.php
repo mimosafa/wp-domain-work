@@ -34,10 +34,16 @@ trait base {
 	 */
 	protected function __construct() {
 		$this->_domain_settings();
+		/**
+		 * Custom init method defined each domains
+		 */
+		if ( method_exists( $this, 'prepare' ) ) {
+			$self->prepare();
+		}
 	}
 
 	public static function init() {
-		//
+		// $self = new self();
 	}
 
 	/**

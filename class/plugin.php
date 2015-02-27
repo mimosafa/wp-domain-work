@@ -139,7 +139,10 @@ class Plugin {
 	 * @param  string $option
 	 * @return string
 	 */
-	private function get_option_key( $option ) {
+	private function get_option_key( $option = null ) {
+		if ( ! $option ) {
+			return self::$option_keys;
+		}
 		return array_key_exists( $option, self::$option_keys ) ? self::$option_keys[$option] : false;
 	}
 
@@ -330,7 +333,7 @@ class Plugin {
 		 * Get instance settings page generator
 		 */
 		$_PAGE = new WP\admin\plugin\settings_page();
-		$_PAGE->init( 'wp-domain-work', 'WP Domain Work Settings', 'WP Domain Work' );
+		$_PAGE->init( 'wp-domain-work', 'WP Domain Work Settings', 'Domains' );
 
 		$_PAGE
 			//->description( 'This is Awesome plugin !!!' )

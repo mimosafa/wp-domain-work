@@ -56,8 +56,8 @@ WP_Domain_Work\Plugin::init();
  * @see https://plugins.trac.wordpress.org/browser/taxonomy-terms-order/tags/1.4.0/taxonomy-terms-order.php#L126
  */
 add_filter( 'get_terms_orderby', function( $orderby, $args ) {
-	_var_dump( $orderby );
-	_var_dump( $args );
+	#_var_dump( $orderby );
+	#_var_dump( $args );
 	#return $orderby;
 	return 't.term_order';
 }, 10, 2 );

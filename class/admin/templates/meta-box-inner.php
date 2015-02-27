@@ -3,9 +3,9 @@
 namespace WP_Domain_Work\Admin\templates;
 
 /**
- * @uses \wordpress\admin\nonce
- * @uses \mimosafa\Decoder
- * @uses \property\(property type)
+ * @uses WP_Domain_Work\WP\nonce
+ * @uses mimosafa\Decoder
+ * @uses WP_Domain_Work\Property\(property type)
  */
 class meta_box_inner {
 
