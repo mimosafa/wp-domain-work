@@ -91,10 +91,10 @@ class meta_box_inner {
 
 		if ( $type === 'group' ) {
 			
-			if ( !  array_key_exists( '_properties', $args ) || !  $args['_properties'] ) {
+			if ( ! array_key_exists( '_properties', $args ) || !  $args['_properties'] ) {
 				return []; // error
 			}
-			if ( !  empty( $block ) ) {
+			if ( ! empty( $block ) ) {
 				return; // error
 			}
 			$block = [

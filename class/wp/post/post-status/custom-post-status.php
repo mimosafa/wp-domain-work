@@ -52,8 +52,8 @@ class custom_post_status {
 		if ( ! is_string( $status ) || ! $status ) {
 			return false;
 		}
-		$_CPS = self::getInstance();
-		$_CPS->_post_status( $status, $args );
+		$self = self::getInstance();
+		$self->_post_status( $status, $args );
 	}
 
 	/**

@@ -19,12 +19,29 @@ trait admin {
 		global $pagenow;
 		if ( $self->registered === 'post_type' ) {
 			if ( $pagenow === 'post.php' || $pagenow === 'post-new.php' ) {
+				$self->add_advanced_forms();
 				add_action( 'add_meta_boxes', [ $self, 'post_type_meta_boxes' ] );
 			} else if ( $pagenow === 'edit.php' ) {
 				$self->post_type_columns();
 			}
 			\WP_Domain_Work\Admin\post\post_type_supports::init( $self->registeredName );
 			new \WP_Domain_Work\Post\save_post( $self->registeredName );
+		}
+	}
+
+	private function add_advanced_forms() {
+		if ( ! property_exists( $this, 'direct' ) || ! is_array( $this->direct ) || ! $this->direct ) {
+			return;
+		}
+		foreach ( $this->direct as $position => $forms ) {
+			if ( ! $forms || ! is_array( $forms ) ) {
+				continue;
+			}
+			if ( $position === 'before_content' ) {
+				//
+				#_var_dump( $position );
+				#_var_dump( $forms );
+			}
 		}
 	}
 

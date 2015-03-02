@@ -10,16 +10,11 @@ class Post_Children_List_Table extends \WP_List_Table {
 	protected $_actions = [ 'remove' => 'Remove', ];
 
 	public function __construct( Array $args ) {
-		/*
-		$config = [
-			'singular' => $args['singular'],
-			'plural'   => $args['plural'],
-		];
-		*/
 		parent::__construct( $args );
 
 		$this->query_args = $args['query_args'];
 		$this->data = $args['value'];
+		//echo '<pre>'; var_dump( $this->screen ); echo '</pre>';
 		/*
 		$post_type = $this->screen->post_type;
 		$post_type_object = get_post_type_object( $post_type );
@@ -42,8 +37,8 @@ class Post_Children_List_Table extends \WP_List_Table {
 
 	public function get_columns() {
 		return [
-			'cb'         => '<input type="checkbox" />',
-			'title'      => 'Title',
+			//'cb'         => '<input type="checkbox" />',
+			'title'      => $this->_args['label'],
 		];
 	}
 
@@ -149,16 +144,14 @@ class Post_Children_List_Table extends \WP_List_Table {
 	protected function display_tablenav( $which ) {
 		if ( 'top' == $which ) {
 			// wp_nonce_field( 'bulk-' . $this->_args['plural'] );
+		}
 ?>
 	<div class="tablenav <?php echo esc_attr( $which ); ?>">
 
-		<div class="alignleft actions bulkactions">
+<?php /*		<div class="alignleft actions bulkactions">
 			<?php $this->bulk_actions( $which ); ?>
-		</div>
+		</div> */ ?>
 
-		<div class="alignleft actions">
-			<input type="button" name="" id="addnewchild" class="button action" value="<?php _e( 'Add New' ); ?>">
-		</div>
 <?php
 		$this->extra_tablenav( $which );
 		$this->pagination( $which );
@@ -166,6 +159,15 @@ class Post_Children_List_Table extends \WP_List_Table {
 
 		<br class="clear" />
 	</div>
+<?php
+	}
+
+	protected function extra_tablenav( $which ) {
+		if ( $which === 'bottom' ) {
+?>
+		<div class="alignleft actions">
+			<input type="button" name="" id="addnewchild" class="button action" value="<?php _e( 'Add New' ); ?>">
+		</div>
 <?php
 		}
 	}
