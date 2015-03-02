@@ -10,12 +10,12 @@ class property_meta_box {
 	private static $meta_boxes = [];
 
 	/**
-	 * 
+	 * @var string
 	 */
 	private $_box_id_prefix = 'wp-domain-work-meta-box-';
 
 	/**
-	 * @var null|object \wordpress\admin\meta_box_inner
+	 * @var null|object WP_Domain_Work\admin\template\meta_box_inner
 	 */
 	private static $metaBoxInner = null;
 
@@ -42,10 +42,10 @@ class property_meta_box {
 		if ( ! is_string( $name ) || ! $name ) {
 			return false;
 		}
-		$_PMB = self::getInstance();
+		$self = self::getInstance();
 
-		$post_type = $_PMB->post_type;
-		$id = esc_attr( $_PMB->_box_id_prefix . $name );
+		$post_type = $self->post_type;
+		$id = esc_attr( $self->_box_id_prefix . $name );
 		$title = esc_html( $args['label'] );
 		if ( array_key_exists( 'callback', $args ) && is_callable( $args['callback'] ) ) {
 			$callback = $args['callback'];

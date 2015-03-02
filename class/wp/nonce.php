@@ -15,8 +15,8 @@ class nonce {
 	 */
 	private $context;
 
-	private static $nonce_format  = '_nonce_%s_%s';
-	private static $action_format = '%s-%s';
+	private static $nonce_format  = '_wp_domain_work_nonce_%s_%s';
+	private static $action_format = 'wp-domain-work-%s-%s';
 
 	/**
 	 * @param  string $context

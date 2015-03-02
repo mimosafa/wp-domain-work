@@ -6,7 +6,7 @@ namespace WP_Domain_Work\WP\admin\plugin;
  * WordPress Settings API wrapper class
  *
  * Usage:
- * - Get instance <code>$instance = new \wordpress\admin\settings_page();</code>
+ * - Get instance <code>$instance = new \WP_Domain_Work\WP\admin\plugin\settings_page();</code>
  * - Initialize with page sulug <code>$instance->init( 'my-plugin' );</code>
  *   - You can also set page title & menu title by this method
  * ...
