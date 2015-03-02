@@ -20,7 +20,8 @@ class Domains_List_Table extends \WP_List_Table {
 	public function get_columns() {
 		return [
 			'cb'       => '<input type="checkbox" />',
-			'name'     => 'Name',
+			'domain'   => 'Domain',
+			'label'    => 'Label',
 			'register' => 'Registered As',
 			'status'   => 'Status',
 		];
@@ -34,7 +35,7 @@ class Domains_List_Table extends \WP_List_Table {
 
 	function get_sortable_columns() {
 		return [
-			'name' => [ 'name', false ],
+			//'name' => [ 'name', false ],
 		];
 	}
 
@@ -43,15 +44,19 @@ class Domains_List_Table extends \WP_List_Table {
 	}
 
 	public function column_cb( $item ) {
-		return sprintf( '<input type="checkbox" name="domains[]" value="%s" />', strtolower( $item['name'] ) );
+		return sprintf( '<input type="checkbox" name="domains[]" value="%s" />', strtolower( $item['domain'] ) );
 	}
 
-	public function column_name( $item ) {
+	public function column_domain( $item ) {
 		$actions = [
-			'edit'   => sprintf( '<a href="?page=%s&action=edit&domain=%s">Edit</a>',     $_REQUEST['page'], strtolower( $item['name'] ) ),
-			'except' => sprintf( '<a href="?page=%s&action=except&domain=%s">Except</a>', $_REQUEST['page'], strtolower( $item['name'] ) ),
+			'edit'   => sprintf( '<a href="?page=%s&action=edit&domain=%s">Edit</a>',     $_REQUEST['page'], strtolower( $item['domain'] ) ),
+			'except' => sprintf( '<a href="?page=%s&action=except&domain=%s">Except</a>', $_REQUEST['page'], strtolower( $item['domain'] ) ),
 		];
-		return sprintf( '<strong>%s</strong>%s', esc_html( $item['name'] ), $this->row_actions( $actions ) );
+		return sprintf( '<strong>%s</strong>%s', esc_html( $item['domain'] ), $this->row_actions( $actions ) );
+	}
+
+	public function column_label( $item ) {
+		return array_key_exists( 'label', $item ) ? $item['label'] : '';
 	}
 
 	public function column_register( $item ) {

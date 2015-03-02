@@ -95,6 +95,13 @@ class posts_admin_columns {
 		return $sortable_columns;
 	}
 
+	public function posts_order() {
+		if ( ! $this->sortable_columns ) {
+			return;
+		}
+		//
+	}
+
 	/**
 	 * @see http://hijiriworld.com/web/wordpress-admin-customize/#list
 	 */

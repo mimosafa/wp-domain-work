@@ -106,8 +106,8 @@ class Domains {
 	 * @var array
 	 */
 	private static $property_data = [
-		'name'              => 'Name',
-		'plural_name'       => 'Plural Name',
+		'label'             => 'Label',
+		'plural'            => 'Plural Name',
 		'register'          => 'Register As',
 		'post_type'         => 'Post Type Name',
 		'taxonomy'          => 'Taxonomy Name',
@@ -290,6 +290,7 @@ class Domains {
 			} else {
 				unset( $this->domains[$domain] );
 			}
+			$array['domain'] = $domain;
 		}
 		if ( $this->update ) {
 			DW::update_domains( $this->domains );
@@ -304,7 +305,7 @@ class Domains {
 	 * @return (void)
 	 */
 	private function post_type_setting( $domain, Array &$array ) {
-		// post_type name
+		// post_type
 		if ( array_key_exists( 'post_type', $array ) ) {
 			$post_type = strtolower( $array['post_type'] );
 			if ( in_array( $post_type, self::$_excepted ) ) {
@@ -315,7 +316,7 @@ class Domains {
 		}
 
 		// Label
-		$label = array_key_exists( 'name', $array ) ? esc_html( $array['name'] ) : ucwords( str_replace( '_', ' ', $post_type ) );
+		$label = array_key_exists( 'label', $array ) ? $array['label'] : ucwords( str_replace( '_', ' ', $domain ) );
 
 		// Rewrite slug
 		$opt = [ 'rewrite' => [ 'slug' => $domain ] ];
@@ -350,7 +351,7 @@ class Domains {
 	 * @return (void)
 	 */
 	private function taxonomy_setting( $domain, Array &$array ) {
-		// taxonomy name
+		// taxonomy
 		if ( array_key_exists( 'taxonomy', $array ) ) {
 			$taxonomy = strtolower( $array['taxonomy'] );
 			if ( in_array( $taxonomy, self::$_excepted ) ) {
@@ -361,7 +362,7 @@ class Domains {
 		}
 
 		// Label
-		$label = array_key_exists( 'name', $array ) ? esc_html( $array['name'] ) : ucwords( str_replace( '_', ' ', $taxonomy ) );
+		$label = array_key_exists( 'label', $array ) ? $array['label'] : ucwords( str_replace( '_', ' ', $domain ) );
 
 		// Post types
 		$post_types = explode( ',', $array['related_post_type'] );

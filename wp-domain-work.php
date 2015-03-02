@@ -51,6 +51,18 @@ WP_Domain_Work\Plugin::init();
 
 
 // TESTs below !!!
+ 
+\WP_Domain_Work\WP\request::vars( 'post_per_page', 10 );
+
+/**
+ * @see  https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/class-wp-list-table.php#L485
+ */
+add_filter( 'months_dropdown_results', function( $months, $post_type ) {
+	if ( $post_type === 'vendor' ) {
+		return [];
+	}
+	return $months;
+}, 10, 2 );
 
 /**
  * @see https://plugins.trac.wordpress.org/browser/taxonomy-terms-order/tags/1.4.0/taxonomy-terms-order.php#L126
