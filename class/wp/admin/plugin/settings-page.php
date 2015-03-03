@@ -531,14 +531,14 @@ class settings_page {
 	 * @param  bool   $wrap_p
 	 * @return object self|(void)
 	 */
-	public function description( $text, $wrap_p = true ) {
+	public function description( $text ) {
 		if ( ! $text || ! is_string( $text ) ) {
 			return;
 		}
 		if ( ! $cache =& $this->get_cache() ) {
 			return;
 		}
-		$format = $wrap_p ? '<p>%s</p>' : '%s';
+		$format = '<p class="description">%s</p>';
 		if ( ! array_key_exists( 'description', $cache ) ) {
 			$cache['description'] = sprintf( $format, $text );
 		} else {
@@ -738,7 +738,7 @@ class settings_page {
             <?= $label ?>
           </label>
           <?php if ( array_key_exists( 'description', $arg ) ) { ?>
-          <p class="description"><?= $arg['description'] ?></p>
+          <?= $arg['description'] ?>
           <?php } ?>
         </fieldset>
 <?php
