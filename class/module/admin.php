@@ -16,31 +16,42 @@ trait admin {
 
 	public static function init( Array $args ) {
 		$self = new self( $args );
-		global $pagenow;
 		if ( $self->registered === 'post_type' ) {
-			if ( $pagenow === 'post.php' || $pagenow === 'post-new.php' ) {
-				$self->add_advanced_forms();
-				add_action( 'add_meta_boxes', [ $self, 'post_type_meta_boxes' ] );
-			} else if ( $pagenow === 'edit.php' ) {
-				$self->post_type_columns();
-			}
-			#\WP_Domain_Work\Admin\post\post_type_supports::init( $self->registeredName );
-			new \WP_Domain_Work\Post\save_post( $self->registeredName );
+			$self->init_post_type();
+		} else if ( $self->registered === 'taxonomy' ) {
+			// $self->init_taxonomy();
 		}
 	}
 
-	private function add_advanced_forms() {
-		if ( ! property_exists( $this, 'direct' ) || ! is_array( $this->direct ) || ! $this->direct ) {
-			return;
+	private function init_post_type() {
+		global $pagenow;
+		if ( in_array( $pagenow, [ 'post.php', 'post-new.php' ] ) ) {
+			if ( property_exists( $this, 'advanced_forms' ) && is_array( $this->advanced_forms ) && $this->advanced_forms ) {
+				$this->add_advanced_forms();
+			}
+			if ( property_exists( $this, 'meta_boxes' ) && is_array( $this->meta_boxes ) && $this->meta_boxes ) {
+				add_action( 'add_meta_boxes', [ $this, 'post_type_meta_boxes' ] );
+			}
+		} else if ( $pagenow === 'edit.php' ) {
+			if ( property_exists( $this, 'columns' ) && is_array( $this->columns ) && $this->columns ) {
+	 			$this->post_type_columns();
+			}
 		}
-		foreach ( $this->direct as $position => $forms ) {
-			if ( ! $forms || ! is_array( $forms ) ) {
+		#\WP_Domain_Work\Admin\post\post_type_supports::init( $self->registeredName );
+		new \WP_Domain_Work\Post\save_post( $this->registeredName );
+	}
+
+	private function add_advanced_forms() {
+		foreach ( $this->advanced_forms as $hook => $args ) {
+			if ( ! $args ) {
 				continue;
 			}
-			if ( $position === 'before_content' ) {
-				//
-				#_var_dump( $position );
-				#_var_dump( $forms );
+			/**
+			 * 何かが違う…
+			 */
+			$method = 'set_' . $hook;
+			foreach ( $args as $array ) {
+				\WP_Domain_Work\Admin\edit_form_advanced::$method( $array );
 			}
 		}
 	}
@@ -49,34 +60,29 @@ trait admin {
 		if ( ! $props =& $this->_get_properties() ) {
 			return;
 		}
-		if ( isset( $this->meta_boxes ) && is_array( $this->meta_boxes ) && $this->meta_boxes ) {
-			foreach ( $this->meta_boxes as $arg ) {
-				if ( is_string( $arg ) && $prop = $props->$arg ) {
-					if ( in_array( $arg, [ 'post_parent', 'menu_order' ] ) ) {
-						\WP_Domain_Work\Admin\meta_boxes\attributes_meta_box::set( $arg, $prop->getArray() );
-					} else {
-						//
-					}
-				} else if ( is_array( $arg ) ) {
-					if ( ! array_key_exists( 'property', $arg ) ) {
-						continue;
-					}
-					$propName = $arg['property'];
-					if ( ! $prop = $props->$propName ) {
-						continue;
-					}
-					unset( $arg['property'] );
-					$metabox = wp_parse_args( $arg, $prop->getArray() );
-					\WP_Domain_Work\Admin\meta_boxes\property_meta_box::set( $propName, $metabox );
+		foreach ( $this->meta_boxes as $arg ) {
+			if ( is_string( $arg ) && $prop = $props->$arg ) {
+				if ( in_array( $arg, [ 'post_parent', 'menu_order' ] ) ) {
+					\WP_Domain_Work\Admin\meta_boxes\attributes_meta_box::set( $arg, $prop->getArray() );
+				} else {
+					//
 				}
+			} else if ( is_array( $arg ) ) {
+				if ( ! array_key_exists( 'property', $arg ) ) {
+					continue;
+				}
+				$propName = $arg['property'];
+				if ( ! $prop = $props->$propName ) {
+					continue;
+				}
+				unset( $arg['property'] );
+				$metabox = wp_parse_args( $arg, $prop->getArray() );
+				\WP_Domain_Work\Admin\meta_boxes\property_meta_box::set( $propName, $metabox );
 			}
 		}
 	}
 
 	public function post_type_columns() {
-		if ( ! isset( $this->columns ) || ! is_array( $this->columns ) || ! $this->columns ) {
-			return;
-		}
 		$_PLT = new \WP_Domain_Work\Admin\list_table\posts_admin_columns( $this->registeredName );
 		foreach ( $this->columns as $column => $args ) {
 			$_PLT->add( $column, $args );

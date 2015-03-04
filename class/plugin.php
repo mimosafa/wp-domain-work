@@ -119,13 +119,13 @@ class Plugin {
 	 * @access public
 	 */
 	public static function __callStatic( $name, $args ) {
-		$_DW = self::getInstance();
+		$self = self::getInstance();
 		if ( 'get_' === substr( $name, 0, 4 ) ) {
 			array_unshift( $args, substr( $name, 4 ) );
-			return call_user_func_array( [ $_DW, 'get_option' ], $args );
+			return call_user_func_array( [ $self, 'get_option' ], $args );
 		} else if ( 'update_' === substr( $name, 0, 7 ) ) {
 			array_unshift( $args, substr( $name, 7 ) );
-			return call_user_func_array( [ $_DW, 'update_option' ], $args );
+			return call_user_func_array( [ $self, 'update_option' ], $args );
 		} else {
 			// throw error
 		}
@@ -260,23 +260,23 @@ class Plugin {
 	 * Plugin init
 	 */
 	public static function init() {
-		$_DW = self::getInstance();
-		$_DW::$error = new \WP_Error();
+		$self = self::getInstance();
+		$self::$error = new \WP_Error();
 		
 		if ( is_admin() ) {
-			$_DW->permalink_structure();
+			$self->permalink_structure();
 			/**
 			 * Settings page in admin menu
 			 * アドオンプラグインでサブページを追加できるようにするため init にフック
 			 */
-			add_action( 'init', [ $_DW, 'settings_page' ] );
+			add_action( 'init', [ $self, 'settings_page' ] );
 		}
 		/**
 		 * init services
 		 */
-		if ( $_DW->get_option( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
+		if ( $self->get_option( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
 			new Service\Domains();
-			if ( $_DW->get_option( 'home_level' ) !== false && $_DW->get_option( 'site_level' ) !== false ) {
+			if ( $self->get_option( 'home_level' ) !== false && $self->get_option( 'site_level' ) !== false ) {
 				new Service\Router();
 			}
 		}
@@ -284,7 +284,7 @@ class Plugin {
 		 * Catch error
 		 */
 		if ( self::$error->get_error_code() ) {
-			add_action( 'admin_menu', [ $_DW, 'notice' ] );
+			add_action( 'admin_menu', [ $self, 'notice' ] );
 		}
 	}
 
@@ -294,16 +294,16 @@ class Plugin {
 	 * @uses wordpress\installed_level
 	 */
 	private static function installed_level() {
-		$_DW = self::getInstance();
+		$self = self::getInstance();
 		$level = new WP\installed_level();
 
-		if ( false === $_DW->get_option( 'home_level' ) ) {
+		if ( false === $self->get_option( 'home_level' ) ) {
 			$homeLevel = $level->get_level( 'home' );
-			$_DW->update_option( 'home_level', $homeLevel );
+			$self->update_option( 'home_level', $homeLevel );
 		}
-		if ( false === $_DW->get_option( 'site_level' ) ) {
+		if ( false === $self->get_option( 'site_level' ) ) {
 			$siteLevel = $level->get_level( 'site' );
-			$_DW->update_option( 'site_level', $siteLevel );
+			$self->update_option( 'site_level', $siteLevel );
 		}
 	}
 

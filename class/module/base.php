@@ -89,8 +89,8 @@ trait base {
 	 * @return \(domain)\properties
 	 */
 	protected function &_get_properties() {
-		if ( ! self::$properties ) {
-			$className = sprintf( 'WP_Domain\\%s\\properties', $this->domain );
+		if ( self::$properties === null ) {
+			$className = 'WP_Domain\\' . $this->domain . '\\properties';
 			if ( ! class_exists( $className ) ) {
 				return self::$falseVal;
 			}

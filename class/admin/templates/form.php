@@ -42,7 +42,7 @@ class form {
 			self::$nonceInstance = new \WP_Domain_Work\WP\nonce( $context );
 		}
 		if ( ! self::$decoder ) {
-			self::$decoder       = new \mimosafa\Decoder();
+			self::$decoder = new \mimosafa\Decoder();
 		}
 	}
 
