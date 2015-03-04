@@ -20,10 +20,6 @@ class register_customs {
 	 */
 	private static $_taxonomies = [];
 
-	// private static $_cpt_labels = [];
-	// private static $_ct_labels = [];
-
-
 	/**
 	 */
 	protected function __construct() {
@@ -34,8 +30,8 @@ class register_customs {
 	 * @access public
 	 */
 	private function init() {
-		add_action( 'init', [ $this, 'register_post_type' ], 1 );
 		add_action( 'init', [ $this, 'register_taxonomy'  ], 1 );
+		add_action( 'init', [ $this, 'register_post_type' ], 1 );
 	}
 
 	/**
@@ -52,8 +48,8 @@ class register_customs {
 			'label'     => $label,
 			'options'   => $options
 		];
-		$_RC = self::getInstance();
-		$_RC::$_post_types[] = $cpt;
+		$self = self::getInstance();
+		$self::$_post_types[] = $cpt;
 	}
 
 	/**
@@ -71,8 +67,8 @@ class register_customs {
 			'post_types' => $post_types,
 			'options'    => $options
 		];
-		$_RC = self::getInstance();
-		$_RC::$_taxonomies[] = $ct;
+		$self = self::getInstance();
+		$self::$_taxonomies[] = $ct;
 	}
 
 	/**
@@ -100,8 +96,28 @@ class register_customs {
 					);
 				}
 			}
+			$pt['options']['labels'] = $this->post_type_labels( $pt['post_type'], $pt['label'] );
 			\register_post_type( $pt['post_type'], $pt['options'] );
 		}
+	}
+
+	private function post_type_labels( $post_type, $label, $textdomain = '' ) {
+		return [
+			'name'               => _x( $label, 'post type general name', $textdomain ),
+			'singular_name'      => _x( $label, 'post type singular name', $textdomain ),
+			'menu_name'          => _x( $label, 'admin menu', $textdomain ),
+			'name_admin_bar'     => _x( $label, 'add new on admin bar', $textdomain ),
+			'add_new'            => _x( 'Add New', $post_type, $textdomain ),
+			'add_new_item'       => __( sprintf( 'Add New %s', $label ), $textdomain ),
+			'new_item'           => __( sprintf( 'New %s', $label ), $textdomain ),
+			'edit_item'          => __( sprintf( 'Edit %s', $label ), $textdomain ),
+			'view_item'          => __( sprintf( 'View %s', $label ), $textdomain ),
+			'all_items'          => __( sprintf( 'All %s', $label ), $textdomain ),
+			'search_items'       => __( sprintf( 'Search %s', $label ), $textdomain ),
+			'parent_item_colon'  => __( sprintf( 'Parent %s:', $label ), $textdomain ),
+			'not_found'          => __( sprintf( 'No %s found.', $label ), $textdomain ),
+			'not_found_in_trash' => __( sprintf( 'No %s found in Trash.', $label ), $textdomain )
+		];
 	}
 
 	/**
