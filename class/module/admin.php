@@ -14,8 +14,8 @@ namespace WP_Domain_Work\Module;
 trait admin {
 	use base;
 
-	public static function init() {
-		$self = new self();
+	public static function init( Array $args ) {
+		$self = new self( $args );
 		global $pagenow;
 		if ( $self->registered === 'post_type' ) {
 			if ( $pagenow === 'post.php' || $pagenow === 'post-new.php' ) {

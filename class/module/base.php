@@ -5,6 +5,8 @@ namespace WP_Domain_Work\Module;
 trait base {
 	use \WP_Domain_Work\Utility\classname;
 
+	protected $_args;
+
 	/**
 	 * @var string Dmain's name.
 	 */
@@ -32,7 +34,8 @@ trait base {
 	 *
 	 * @access protected
 	 */
-	protected function __construct() {
+	protected function __construct( $args ) {
+		$this->_args = $args;
 		$this->_domain_settings();
 		/**
 		 * Custom init method defined each domains
@@ -42,7 +45,7 @@ trait base {
 		}
 	}
 
-	public static function init() {
+	public static function init( Array $args ) {
 		// $self = new self();
 	}
 

@@ -19,8 +19,8 @@ trait status {
 		// 'label_count'               => []
 	];
 
-	public static function init() {
-		$self = new self();
+	public static function init( Array $args ) {
+		$self = new self( $args );
 		if ( property_exists( $self, 'builtin' ) && is_array( $self->builtin ) && $self->builtin ) {
 			$self->init_builtin_statuses();
 		}
