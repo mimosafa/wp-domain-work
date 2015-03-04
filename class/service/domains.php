@@ -115,6 +115,7 @@ class Domains {
 		'related_post_type' => 'Related Post Type',
 		'rewrite'           => 'Permalink Format',
 		'capability_type'   => 'Capability Type',
+		'supports'          => 'Supports',
 	];
 
 	/**
@@ -239,6 +240,11 @@ class Domains {
 				if ( ! $property = array_filter( get_file_data( $property_file, self::$property_data ) ) ) {
 					continue;
 				}
+				foreach ( $property as $key => &$arg ) {
+					if ( in_array( $key, [ 'related_post_type', 'capability_type', 'supports' ] ) ) {
+						$arg = Util\String_Function::toArray( $arg );
+					}
+				}
 
 				/**
 				 * 親テーマの場合はそのまま代入、子テーマの場合 (すでに $domainsに要素がある場合)はマージする。
@@ -326,9 +332,7 @@ class Domains {
 		
 		// Capability type
 		if ( array_key_exists( 'capability_type', $array ) ) {
-			$cap_type = array_map( function( $var ) {
-				return trim( $var );
-			}, explode( ',', $array['capability_type'] ) );
+			$cap_type = $array['capability_type'];
 			if ( 2 === count( $cap_type ) && $cap_type[0] !== $cap_type[1] ) {
 				$opt['capability_type'] = $cap_type;
 				$opt['map_meta_cap'] = true;
@@ -336,8 +340,18 @@ class Domains {
 			}
 		}
 
+		// Supports
+		if ( array_key_exists( 'supports', $array ) ) {
+			static $post_thumbnails_support = false;
+			if ( ! $post_thumbnails_support && in_array( 'thumbnail', $array['supports'] ) ) {
+				add_theme_support( 'post-thumbnails' );
+				$post_thumbnails_support = true;
+			}
+			$opt['supports'] = $array['supports'];
+		}
+
 		// Merge default setting to each post type setting
-		$opt = Util\Array_Function::md_merge( $opt, $this->_cpt_option );
+		$opt = Util\Array_Function::md_merge( $this->_cpt_option, $opt );
 
 		\WP_Domain_Work\WP\register_customs::add_post_type( $post_type, $label, $opt );
 		$array['status'] = 'ok';
@@ -365,10 +379,7 @@ class Domains {
 		$label = array_key_exists( 'label', $array ) ? $array['label'] : ucwords( str_replace( '_', ' ', $domain ) );
 
 		// Post types
-		$post_types = explode( ',', $array['related_post_type'] );
-		$post_types = array_map( function( $string ) {
-			return trim( $string );
-		}, $post_types );
+		$post_types = $array['related_post_type'];
 
 		// Rewrite
 		$opt = [ 'rewrite' => [ 'slug' => $domain ] ];
@@ -377,7 +388,7 @@ class Domains {
 			$opt['rewrite']['hierarchical'] = true;
 		}
 
-		$opt = Util\Array_Function::md_merge( $opt, $this->_ct_option );
+		$opt = Util\Array_Function::md_merge( $this->_ct_option, $opt );
 
 		\WP_Domain_Work\WP\register_customs::add_taxonomy( $taxonomy, $label, $post_types, $opt );
 		$array['status'] = 'ok';

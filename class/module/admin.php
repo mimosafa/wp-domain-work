@@ -24,7 +24,7 @@ trait admin {
 			} else if ( $pagenow === 'edit.php' ) {
 				$self->post_type_columns();
 			}
-			\WP_Domain_Work\Admin\post\post_type_supports::init( $self->registeredName );
+			#\WP_Domain_Work\Admin\post\post_type_supports::init( $self->registeredName );
 			new \WP_Domain_Work\Post\save_post( $self->registeredName );
 		}
 	}
