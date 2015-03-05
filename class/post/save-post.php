@@ -47,8 +47,7 @@ class save_post {
 	 *
 	 */
 	private function init() {
-		$hook = 'save_post_' . $this->post_type;
-		add_action( $hook, [ $this, 'save_post' ] );
+		add_action( 'save_post_' . $this->post_type, [ $this, 'save_post' ] );
 	}
 
 	/**

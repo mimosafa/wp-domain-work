@@ -15,11 +15,6 @@ class meta_box_inner {
 	private $context;
 
 	/**
-	 * @var string
-	 */
-	private $post_type;
-
-	/**
 	 * @var bool
 	 */
 	private $_post_new;
@@ -63,7 +58,6 @@ class meta_box_inner {
 	 *
 	 */
 	public function init( $post, $metabox ) {
-		$this->post_type = get_post_type( $post );
 		$dom_array = $this->generate_dom_array( $metabox['args'] );
 		if ( empty( $dom_array ) ) {
 			return;

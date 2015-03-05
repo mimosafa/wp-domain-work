@@ -14,32 +14,16 @@ class Post_Children_List_Table extends \WP_List_Table {
 
 		$this->query_args = $args['query_args'];
 		$this->data = $args['value'];
-		//echo '<pre>'; var_dump( $this->screen ); echo '</pre>';
-		/*
-		$post_type = $this->screen->post_type;
-		$post_type_object = get_post_type_object( $post_type );
-		if ( !current_user_can( $post_type_object->cap->edit_others_posts ) ) {
-			$exclude_states = get_post_stati( array( 'show_in_admin_all_list' => false ) );
-			$this->user_posts_count = $wpdb->get_var( $wpdb->prepare( "
-				SELECT COUNT( 1 ) FROM $wpdb->posts
-				WHERE post_type = %s AND post_status NOT IN ( '" . implode( "','", $exclude_states ) . "' )
-				AND post_author = %d
-			", $post_type, get_current_user_id() ) );
-			if ( $this->user_posts_count && empty( $_REQUEST['post_status'] ) && empty( $_REQUEST['all_posts'] ) && empty( $_REQUEST['author'] ) && empty( $_REQUEST['show_sticky'] ) )
-				$_GET['author'] = get_current_user_id();
-		}
-		if ( 'post' == $post_type && $sticky_posts = get_option( 'sticky_posts' ) ) {
-			$sticky_posts = implode( ', ', array_map( 'absint', (array) $sticky_posts ) );
-			$this->sticky_posts_count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT( 1 ) FROM $wpdb->posts WHERE post_type = %s AND post_status NOT IN ('trash', 'auto-draft') AND ID IN ($sticky_posts)", $post_type ) );
-		}
-		*/
 	}
 
 	public function get_columns() {
-		return [
-			//'cb'         => '<input type="checkbox" />',
-			'title'      => $this->_args['label'],
+		$columns = [
+			'title'  => $this->_args['label'],
 		];
+		if ( count( $this->data ) > 1 ) {
+			$columns = array_merge( [ 'handle' => '<span class="dashicons dashicons-editor-ol"></span>' ], $columns );
+		}
+		return $columns;
 	}
 
 	function get_hidden_columns() {
@@ -64,6 +48,10 @@ class Post_Children_List_Table extends \WP_List_Table {
 
 	public function column_cb( $item ) {
 		return sprintf( '<input type="checkbox" name="%s[]" value="%s" />', $this->_args['singular'], $item['ID'] );
+	}
+
+	public function column_handle( $item ) {
+		return '<span class="dashicons dashicons-menu"></span>';
 	}
 
 	public function column_title( $item ) {
@@ -164,11 +152,17 @@ class Post_Children_List_Table extends \WP_List_Table {
 
 	protected function extra_tablenav( $which ) {
 		if ( $which === 'bottom' ) {
+			$post_types = $this->_args['query_args']['post_type'];
+			foreach ( $post_types as $post_type ) {
+				$newhref = sprintf( 'post-new.php?post_type=%s&post_parent=%d', $post_type, get_the_ID() );
+				$format = count( $post_types ) === 1 ? 'Add New' : 'Add New %s';
+				$label = sprintf( $format, get_post_type_object( $post_type )->label );
 ?>
 		<div class="alignleft actions">
-			<input type="button" name="" id="addnewchild" class="button action" value="<?php _e( 'Add New' ); ?>">
+			<a href="<?php echo esc_url( $newhref ); ?>" class="button action" id="addnewchild"><?php echo esc_html( $label ); ?></a>
 		</div>
 <?php
+			}
 		}
 	}
 

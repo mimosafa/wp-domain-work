@@ -108,15 +108,15 @@ class register_customs {
 			'menu_name'          => _x( $label, 'admin menu', $textdomain ),
 			'name_admin_bar'     => _x( $label, 'add new on admin bar', $textdomain ),
 			'add_new'            => _x( 'Add New', $post_type, $textdomain ),
-			'add_new_item'       => __( sprintf( 'Add New %s', $label ), $textdomain ),
-			'new_item'           => __( sprintf( 'New %s', $label ), $textdomain ),
-			'edit_item'          => __( sprintf( 'Edit %s', $label ), $textdomain ),
-			'view_item'          => __( sprintf( 'View %s', $label ), $textdomain ),
-			'all_items'          => __( sprintf( 'All %s', $label ), $textdomain ),
-			'search_items'       => __( sprintf( 'Search %s', $label ), $textdomain ),
-			'parent_item_colon'  => __( sprintf( 'Parent %s:', $label ), $textdomain ),
-			'not_found'          => __( sprintf( 'No %s found.', $label ), $textdomain ),
-			'not_found_in_trash' => __( sprintf( 'No %s found in Trash.', $label ), $textdomain )
+			'add_new_item'       => sprintf( __( 'Add New %s', $textdomain ), $label ),
+			'new_item'           => sprintf( __( 'New %s', $textdomain ), $label ),
+			'edit_item'          => sprintf( __( 'Edit %s', $textdomain ), $label ),
+			'view_item'          => sprintf( __( 'View %s', $textdomain ), $label ),
+			'all_items'          => sprintf( __( 'All %s', $textdomain ), $label ),
+			'search_items'       => sprintf( __( 'Search %s', $textdomain ), $label ),
+			'parent_item_colon'  => sprintf( __( 'Parent %s:', $textdomain ), $label ),
+			'not_found'          => sprintf( __( 'No %s found.', $textdomain ), $label ),
+			'not_found_in_trash' => sprintf( __( 'No %s found in Trash.', $textdomain ), $label ),
 		];
 	}
 
