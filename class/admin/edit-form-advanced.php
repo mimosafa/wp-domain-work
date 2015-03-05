@@ -13,27 +13,44 @@ class edit_form_advanced {
 	];
 
 	protected function __construct() {
-		add_action( 'dbx_post_advanced', [ $this, 'init' ] );
+		$this->init();
 	}
 
 	public function init() {
-		$this->forms = array_filter( $this->forms );
-		if ( $this->forms ) {
-
+		foreach ( array_keys( $this->forms ) as $hook ) {
+			add_action( $hook, [ $this, 'output' ] );
 		}
 	}
 
-	public static function __callStatic( $name, $args ) {
-		if ( 'set_' !== substr( $name, 0, 4 ) ) {
-			return false;
-		}
+	public static function set( $hook, $args ) {
 		$self = self::getInstance();
-		$hook = substr( $name, 4 );
 		if ( array_key_exists( $hook, $self->forms ) ) {
 			$self->forms[$hook][] = $args;
 		}
 	}
 
-	// 何かが違う…
+	public function output() {
+		foreach ( array_keys( $this->forms ) as $hook ) {
+			if ( doing_action( $hook ) ) {
+				break;
+			}
+		}
+		if ( ! $this->forms[$hook] ) {
+			return;
+		}
+		foreach ( $this->forms[$hook] as $args ) {
+			// echo '<pre>'; var_dump( $args ); echo '</pre>';
+			if ( ! array_key_exists( 'callback', $args ) || ! is_callable( $args['callback'] ) ) {
+				global $post_type;
+				$gen = \WP_Domain_Work\Admin\templates\form::getInstance( $post_type );
+				$gen->generate( $args );
+			} else {
+				$func = $args['callback'];
+				unset( $args['callback'] );
+				call_user_func( $func, $args );
+			}
+		}
+		unset( $this->forms[$hook] );
+	}
 
 }

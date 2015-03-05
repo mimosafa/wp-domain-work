@@ -34,7 +34,7 @@ class attributes_meta_box {
 				$this->post_type . 'parentdiv',
 				get_post_type_object( $this->post_type )->labels->name . __( 'Attributes' ),
 				[ $this, 'meta_box' ],
-				null, 'side', 'core'
+				$this->post_type, 'side', 'core'
 			);
 		}
 	}

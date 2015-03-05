@@ -14,6 +14,8 @@ namespace WP_Domain_Work\Module;
 trait admin {
 	use base;
 
+	//private static $wrote_property = [];
+
 	public static function init( Array $args ) {
 		$self = new self( $args );
 		if ( $self->registered === 'post_type' ) {
@@ -27,11 +29,12 @@ trait admin {
 		global $pagenow;
 		if ( in_array( $pagenow, [ 'post.php', 'post-new.php' ] ) ) {
 			if ( property_exists( $this, 'advanced_forms' ) && is_array( $this->advanced_forms ) && $this->advanced_forms ) {
-				$this->add_advanced_forms();
+				add_action( 'dbx_post_advanced', [ $this, 'add_advanced_forms' ] );
 			}
 			if ( property_exists( $this, 'meta_boxes' ) && is_array( $this->meta_boxes ) && $this->meta_boxes ) {
 				add_action( 'add_meta_boxes', [ $this, 'post_type_meta_boxes' ] );
 			}
+			add_action( 'edit_form_top', [ $this, 'show_post_parent' ] );
 		} else if ( $pagenow === 'edit.php' ) {
 			if ( property_exists( $this, 'columns' ) && is_array( $this->columns ) && $this->columns ) {
 	 			$this->post_type_columns();
@@ -41,17 +44,16 @@ trait admin {
 		new \WP_Domain_Work\Post\save_post( $this->registeredName );
 	}
 
-	private function add_advanced_forms() {
-		foreach ( $this->advanced_forms as $hook => $args ) {
-			if ( ! $args ) {
+	public function add_advanced_forms() {
+		foreach ( $this->advanced_forms as $hook => $array ) {
+			if ( ! $array ) {
 				continue;
 			}
-			/**
-			 * 何かが違う…
-			 */
-			$method = 'set_' . $hook;
-			foreach ( $args as $array ) {
-				\WP_Domain_Work\Admin\edit_form_advanced::$method( $array );
+			foreach ( $array as $args ) {
+				if ( array_key_exists( 'property', $args ) && $prop = $this->_get_property( $args['property'] ) ) {
+					$args = array_merge( $prop->getArray(), $args );
+				}
+				\WP_Domain_Work\Admin\edit_form_advanced::set( $hook, $args );
 			}
 		}
 	}
@@ -87,6 +89,61 @@ trait admin {
 		foreach ( $this->columns as $column => $args ) {
 			$_PLT->add( $column, $args );
 		}
+	}
+
+	public function show_post_parent( $post ) {
+		global $pagenow;
+		if ( $pagenow === 'post.php' ) {
+			if ( $post->post_parent && $parent = $this->_get_property( 'post_parent' ) ) {
+				$label = esc_html( $parent->label );
+				if ( $parent->value ) {
+					$parent_name = sprintf(
+						'<a href="%s">%s</a>',
+						esc_url( get_edit_post_link( $parent->value ) ),
+						esc_html( get_the_title( $parent->value ) )
+					);
+				} else {
+					$parent_name = 'None';
+				}
+				echo "<p class=\"description\"><strong>{$label}: </strong>{$parent_name}\n</p>";
+			}
+		} else if ( array_key_exists( 'post_parent', $_REQUEST ) && absint( $_REQUEST['post_parent'] ) ) { // post-new.php
+			/**
+			 * 
+			 */
+			if ( ! $parent = get_post( $_REQUEST['post_parent'] ) ) {
+				return;
+			}
+			$parent_post_type = $parent->post_type;
+			$propsClassName = 'WP_Domain\\' . $this->domain . '\\properties';
+			if (
+				! class_exists( $propsClassName )
+				|| ( ! $parent_settings = $propsClassName::get_property_setting( 'post_parent' ) )
+				|| ! array_key_exists( 'post_type', $parent_settings )
+				|| ! in_array( $parent_post_type, (array) $parent_settings['post_type'] )
+			) {
+				return;
+			}
+			add_action( 'edit_form_after_editor', function() {
+				remove_meta_box( $this->registeredName . 'parentdiv', $this->registeredName, 'side' );
+			} );
+			$text = sprintf(
+				__( 'This %s will be added as %s, <a href="%s">%s</a>\'s child post.' ),
+				get_post_type_object( $this->registeredName )->label,
+				get_post_type_object( $parent_post_type )->label,
+				esc_url( get_edit_post_link( $parent ) ),
+				esc_html( get_the_title( $parent ) )
+			);
+			echo $text;
+			echo '<input type="hidden" name="parent_id" value="' . esc_attr( $_REQUEST['post_parent'] ) . '" />';
+		}
+	}
+
+	protected function _get_property( $property ) {
+		if ( ! $properties =& $this->_get_properties() ) {
+			return null;
+		}
+		return $properties->$property;
 	}
 
 }
