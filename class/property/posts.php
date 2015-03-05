@@ -70,6 +70,8 @@ class posts extends basic {
 		if ( ! array_key_exists( 'post_status', $args ) ) {
 			$stati = is_admin() ? get_post_stati( [ 'internal' => false ] ) : get_post_stati( [ 'public' => true ] );
 			$r['post_status'] = $stati;
+		} else {
+			$r['post_status'] = $args['post_status'];
 		}
 		if ( array_key_exists( 'post_type', $args ) ) {
 			$post_type = array_filter( (array) $args['post_type'], function( $post_type ) {
