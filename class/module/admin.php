@@ -31,7 +31,7 @@ trait admin {
 			if ( property_exists( $this, 'advanced_forms' ) && is_array( $this->advanced_forms ) && $this->advanced_forms ) {
 				add_action( 'dbx_post_advanced', [ $this, 'add_advanced_forms' ] );
 			}
-			if ( property_exists( $this, 'meta_boxes' ) && is_array( $this->meta_boxes ) && $this->meta_boxes ) {
+			if ( property_exists( $this, '_meta_boxes' ) && is_array( $this->_meta_boxes ) && $this->_meta_boxes ) {
 				add_action( 'add_meta_boxes', [ $this, 'post_type_meta_boxes' ] );
 			}
 			add_action( 'edit_form_top', [ $this, 'show_post_parent' ] );
@@ -68,7 +68,7 @@ trait admin {
 		if ( ! $props =& $this->_get_properties() ) {
 			return;
 		}
-		foreach ( $this->meta_boxes as $arg ) {
+		foreach ( $this->_meta_boxes as $arg ) {
 			if ( is_string( $arg ) && $prop = $props->$arg ) {
 				if ( in_array( $arg, [ 'post_parent', 'menu_order' ] ) ) {
 					\WP_Domain_Work\Admin\meta_boxes\attributes_meta_box::set( $arg, $prop->getArray() );
@@ -121,10 +121,11 @@ trait admin {
 				return;
 			}
 			$parent_post_type = $parent->post_type;
-			$propsClassName = 'WP_Domain\\' . $this->domain . '\\properties';
+			if ( ! $propsClass =& $this->_get_properties() ) {
+				return;
+			}
 			if (
-				! class_exists( $propsClassName )
-				|| ( ! $parent_settings = $propsClassName::get_property_setting( 'post_parent' ) )
+				( ! $parent_settings = $propsClass::get_property_setting( 'post_parent' ) )
 				|| ! array_key_exists( 'post_type', $parent_settings )
 				|| ! in_array( $parent_post_type, (array) $parent_settings['post_type'] )
 			) {

@@ -52,7 +52,7 @@ class attributes_meta_box {
 	//
 
 	/**
-	 * @see  https://github.com/WordPress/WordPress/blob/master/wp-admin/includes/meta-boxes.php#L709
+	 * @see  https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L709
 	 * @todo Change to using Walker class
 	 * @todo If no contents, empty meta box is appered..
 	 */

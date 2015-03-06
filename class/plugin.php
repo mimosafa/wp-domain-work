@@ -91,6 +91,38 @@ class Plugin {
 	}
 
 	/**
+	 * Plugin init
+	 */
+	public static function init() {
+		$self = self::getInstance();
+		$self::$error = new \WP_Error();
+		
+		if ( is_admin() ) {
+			$self->permalink_structure();
+			/**
+			 * Settings page in admin menu
+			 * アドオンプラグインでサブページを追加できるようにするため init にフック
+			 */
+			add_action( 'init', [ $self, 'settings_page' ] );
+		}
+		/**
+		 * init services
+		 */
+		if ( $self->get_option( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
+			new Service\Domains();
+			if ( $self->get_option( 'home_level' ) !== false && $self->get_option( 'site_level' ) !== false ) {
+				new Service\Router();
+			}
+		}
+		/**
+		 * Catch error
+		 */
+		if ( self::$error->get_error_code() ) {
+			add_action( 'admin_menu', [ $self, 'notice' ] );
+		}
+	}
+
+	/**
 	 *
 	 */
 	public static function activation() {
@@ -254,38 +286,6 @@ class Plugin {
 				break;
 		}
 		return $value;
-	}
-
-	/**
-	 * Plugin init
-	 */
-	public static function init() {
-		$self = self::getInstance();
-		$self::$error = new \WP_Error();
-		
-		if ( is_admin() ) {
-			$self->permalink_structure();
-			/**
-			 * Settings page in admin menu
-			 * アドオンプラグインでサブページを追加できるようにするため init にフック
-			 */
-			add_action( 'init', [ $self, 'settings_page' ] );
-		}
-		/**
-		 * init services
-		 */
-		if ( $self->get_option( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
-			new Service\Domains();
-			if ( $self->get_option( 'home_level' ) !== false && $self->get_option( 'site_level' ) !== false ) {
-				new Service\Router();
-			}
-		}
-		/**
-		 * Catch error
-		 */
-		if ( self::$error->get_error_code() ) {
-			add_action( 'admin_menu', [ $self, 'notice' ] );
-		}
 	}
 
 	/**
