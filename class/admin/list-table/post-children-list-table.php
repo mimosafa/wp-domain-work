@@ -47,7 +47,7 @@ class Post_Children_List_Table extends \WP_List_Table {
 	}
 
 	public function column_cb( $item ) {
-		return sprintf( '<input type="checkbox" name="%s[]" value="%s" />', $this->_args['singular'], $item['ID'] );
+		return sprintf( '<input type="checkbox" name="%s[]" value="%s">', $this->_args['singular'], $item['ID'] );
 	}
 
 	public function column_handle( $item ) {
@@ -120,6 +120,36 @@ class Post_Children_List_Table extends \WP_List_Table {
 		echo '<pre>'; var_dump( $stati ); echo '</pre>'; die();
 	}
 
+	public function display() {
+		$singular = $this->_args['singular'];
+		$this->display_tablenav( 'top' );
+		$tbodyID = 'the-' . $this->_args['plural'] . '-list'; // Add
+?>
+<table class="wp-list-table <?php echo implode( ' ', $this->get_table_classes() ); ?>">
+	<thead>
+	<tr>
+		<?php $this->print_column_headers(); ?>
+	</tr>
+	</thead>
+
+	<tbody id="<?php echo esc_attr( $tbodyID ); ?>"<?php
+		if ( $singular ) {
+			echo " data-wp-lists='list:$singular'";
+		} ?>>
+		<?php $this->display_rows_or_placeholder(); ?>
+	</tbody>
+
+	<tfoot>
+	<tr>
+		<?php $this->print_column_headers( false ); ?>
+	</tr>
+	</tfoot>
+
+</table>
+<?php
+		$this->display_tablenav( 'bottom' );
+	}
+
 	//
 
 	/**
@@ -166,6 +196,25 @@ class Post_Children_List_Table extends \WP_List_Table {
 		}
 	}
 
+	public function single_row( $item ) {
+		echo '<tr>';
+		if ( count( $this->data) > 1 ) {
+			printf(
+				'<input type="hidden" value="%1$d" data-name="wp-domain-work-children-order[%2$d]" data-menu-order="%1$d">',
+				$item['menu_order'], $item['ID']
+			);
+		}
+		$this->single_row_columns( $item );
+		echo '</tr>';
+	}
+
+	protected function get_table_classes() {
+		$array = [ 'widefat', 'fixed', 'striped', $this->_args['plural'] ]; // default
+		if ( count( $this->data) > 1 ) {
+			$array[] = 'sortable-children-list';
+		}
+		return $array;
+	}
 }
 
 /*

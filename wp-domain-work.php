@@ -55,6 +55,7 @@ if ( is_admin() ) {
  */
 function wp_domain_work_admin_register_scripts() {
 	wp_register_style( 'wp-dw-post', plugin_dir_url( __FILE__ ) . '/css/post.css', array(), '', 'screen' );
+	wp_register_script( 'wp-dw-children-list-table', plugin_dir_url( __FILE__ ) . 'js/children-list-table.js', array( 'jquery-ui-sortable' ), '', true );
 }
 
 

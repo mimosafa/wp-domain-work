@@ -58,6 +58,9 @@ trait admin {
 				}
 				\WP_Domain_Work\Admin\edit_form_advanced::set( $hook, $args );
 			}
+			add_action( 'admin_enqueue_scripts', function() {
+				wp_enqueue_script( 'wp-dw-children-list-table' );
+			} );
 		}
 	}
 
