@@ -35,6 +35,9 @@ trait admin {
 				add_action( 'add_meta_boxes', [ $this, 'post_type_meta_boxes' ] );
 			}
 			add_action( 'edit_form_top', [ $this, 'show_post_parent' ] );
+			add_action( 'admin_enqueue_scripts', function() {
+				wp_enqueue_style( 'wp-dw-post' );
+			} );
 		} else if ( $pagenow === 'edit.php' ) {
 			if ( property_exists( $this, 'columns' ) && is_array( $this->columns ) && $this->columns ) {
 	 			$this->post_type_columns();

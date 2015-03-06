@@ -1,0 +1,70 @@
+@charset utf8;
+
+/**
+ * table style in meta box
+ */
+#side-sortables .form-table {
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box
+}
+#side-sortables .form-table td,
+#side-sortables .form-table th {
+  display: block;
+  width: auto;
+  vertical-align: middle;
+}
+#side-sortables .form-table span.description {
+  padding: 4px 0 0;
+  line-height: 1.4em
+}
+#side-sortables .form-table th {
+  padding-top: 10px;
+  padding-bottom: 0;
+  border-bottom: 0
+}
+#side-sortables .form-table td {
+  padding-top: 8px;
+  padding-left: 0
+}
+#side-sortables .form-table input.regular-text {
+  width: 100%
+}
+#side-sortables .form-table label {
+  font-size: 14px
+}
+#side-sortables .form-table fieldset label {
+  display: block
+}
+
+/**
+ * form parts
+ * @see Class: WP_Domain_Work\Admin\template\meta_box_inner
+ */
+[id^="wp-domain-work-form-"] {
+  max-width: 100%;
+}
+.wp-domain-work-form-label {
+  padding-right: .5em;
+}
+.wp-domain-work-form-label span {
+  font-size: .8em;
+  color: #aaa;
+}
+/* Checkbox */
+label.wp-domain-work-form-checkbox {
+  display: inline-block;
+}
+label.wp-domain-work-form-checkbox > input[type="checkbox"] {
+  margin: .25px 2px 0;
+}
+
+.column-handle {
+  width: 2em;
+}
+td.column-handle {
+  cursor: move;
+}
+.column-handle .dashicons-menu:before {
+  color: #ddd;
+}

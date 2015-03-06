@@ -45,7 +45,6 @@ class meta_box_inner {
 		$this->_post_new = ( 'add' === get_current_screen()->action ) ? true : false;
 		self::$nonceInstance = new \WP_Domain_Work\WP\nonce( $context );
 		self::$decoder       = new \mimosafa\Decoder();
-		$this->form_style();
 	}
 
 	public static function getInstance( $context ) {
@@ -365,62 +364,6 @@ class meta_box_inner {
 		}
 
 		return $return;
-	}
-
-	/**
-	 *
-	 */
-	private function form_style() {
-		add_action( 'admin_head', function() {
-			$id_prefix = $this->_form_id_prefix;
-			echo <<<EOF
-<style>
-  [id^="{$id_prefix}"] {
-    max-width: 100%;
-  }
-  .{$id_prefix}label {
-    padding-right: .5em;
-  }
-  .{$id_prefix}label span {
-    font-size: .8em;
-    color: #aaa;
-  }
-  #side-sortables .form-table {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box
-  }
-  #side-sortables .form-table td,
-  #side-sortables .form-table th {
-    display: block;
-    width: auto;
-    vertical-align: middle
-  }
-  #side-sortables .form-table span.description {
-    padding: 4px 0 0;
-    line-height: 1.4em
-  }
-  #side-sortables .form-table th {
-    padding-top: 10px;
-    padding-bottom: 0;
-    border-bottom: 0
-  }
-  #side-sortables .form-table td {
-    padding-top: 8px;
-    padding-left: 0
-  }
-  #side-sortables .form-table input.regular-text {
-    width: 100%
-  }
-  #side-sortables .form-table label {
-    font-size: 14px
-  }
-  #side-sortables .form-table fieldset label {
-    display: block
-  }
-</style>
-EOF;
-		} );
 	}
 
 }

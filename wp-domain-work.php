@@ -43,7 +43,19 @@ register_deactivation_hook( __FILE__, 'WP_Domain_Work\Plugin::deactivation' );
  */
 WP_Domain_Work\Plugin::init();
 
+/**
+ * Register scripts & styles
+ */
+if ( is_admin() ) {
+	add_action( 'admin_enqueue_scripts', 'wp_domain_work_admin_register_scripts', 1 );
+}
 
+/**
+ * Scripts & Styles
+ */
+function wp_domain_work_admin_register_scripts() {
+	wp_register_style( 'wp-dw-post', plugin_dir_url( __FILE__ ) . '/css/post.css', array(), '', 'screen' );
+}
 
 
 

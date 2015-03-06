@@ -1,8 +1,0 @@
-@charset utf8;
-
-label.wp-domain-work-form-checkbox {
-  display: inline-block;
-}
-label.wp-domain-work-form-checkbox > input[type="checkbox"] {
-  margin: .25px 2px 0;
-}
