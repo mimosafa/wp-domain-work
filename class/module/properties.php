@@ -167,6 +167,21 @@ trait properties {
 		return isset( $this->$name );
 	}
 
+	private function _constract_property( $var, $args ) {
+		$instance = null;
+		$type = array_key_exists( '_type', $args ) && is_string( $args['_type'] ) && $args['_type']
+			? $args['_type'] : $var
+		;
+		$propClass = "WP_Domain_Work\\Property\\{$type}";
+		if ( ! class_exists( $propClass ) ) {
+			return;
+		}
+		$instance = new $propClass( $var, (array) $args );
+		if ( $instance ) {
+			$this->_data[$var] = $instance;
+		}
+	}
+
 	/**
 	 * @access private
 	 *
