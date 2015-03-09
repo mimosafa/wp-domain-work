@@ -60,7 +60,7 @@ class save_post {
 		/**
 		 * @uses WP_Domain\(domain)\properties
 		 */
-		$propClass = sprintf( 'WP_Domain\\%s\\properties', $this->domain );
+		$propClass = "WP_Domain\\{$this->domain}\\properties";
 		if ( ! class_exists( $propClass ) ) {
 			return $post_id;
 		}

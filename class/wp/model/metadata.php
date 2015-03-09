@@ -39,7 +39,7 @@ class metadata {
 			}
 		} else if ( ( $object_id = absint( $object ) ) && is_string( $type ) ) {
 			if ( 'post' === $type ) {
-				if ( !$post_id = wp_is_post_revision( $object_id ) ) {
+				if ( ! $post_id = wp_is_post_revision( $object_id ) ) {
 					$post_id = $object_id;
 				}
 				$this->meta_type = 'post';
@@ -94,8 +94,6 @@ class metadata {
 	/**
 	 * $this->name = 'value';
 	 *
-	 * @uses  \utility\is_vector
-	 *
 	 * @return void
 	 */
 	public function __set( $name, $value ) {
@@ -121,7 +119,7 @@ class metadata {
 	 * @return void
 	 */
 	public function __unset( $name ) {
-		if ( !isset( $this->$name ) ) {
+		if ( ! isset( $this->$name ) ) {
 			return false; // throw error: cannot unset metadata, not exists.
 		}
 		return $this->delete( $name );
@@ -177,7 +175,6 @@ class metadata {
 			return $value[0];
 		}
 		return $value ? $value : false;
-		# return get_metadata( $this->meta_type, $this->object_id, $meta_key, $single );
 	}
 
 }

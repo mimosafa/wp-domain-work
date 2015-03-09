@@ -8,12 +8,15 @@
 
 	if ($sortableList.length) {
 
+		var $sortableTR = $sortableList.children('tr');
+		reorder( $sortableTR );
+
 		$sortableList.sortable( {
 			axis: 'y',
 			containment: 'parent',
 			forceHelperSize: true,
 			handle: 'td.column-handle',
-			items: 'tr',
+			items: $sortableTR,
 			opacity: .75,
 			tolerance: 'pointer',
 			stop: function(e, ui) {
@@ -31,7 +34,7 @@
 				var $input = $(this).children('input'),
 				    name   = $input.data('name');
 				$input.val(i);
-				if (i !== $input.data('menu-order'))
+				if (i !== $input.data('value'))
 					$input.attr('name', name);
 				else
 					$input.removeAttr('name');

@@ -2,6 +2,8 @@
 
 namespace WP_Domain_Work\Module;
 
+use \WP_Domain_Work\Utility as Util;
+
 /**
  * This is 'Trait',
  * must be used in '\(domain)\properties' class.
@@ -9,7 +11,6 @@ namespace WP_Domain_Work\Module;
  * @uses 
  */
 trait properties {
-	use \WP_Domain_Work\Utility\classname;
 
 	/**
 	 * @var WP_Post
@@ -29,7 +30,10 @@ trait properties {
 	/**
 	 * @var array WP_Domain_Work\WP\model\~
 	 */
-	private static $models = [];
+	private static $models = [
+		// 'metadata' => null,
+		// 'taxonomy' => null,
+	];
 
 	/**
 	 *
@@ -56,9 +60,9 @@ trait properties {
 		$this->_post = $post;
 		/**
 		 * Define domain's name by namespace string
-		 * @uses \WP_Domain_Work\Utility\classname::getNamespace
+		 * @uses WP_Domain_Work\Utility\String_Function::getNamespace
 		 */
-		$domainNS = self::getNamespace( $this );
+		$domainNS = Util\String_Function::getNamespace( $this );
 		$this->domain = substr( $domainNS, strripos( $domainNS, '\\' ) + 1 );
 	}
 
@@ -74,7 +78,7 @@ trait properties {
 		if ( ! isset( self::$properties ) || ! is_array( self::$properties ) || ! self::$properties ) {
 			return null;
 		}
-		if ( null === $prop ) {
+		if ( ! $prop ) {
 			return self::$properties;
 		}
 		return array_key_exists( $prop, self::$properties ) ? self::$properties[$prop] : null;
@@ -133,7 +137,7 @@ trait properties {
 		 * Define type name by classname string
 		 * @uses \WP_Domain_Work\Utility\classname::getClassname
 		 */
-		$type = self::getClassname( $property );
+		$type = Util\String_Function::getClassname( $property );
 
 		if ( 'group' === $type || 'set' === $type ) {
 			if ( !is_array( $value ) ) {
@@ -147,6 +151,7 @@ trait properties {
 		} else if ( 'post_children' === $type ) {
 
 			//
+			//var_dump( $value ); die();
 
 		} else {
 			$modelName = $property->getModel();
@@ -176,18 +181,6 @@ trait properties {
 			 */
 			$typeClass = "WP_Domain_Work\\Property\\{$name}";
 			$instance = new $typeClass( $this->_post, (array) $args ); // (array)... default で良い場合は 1 とか入れる場合もあるので
-		} else if ( array_key_exists( 'model', $args ) ) {
-			$modelName = $args['model'];
-			if ( ! $_Model =& $this->_get_model( $modelName, $this->_post->ID ) ) {
-				return false;
-			}
-			$args = array_merge( self::$defaultPropSettings[$modelName], $args );
-			$typeClass = 'WP_Domain_Work\\Property\\' . $args['type'];
-			if ( !class_exists( $typeClass ) ) {
-				return false;
-			}
-			$instance = new $typeClass( $name, $args );
-			$instance->val( $_Model->get( $name ) );
 		} else if ( 'post_children' === $args['type'] ) {
 			$instance = new \WP_Domain_Work\Property\post_children( $name, $args, $this->_post );
 		} else if ( in_array( $args['type'], [ 'group', 'set' ] ) ) {
@@ -197,21 +190,31 @@ trait properties {
 			 *
 			 * @see http://qiita.com/Hiraku/items/721cc3a385cb2d7daebd
 			 */
-			if ( !array_key_exists( 'elements', $args ) || $args['elements'] !== array_values( $args['elements']) ) {
-				return false;
+			if ( ! array_key_exists( 'elements', $args ) || $args['elements'] !== array_values( $args['elements']) ) {
+				return;
 			}
 			$typeClass = 'WP_Domain_Work\\Property\\' . $args['type'];
-			if ( !class_exists( $typeClass ) ) {
-				return false;
-			}
-			$instance = new $typeClass( $name, $args );
-			foreach ( $args['elements'] as $element ) {
-				if ( $elementData = $this->$element ) {
-					$instance->set_element( $element, $elementData );
+			if ( class_exists( $typeClass ) ) {
+				$instance = new $typeClass( $name, $args );
+				foreach ( $args['elements'] as $element ) {
+					if ( $elementData = $this->$element ) {
+						$instance->set_element( $element, $elementData );
+					}
+				}
+				if ( empty( $instance->properties ) ) {
+					return;
 				}
 			}
-			if ( empty( $instance->properties ) ) {
-				return false;
+		} else if ( array_key_exists( 'model', $args ) ) {
+			$modelName = $args['model'];
+			if ( ! $_Model =& $this->_get_model( $modelName, $this->_post->ID ) ) {
+				return;
+			}
+			$args = array_merge( self::$defaultPropSettings[$modelName], $args );
+			$typeClass = 'WP_Domain_Work\\Property\\' . $args['type'];
+			if ( class_exists( $typeClass ) ) {
+				$instance = new $typeClass( $name, $args );
+				$instance->val( $_Model->get( $name ) );
 			}
 		}
 		/**
@@ -222,7 +225,6 @@ trait properties {
 			$instance->domain = $this->domain;
 			$this->_data[$name] = $instance;
 		}
-		return array_key_exists( $name, $this->_data );
 	}
 
 	/**

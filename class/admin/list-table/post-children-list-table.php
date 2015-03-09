@@ -7,6 +7,11 @@ class Post_Children_List_Table extends \WP_List_Table {
 	protected $query_args;
 	protected $data;
 
+	/**
+	 * @var object WP_Domain_Work\WP\nonce
+	 */
+	protected static $nonceInstance;
+
 	protected $_actions = [ 'remove' => 'Remove', ];
 
 	public function __construct( Array $args ) {
@@ -14,6 +19,9 @@ class Post_Children_List_Table extends \WP_List_Table {
 
 		$this->query_args = $args['query_args'];
 		$this->data = $args['value'];
+
+		global $post_type;
+		self::$nonceInstance = new \WP_Domain_Work\WP\nonce( $post_type );
 	}
 
 	public function get_columns() {
@@ -161,7 +169,7 @@ class Post_Children_List_Table extends \WP_List_Table {
 	 */
 	protected function display_tablenav( $which ) {
 		if ( 'top' == $which ) {
-			// wp_nonce_field( 'bulk-' . $this->_args['plural'] );
+			echo self::$nonceInstance->nonce_field( $this->_args['name'] );
 		}
 ?>
 	<div class="tablenav <?php echo esc_attr( $which ); ?>">
@@ -199,9 +207,13 @@ class Post_Children_List_Table extends \WP_List_Table {
 	public function single_row( $item ) {
 		echo '<tr>';
 		if ( count( $this->data) > 1 ) {
+			static $name = null;
+			if ( ! $name ) {
+				$name = $this->_args['name'];
+			}
 			printf(
-				'<input type="hidden" value="%1$d" data-name="wp-domain-work-children-order[%2$d]" data-menu-order="%1$d">',
-				$item['menu_order'], $item['ID']
+				'<input type="hidden" value="%1$d" data-name="%2$s[%3$d][menu_order]" data-value="%1$d">',
+				$item['menu_order'], $name, $item['ID']
 			);
 		}
 		$this->single_row_columns( $item );

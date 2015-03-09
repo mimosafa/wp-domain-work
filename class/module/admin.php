@@ -38,6 +38,7 @@ trait admin {
 			add_action( 'admin_enqueue_scripts', function() {
 				wp_enqueue_style( 'wp-dw-post' );
 			} );
+			add_action( 'wp_domain_work_admin_check_property_arguments', [ $this, 'enqueue_scripts' ] );
 		} else if ( $pagenow === 'edit.php' ) {
 			if ( property_exists( $this, 'columns' ) && is_array( $this->columns ) && $this->columns ) {
 	 			$this->post_type_columns();
@@ -56,11 +57,12 @@ trait admin {
 				if ( array_key_exists( 'property', $args ) && $prop = $this->_get_property( $args['property'] ) ) {
 					$args = array_merge( $prop->getArray(), $args );
 				}
+				/**
+				 *
+				 */
+				$args = apply_filters( 'wp_domain_work_admin_check_property_arguments', $args );
 				\WP_Domain_Work\Admin\edit_form_advanced::set( $hook, $args );
 			}
-			add_action( 'admin_enqueue_scripts', function() {
-				wp_enqueue_script( 'wp-dw-children-list-table' );
-			} );
 		}
 	}
 
@@ -144,6 +146,17 @@ trait admin {
 			echo $text;
 			echo '<input type="hidden" name="parent_id" value="' . esc_attr( $_REQUEST['post_parent'] ) . '" />';
 		}
+	}
+
+	public function enqueue_scripts( $args ) {
+		static $child_list_table = null;
+		if ( ! $child_list_table && array_key_exists( '_type', $args ) && $args['_type'] === 'post_children' ) {
+			add_action( 'admin_enqueue_scripts', function() {
+				wp_enqueue_script( 'wp-dw-children-list-table' );
+			} );
+			$child_list_table = true;
+		}
+		return $args;
 	}
 
 	protected function _get_property( $property ) {
