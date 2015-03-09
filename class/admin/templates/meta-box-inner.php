@@ -20,11 +20,6 @@ class meta_box_inner {
 	private $_post_new;
 
 	/**
-	 * @var string
-	 */
-	private $_form_id_prefix = 'wp-domain-work-form-';
-
-	/**
 	 * @var object \admin\nonce
 	 */
 	private static $nonceInstance;
@@ -100,7 +95,7 @@ class meta_box_inner {
 			$inner = [];
 			foreach ( $args['_properties'] as $propArgs ) {
 				$name .= $args['name'] . '[' . $propArgs['name'] . ']';
-				$id   .= $this->_form_id_prefix . $args['name'] . '-' . $propArgs['name'];
+				$id   .= \WPDW_FORM_PREFIX . $args['name'] . '-' . $propArgs['name'];
 				$_id   = $id;
 
 				if ( $propDom = $this->generate_dom_array( $propArgs ) ) {
@@ -143,7 +138,7 @@ class meta_box_inner {
 				$name .= $args['name'];
 			}
 			if ( '' === $id ) {
-				$id .= $this->_form_id_prefix . $name;
+				$id .= \WPDW_FORM_PREFIX . $name;
 			}
 			$_name = $name;
 			$_id   = $id;
@@ -187,7 +182,7 @@ class meta_box_inner {
 				$name .= $args['name'];
 			}
 			if ( '' === $id ) {
-				$id .= $this->_form_id_prefix . $name;
+				$id .= \WPDW_FORM_PREFIX . $name;
 			}
 
 			/**
@@ -308,7 +303,7 @@ class meta_box_inner {
 				} else {
 					$dom = [
 						'element'   => 'label',
-						'attribute' => [ 'for' => esc_attr( $id ), 'class' => $this->_form_id_prefix . 'checkbox' ],
+						'attribute' => [ 'for' => esc_attr( $id ), 'class' => \WPDW_FORM_PREFIX . 'checkbox' ],
 						'children'  => [ $_dom ],
 						'text'      => esc_html( $args['label'] ),
 					];
@@ -322,7 +317,7 @@ class meta_box_inner {
 					( array_key_exists( 'prefix', $args ) && is_string( $args['prefix'] ) && ( $prefix = $args['prefix'] ) )
 					|| ( array_key_exists( 'safix', $args ) && is_string( $args['safix'] ) && ( $safix = $args['safix'] ) )
 				) {
-					$_dom = [ 'element' => 'label', 'children' => [], 'attribute' => [ 'class' => $this->_form_id_prefix . 'label', 'for' => esc_attr( $id ) ], ];
+					$_dom = [ 'element' => 'label', 'children' => [], 'attribute' => [ 'class' => \WPDW_FORM_PREFIX . 'label', 'for' => esc_attr( $id ) ], ];
 					if ( isset( $prefix ) && $prefix ) {
 						$_dom['children'][] = [ 'element' => 'span', 'text' => $prefix ];
 					}

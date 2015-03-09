@@ -43,10 +43,16 @@ register_deactivation_hook( __FILE__, 'WP_Domain_Work\Plugin::deactivation' );
  */
 WP_Domain_Work\Plugin::init();
 
-/**
- * Register scripts & styles
- */
 if ( is_admin() ) {
+	/**
+	 * Form ID prefix in wp-admin
+	 */
+	if ( ! defined( 'WPDW_FORM_PREFIX' ) ) {
+		define( 'WPDW_FORM_PREFIX', 'wp-domain-work-form-' );
+	}
+	/**
+	 * Register scripts & styles
+	 */
 	add_action( 'admin_enqueue_scripts', 'wp_domain_work_admin_register_scripts', 1 );
 }
 
