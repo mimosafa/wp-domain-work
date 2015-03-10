@@ -116,6 +116,7 @@ class Domains {
 		'rewrite'           => 'Permalink Format',
 		'capability_type'   => 'Capability Type',
 		'supports'          => 'Supports',
+		'menu_icon'         => 'Menu Icon',
 	];
 
 	/**
@@ -348,6 +349,11 @@ class Domains {
 				$post_thumbnails_support = true;
 			}
 			$opt['supports'] = $array['supports'];
+		}
+
+		// Menu Icon
+		if ( array_key_exists( 'menu_icon', $array ) ) {
+			$opt['menu_icon'] = $array['menu_icon'];
 		}
 
 		// Merge default setting to each post type setting
