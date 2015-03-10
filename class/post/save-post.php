@@ -38,7 +38,7 @@ class save_post {
 		$this->post_type = $post_type;
 		$this->domain = get_post_type_object( $post_type )->rewrite['slug'];
 
-		self::$nonceInstance = new \WP_Domain_Work\WP\admin\nonce( $post_type );
+		self::$nonceInstance = new \WP_Domain_Work\WP\nonce( $post_type );
 
 		$this->init();
 	}
@@ -47,8 +47,7 @@ class save_post {
 	 *
 	 */
 	private function init() {
-		$hook = 'save_post_' . $this->post_type;
-		add_action( $hook, [ $this, 'save_post' ] );
+		add_action( 'save_post_' . $this->post_type, [ $this, 'save_post' ] );
 	}
 
 	/**
@@ -61,8 +60,8 @@ class save_post {
 		/**
 		 * @uses WP_Domain\(domain)\properties
 		 */
-		$propClass = sprintf( 'WP_Domain\\%s\\properties', $this->domain );
-		if ( !class_exists( $propClass ) ) {
+		$propClass = "WP_Domain\\{$this->domain}\\properties";
+		if ( ! class_exists( $propClass ) ) {
 			return $post_id;
 		}
 		self::$properties = new $propClass( $post_id );

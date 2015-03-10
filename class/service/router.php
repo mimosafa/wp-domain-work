@@ -254,12 +254,16 @@ class Router {
 		}
 		$cl = sprintf( 'WP_Domain\\%s\\%s', $this->_ns, $class );
 		if ( class_exists( $cl ) ) {
-			new $cl();
+			static $args = null;
+			if ( ! $args ) {
+				$args = array_merge( [ 'path' => $this->_path ], $this->_query_args );
+			}
+			$cl::init( $args );
 		}
 	}
 
 	/**
-	 * @see https://github.com/WordPress/WordPress/blob/master/wp-includes/template-loader.php#L73
+	 * @see https://github.com/WordPress/WordPress/blob/4.1-branch/wp-includes/template-loader.php#L73
 	 */
 	public function template_include( $template ) {
 		if ( is_null( $this->_ns ) ) {

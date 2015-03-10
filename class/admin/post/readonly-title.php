@@ -15,6 +15,7 @@ class readonly_title {
 
 	private function init() {
 		if ( ! post_type_supports( $this->post_type, 'title' ) ) {
+			add_action( 'load-edit.php',     [ $this, 'add_support'] );
 			add_action( 'load-post-new.php', [ $this, 'add_support'] );
 			add_action( 'admin_action_edit', [ $this, 'add_support'] );
 		}
@@ -33,7 +34,9 @@ class readonly_title {
 			return;
 		}
 		$post_id = $_GET['post'];
-		if ( get_post_status( $post_id ) !== 'publish' ) {
+		$status = get_post_status( $post_id );
+		$publicStatus = array_values( get_post_stati( [ 'public' => true ] ) );
+		if ( ! in_array( $status, $publicStatus ) ) {
 			return;
 		}
 		if ( current_user_can( 'edit_others_posts', $post_id ) ) {

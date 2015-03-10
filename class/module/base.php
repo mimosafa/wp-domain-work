@@ -5,6 +5,8 @@ namespace WP_Domain_Work\Module;
 trait base {
 	use \WP_Domain_Work\Utility\classname;
 
+	protected $_args;
+
 	/**
 	 * @var string Dmain's name.
 	 */
@@ -30,15 +32,21 @@ trait base {
 	/**
 	 * constructor
 	 *
-	 * @access public
+	 * @access protected
 	 */
-	public function __construct() {
+	protected function __construct( $args ) {
+		$this->_args = $args;
 		$this->_domain_settings();
-		$this->init();
+		/**
+		 * Custom init method defined each domains
+		 */
+		if ( method_exists( $this, 'prepare' ) ) {
+			$self->prepare();
+		}
 	}
 
-	protected function init() {
-		//
+	public static function init( Array $args ) {
+		// $self = new self();
 	}
 
 	/**
@@ -81,8 +89,8 @@ trait base {
 	 * @return \(domain)\properties
 	 */
 	protected function &_get_properties() {
-		if ( ! self::$properties ) {
-			$className = sprintf( 'WP_Domain\\%s\\properties', $this->domain );
+		if ( self::$properties === null ) {
+			$className = 'WP_Domain\\' . $this->domain . '\\properties';
 			if ( ! class_exists( $className ) ) {
 				return self::$falseVal;
 			}

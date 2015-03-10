@@ -43,7 +43,26 @@ register_deactivation_hook( __FILE__, 'WP_Domain_Work\Plugin::deactivation' );
  */
 WP_Domain_Work\Plugin::init();
 
+if ( is_admin() ) {
+	/**
+	 * Form ID prefix in wp-admin
+	 */
+	if ( ! defined( 'WPDW_FORM_PREFIX' ) ) {
+		define( 'WPDW_FORM_PREFIX', 'wp-domain-work-form-' );
+	}
+	/**
+	 * Register scripts & styles
+	 */
+	add_action( 'admin_enqueue_scripts', 'wp_domain_work_admin_register_scripts', 1 );
+}
 
+/**
+ * Scripts & Styles
+ */
+function wp_domain_work_admin_register_scripts() {
+	wp_register_style( 'wp-dw-post', plugin_dir_url( __FILE__ ) . '/css/post.css', array(), '', 'screen' );
+	wp_register_script( 'wp-dw-children-list-table', plugin_dir_url( __FILE__ ) . 'js/children-list-table.js', array( 'jquery-ui-sortable' ), '', true );
+}
 
 
 
@@ -51,13 +70,25 @@ WP_Domain_Work\Plugin::init();
 
 
 // TESTs below !!!
+ 
+\WP_Domain_Work\WP\request::vars( 'post_per_page', 10 );
+
+/**
+ * @see  https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/class-wp-list-table.php#L485
+ */
+add_filter( 'months_dropdown_results', function( $months, $post_type ) {
+	if ( $post_type === 'vendor' ) {
+		return [];
+	}
+	return $months;
+}, 10, 2 );
 
 /**
  * @see https://plugins.trac.wordpress.org/browser/taxonomy-terms-order/tags/1.4.0/taxonomy-terms-order.php#L126
  */
 add_filter( 'get_terms_orderby', function( $orderby, $args ) {
-	_var_dump( $orderby );
-	_var_dump( $args );
+	#_var_dump( $orderby );
+	#_var_dump( $args );
 	#return $orderby;
 	return 't.term_order';
 }, 10, 2 );

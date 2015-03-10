@@ -12,7 +12,7 @@ class custom_post_status {
 	 * custom statuses array (use if didn't do action 'init')
 	 * @var array
 	 */
-	private $statuses = [];
+	private static $statuses = [];
 
 	private static $displays = [];
 
@@ -43,6 +43,7 @@ class custom_post_status {
 			add_action( 'init', [ $this, '_register_post_statuses'], 11 );
 		}
 		if ( is_admin() ) {
+			add_action( 'load-edit.php', [ $this, 'list_table' ] );
 			add_action( 'admin_footer', [ $this, 'custom_status_display_in_admin' ] );
 		}
 	}
@@ -51,8 +52,8 @@ class custom_post_status {
 		if ( ! is_string( $status ) || ! $status ) {
 			return false;
 		}
-		$_CPS = self::getInstance();
-		$_CPS->_post_status( $status, $args );
+		$self = self::getInstance();
+		$self->_post_status( $status, $args );
 	}
 
 	/**
@@ -66,9 +67,8 @@ class custom_post_status {
 		}
 		if ( did_action( 'init' ) ) {
 			register_post_status( $status, $args );
-		} else {
-			self::$statuses[$status] = $args;
 		}
+		self::$statuses[$status] = $args;
 	}
 
 	public function _register_post_statuses() {
@@ -78,6 +78,19 @@ class custom_post_status {
 		foreach ( self::$statuses as $status => $args ) {
 			register_post_status( $status, $args );
 		}
+	}
+
+	public function list_table() {
+		add_filter( 'display_post_states', [ $this, 'display_post_states'], 10, 2 );
+	}
+
+	public function display_post_states( $post_states, $post ) {
+		$queried_status = isset( $_REQUEST['post_status'] ) ? $_REQUEST['post_status'] : '';
+		$post_status = $post->post_status;
+		if ( array_key_exists( $post_status, self::$statuses ) && $post_status !== $queried_status ) {
+			$post_states[$post_status] = self::$statuses[$post_status]['label'];
+		}
+		return $post_states;
 	}
 
 	public function custom_status_display_in_admin() {
@@ -108,13 +121,10 @@ class custom_post_status {
 	}
 
 	public function inline_edit_status() {
-		global $post;
-		$statusNow = $post->post_status;
 ?>
 <script type='text/javascript'>
   jQuery(document).ready(function($){
     var customStatuses = <?php echo json_encode( self::$displays ); ?>,
-        statusNow  = '<?php echo esc_js( $statusNow ); ?>', labelNow  = '',
         inlineEdit = $('.inline-edit-status select[name="_status"]');
     $.each(customStatuses, function(i, arr) {
       var opt = $('<option />', { value: arr[0], text: arr[1] });

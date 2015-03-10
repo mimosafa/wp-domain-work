@@ -3,9 +3,9 @@
 namespace WP_Domain_Work\Admin\templates;
 
 /**
- * @uses \wordpress\admin\nonce
- * @uses \mimosafa\Decoder
- * @uses \property\(property type)
+ * @uses WP_Domain_Work\WP\nonce
+ * @uses mimosafa\Decoder
+ * @uses WP_Domain_Work\Property\(property type)
  */
 class meta_box_inner {
 
@@ -15,19 +15,9 @@ class meta_box_inner {
 	private $context;
 
 	/**
-	 * @var string
-	 */
-	private $post_type;
-
-	/**
 	 * @var bool
 	 */
 	private $_post_new;
-
-	/**
-	 * @var string
-	 */
-	private $_form_id_prefix = 'wp-domain-work-form-';
 
 	/**
 	 * @var object \admin\nonce
@@ -48,9 +38,8 @@ class meta_box_inner {
 		}
 		$this->context   = $context;
 		$this->_post_new = ( 'add' === get_current_screen()->action ) ? true : false;
-		self::$nonceInstance = new \WP_Domain_Work\WP\admin\nonce( $context );
+		self::$nonceInstance = new \WP_Domain_Work\WP\nonce( $context );
 		self::$decoder       = new \mimosafa\Decoder();
-		$this->form_style();
 	}
 
 	public static function getInstance( $context ) {
@@ -63,7 +52,6 @@ class meta_box_inner {
 	 *
 	 */
 	public function init( $post, $metabox ) {
-		$this->post_type = get_post_type( $post );
 		$dom_array = $this->generate_dom_array( $metabox['args'] );
 		if ( empty( $dom_array ) ) {
 			return;
@@ -91,10 +79,10 @@ class meta_box_inner {
 
 		if ( $type === 'group' ) {
 			
-			if ( !  array_key_exists( '_properties', $args ) || !  $args['_properties'] ) {
+			if ( ! array_key_exists( '_properties', $args ) || !  $args['_properties'] ) {
 				return []; // error
 			}
-			if ( !  empty( $block ) ) {
+			if ( ! empty( $block ) ) {
 				return; // error
 			}
 			$block = [
@@ -107,7 +95,7 @@ class meta_box_inner {
 			$inner = [];
 			foreach ( $args['_properties'] as $propArgs ) {
 				$name .= $args['name'] . '[' . $propArgs['name'] . ']';
-				$id   .= $this->_form_id_prefix . $args['name'] . '-' . $propArgs['name'];
+				$id   .= \WPDW_FORM_PREFIX . $args['name'] . '-' . $propArgs['name'];
 				$_id   = $id;
 
 				if ( $propDom = $this->generate_dom_array( $propArgs ) ) {
@@ -146,6 +134,12 @@ class meta_box_inner {
 			if ( !  empty( $inline ) ) {
 				return; // error
 			}
+			if ( '' === $name ) {
+				$name .= $args['name'];
+			}
+			if ( '' === $id ) {
+				$id .= \WPDW_FORM_PREFIX . $name;
+			}
 			$_name = $name;
 			$_id   = $id;
 			foreach ( $args['_properties'] as $propArgs ) {
@@ -158,13 +152,17 @@ class meta_box_inner {
 
 		} else if ( $type === 'post_children' ) {
 
-			if ( $args['value'] ) {
+			$table = new \WP_Domain_Work\Admin\list_table\Post_Children_List_Table( $args );
+			$table->prepare_items();
+			$table->display();
 
+			/*
+			if ( $args['value'] ) {
 				echo '<pre>';
 				var_dump( $args['value'] );
 				echo '</pre>';
-
 			}
+			*/
 
 		} else {
 
@@ -184,7 +182,7 @@ class meta_box_inner {
 				$name .= $args['name'];
 			}
 			if ( '' === $id ) {
-				$id .= $this->_form_id_prefix . $name;
+				$id .= \WPDW_FORM_PREFIX . $name;
 			}
 
 			/**
@@ -224,6 +222,8 @@ class meta_box_inner {
 						$attr['class'] = 'small-text';
 
 					}
+
+					$attr['placeholder'] = $args['label'];
 
 				} else if ( 'date' === $type ) {
 
@@ -303,9 +303,9 @@ class meta_box_inner {
 				} else {
 					$dom = [
 						'element'   => 'label',
-						'attribute' => [ 'for' => esc_attr( $id ) ],
+						'attribute' => [ 'for' => esc_attr( $id ), 'class' => \WPDW_FORM_PREFIX . 'checkbox' ],
+						'children'  => [ $_dom ],
 						'text'      => esc_html( $args['label'] ),
-						'children'  => [ $_dom ]
 					];
 				}
 
@@ -313,7 +313,22 @@ class meta_box_inner {
 			}
 
 			if ( ! empty( $block ) || ! empty( $inline ) ) {
-				$return[] = $dom;
+				if (
+					( array_key_exists( 'prefix', $args ) && is_string( $args['prefix'] ) && ( $prefix = $args['prefix'] ) )
+					|| ( array_key_exists( 'safix', $args ) && is_string( $args['safix'] ) && ( $safix = $args['safix'] ) )
+				) {
+					$_dom = [ 'element' => 'label', 'children' => [], 'attribute' => [ 'class' => \WPDW_FORM_PREFIX . 'label', 'for' => esc_attr( $id ) ], ];
+					if ( isset( $prefix ) && $prefix ) {
+						$_dom['children'][] = [ 'element' => 'span', 'text' => $prefix ];
+					}
+					$_dom['children'][] = $dom;
+					if ( isset( $safix ) && $safix ) {
+						$_dom['children'][] = [ 'element' => 'span', 'text' => $safix ];
+					}
+					$return[] = $_dom;
+				} else {
+					$return[] = $dom;
+				}
 			} else {
 				$return[] = [ 'element' => 'p', 'children' => [ $dom ] ];
 			}
@@ -344,55 +359,6 @@ class meta_box_inner {
 		}
 
 		return $return;
-	}
-
-	/**
-	 *
-	 */
-	private function form_style() {
-		add_action( 'admin_head', function() {
-			$id_prefix = $this->_form_id_prefix;
-			echo <<<EOF
-<style>
-  [id^="{$id_prefix}"] {
-    max-width: 100%;
-  }
-  #side-sortables .form-table {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box
-  }
-  #side-sortables .form-table td,
-  #side-sortables .form-table th {
-    display: block;
-    width: auto;
-    vertical-align: middle
-  }
-  #side-sortables .form-table span.description {
-    padding: 4px 0 0;
-    line-height: 1.4em
-  }
-  #side-sortables .form-table th {
-    padding-top: 10px;
-    padding-bottom: 0;
-    border-bottom: 0
-  }
-  #side-sortables .form-table td {
-    padding-top: 8px;
-    padding-left: 0
-  }
-  #side-sortables .form-table input.regular-text {
-    width: 100%
-  }
-  #side-sortables .form-table label {
-    font-size: 14px
-  }
-  #side-sortables .form-table fieldset label {
-    display: block
-  }
-</style>
-EOF;
-		} );
 	}
 
 }

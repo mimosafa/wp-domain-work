@@ -91,6 +91,38 @@ class Plugin {
 	}
 
 	/**
+	 * Plugin init
+	 */
+	public static function init() {
+		$self = self::getInstance();
+		$self::$error = new \WP_Error();
+		
+		if ( is_admin() ) {
+			$self->permalink_structure();
+			/**
+			 * Settings page in admin menu
+			 * アドオンプラグインでサブページを追加できるようにするため init にフック
+			 */
+			add_action( 'init', [ $self, 'settings_page' ] );
+		}
+		/**
+		 * init services
+		 */
+		if ( $self->get_option( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
+			new Service\Domains();
+			if ( $self->get_option( 'home_level' ) !== false && $self->get_option( 'site_level' ) !== false ) {
+				new Service\Router();
+			}
+		}
+		/**
+		 * Catch error
+		 */
+		if ( self::$error->get_error_code() ) {
+			add_action( 'admin_menu', [ $self, 'notice' ] );
+		}
+	}
+
+	/**
 	 *
 	 */
 	public static function activation() {
@@ -119,13 +151,13 @@ class Plugin {
 	 * @access public
 	 */
 	public static function __callStatic( $name, $args ) {
-		$_DW = self::getInstance();
+		$self = self::getInstance();
 		if ( 'get_' === substr( $name, 0, 4 ) ) {
 			array_unshift( $args, substr( $name, 4 ) );
-			return call_user_func_array( [ $_DW, 'get_option' ], $args );
+			return call_user_func_array( [ $self, 'get_option' ], $args );
 		} else if ( 'update_' === substr( $name, 0, 7 ) ) {
 			array_unshift( $args, substr( $name, 7 ) );
-			return call_user_func_array( [ $_DW, 'update_option' ], $args );
+			return call_user_func_array( [ $self, 'update_option' ], $args );
 		} else {
 			// throw error
 		}
@@ -139,7 +171,10 @@ class Plugin {
 	 * @param  string $option
 	 * @return string
 	 */
-	private function get_option_key( $option ) {
+	private function get_option_key( $option = null ) {
+		if ( ! $option ) {
+			return self::$option_keys;
+		}
 		return array_key_exists( $option, self::$option_keys ) ? self::$option_keys[$option] : false;
 	}
 
@@ -152,10 +187,14 @@ class Plugin {
 	 * @return mixed
 	 */
 	private function get_option( $option, $default = false ) {
-		if ( ! array_key_exists( $option, self::$option_keys ) ) {
-			return; // throw error
+		if ( ! $value = wp_cache_get( $option, __CLASS__ ) ) {
+			if ( ! $option_raw = $this->get_option_key( $option ) ) {
+				return false; // throw error
+			}
+			$value = \get_option( $option_raw, $default );
+			wp_cache_set( $option, $value, __CLASS__ );
 		}
-		return \get_option( self::$option_keys[$option], $default );
+		return $value;
 	}
 
 	/**
@@ -168,10 +207,12 @@ class Plugin {
 	 * @return boolean
 	 */
 	private function update_option( $option, $newvalue ) {
-		if ( ! array_key_exists( $option, self::$option_keys ) ) {
+		if ( $this->get_option( $option ) === false ) {
 			return false;
 		}
-		return \update_option( self::$option_keys[$option], $newvalue );
+		\update_option( $this->get_option_key( $option ), $newvalue );
+		wp_cache_delete( $option, __CLASS__ );
+		return $this->get_option( $option );
 	}
 
 	/**
@@ -183,10 +224,13 @@ class Plugin {
 	 * @return boolean
 	 */
 	private function delete_option( $option ) {
-		if ( ! array_key_exists( $option, self::$option_keys ) ) {
+		if ( $this->get_option( $option ) === false ) {
 			return false;
 		}
-		return \delete_option( self::$option_keys[$option] );
+		if ( ! \delete_option( $this->get_option_key( $option ) ) ) {
+			return false;
+		}
+		return wp_cache_delete( $option, __CLASS__ );
 	}
 
 	/**
@@ -245,53 +289,21 @@ class Plugin {
 	}
 
 	/**
-	 * Plugin init
-	 */
-	public static function init() {
-		$_DW = self::getInstance();
-		$_DW::$error = new \WP_Error();
-		
-		if ( is_admin() ) {
-			$_DW->permalink_structure();
-			/**
-			 * Settings page in admin menu
-			 * アドオンプラグインでサブページを追加できるようにするため init にフック
-			 */
-			add_action( 'init', [ $_DW, 'settings_page' ] );
-		}
-		/**
-		 * init services
-		 */
-		if ( $_DW->get_option( 'use_domains' ) && \get_option( 'permalink_structure' ) ) {
-			new Service\Domains();
-			if ( $_DW->get_option( 'home_level' ) !== false && $_DW->get_option( 'site_level' ) !== false ) {
-				new Service\Router();
-			}
-		}
-		/**
-		 * Catch error
-		 */
-		if ( self::$error->get_error_code() ) {
-			add_action( 'admin_menu', [ $_DW, 'notice' ] );
-		}
-	}
-
-	/**
 	 * Set wordpress core installed level
 	 *
 	 * @uses wordpress\installed_level
 	 */
 	private static function installed_level() {
-		$_DW = self::getInstance();
+		$self = self::getInstance();
 		$level = new WP\installed_level();
 
-		if ( false === $_DW->get_option( 'home_level' ) ) {
+		if ( false === $self->get_option( 'home_level' ) ) {
 			$homeLevel = $level->get_level( 'home' );
-			$_DW->update_option( 'home_level', $homeLevel );
+			$self->update_option( 'home_level', $homeLevel );
 		}
-		if ( false === $_DW->get_option( 'site_level' ) ) {
+		if ( false === $self->get_option( 'site_level' ) ) {
 			$siteLevel = $level->get_level( 'site' );
-			$_DW->update_option( 'site_level', $siteLevel );
+			$self->update_option( 'site_level', $siteLevel );
 		}
 	}
 
@@ -321,17 +333,10 @@ class Plugin {
 		 * Get instance settings page generator
 		 */
 		$_PAGE = new WP\admin\plugin\settings_page();
+		$_PAGE->init( 'wp-domain-work', 'WP Domain Work Settings', 'Domains' );
 
-		$top_page_desc = <<<EOF
-This is awesome plugin!
-EOF;
-
-		/**
-		 * Page: WP Domain Work Settings
-		 */
 		$_PAGE
-		->init( 'wp-domain-work', 'WP Domain Work Settings', 'WP Domain Work' )
-			->description( $top_page_desc )
+			//->description( 'This is Awesome plugin !!!' )
 			->section( 'default-setting' )
 				->field( 'domains-activation' )
 				->option_name( $this->get_option_key( 'use_domains' ), 'checkbox', [ 'label' => 'Use domains' ] )
@@ -354,8 +359,10 @@ EOF;
 		if ( $this->get_option( 'use_domains' ) ) {
 			$_PAGE
 			->init( 'wp-domains', 'Your Domains' )
-				->section( 'your-domains' )
-				->callback( [ $this, 'subpage_your_domain' ] );
+				->section( 'your-domains', null )
+				->callback( [ $this, 'subpage_your_domain' ] )
+				->section( 'raw-data', 'Raw data' )
+				->html( '<pre>' . var_export( $this->get_option( 'domains' ), true ) . '</pre>' );
 		}
 		/**
 		 * アドオンプラグインで管理画面を追加する用
@@ -366,7 +373,7 @@ EOF;
 	}
 
 	public function subpage_your_domain() {
-		$lt = new \WP_Domain_Work\Admin\list_table\your_domain();
+		$lt = new \WP_Domain_Work\Admin\list_table\Domains_List_Table();
 		$lt->prepare_items();
 		$lt->display();
 	}

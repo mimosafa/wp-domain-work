@@ -6,7 +6,7 @@ namespace WP_Domain_Work\WP\admin\plugin;
  * WordPress Settings API wrapper class
  *
  * Usage:
- * - Get instance <code>$instance = new \wordpress\admin\settings_page();</code>
+ * - Get instance <code>$instance = new \WP_Domain_Work\WP\admin\plugin\settings_page();</code>
  * - Initialize with page sulug <code>$instance->init( 'my-plugin' );</code>
  *   - You can also set page title & menu title by this method
  * ...
@@ -60,6 +60,8 @@ class settings_page {
 	 * @var array
 	 */
 	private static $callback_args = [];
+
+	private static $falseVal = false;
 
 	/**
 	 * Constructor
@@ -271,8 +273,7 @@ class settings_page {
 		extract( $section ); // $id must be generated
 
 		if ( ! isset( $title ) ) {
-			$title = ucwords( str_replace( [ '-', '_' ], ' ', $id ) );
-			$section['title'] = $title;
+			$title = null;
 		}
 		if ( ! isset( $callback ) ) {
 			$callback = [ $this, 'section_body' ];
@@ -530,14 +531,14 @@ class settings_page {
 	 * @param  bool   $wrap_p
 	 * @return object self|(void)
 	 */
-	public function description( $text, $wrap_p = true ) {
+	public function description( $text ) {
 		if ( ! $text || ! is_string( $text ) ) {
 			return;
 		}
 		if ( ! $cache =& $this->get_cache() ) {
 			return;
 		}
-		$format = $wrap_p ? '<p>%s</p>' : '%s';
+		$format = '<p class="description">%s</p>';
 		if ( ! array_key_exists( 'description', $cache ) ) {
 			$cache['description'] = sprintf( $format, $text );
 		} else {
@@ -602,6 +603,19 @@ class settings_page {
 	}
 
 	/**
+	 * Set submit button ---- yet !!
+	 *
+	 * @access public
+	 *
+	 * @param  string $text
+	 * @return object self
+	 */
+	public function submit_button( $text ) {
+		//
+		return $this;
+	}
+
+	/**
 	 * Return var references cache
 	 *
 	 * @return references
@@ -613,6 +627,8 @@ class settings_page {
 			return self::$section;
 		} else if ( self::$page ) {
 			return self::$page;
+		} else {
+			return self::$falseVal;
 		}
 	}
 
@@ -722,7 +738,7 @@ class settings_page {
             <?= $label ?>
           </label>
           <?php if ( array_key_exists( 'description', $arg ) ) { ?>
-          <p class="description"><?= $arg['description'] ?></p>
+          <?= $arg['description'] ?>
           <?php } ?>
         </fieldset>
 <?php

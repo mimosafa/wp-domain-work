@@ -2,26 +2,23 @@
 
 namespace WP_Domain_Work\Property;
 
+use \WP_Domain_Work\Utility as Util;
+
 /**
  * Abstract class for basic property class
  */
 abstract class basic {
-	use \WP_Domain_Work\Utility\classname;
 
 	/**
-	 * \module\properties ですべてのプロパティインスタンスに追加されている
+	 * WP_Domain_Work\Module\properties ですべてのプロパティインスタンスに追加されている
+	 * @var string
 	 */
 	public $domain;
 
 	/**
 	 * @var string
 	 */
-	public $name;
-
-	/**
-	 * @var string
-	 */
-	public $label;
+	public $name, $label;
 
 	/**
 	 * @var string
@@ -38,7 +35,7 @@ abstract class basic {
 		 * Define type name by class name string
 		 * @uses \WP_Domain_Work\Utility\classname::getClassName
 		 */
-		$this->_type  = self::getClassName( $this );
+		$this->_type  = Util\String_Function::getClassName( $this );
 		$this->name   = $var;
 		$this->label  = array_key_exists( 'label', $arg ) && is_string( $arg['label'] )
 			? $arg['label']
