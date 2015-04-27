@@ -30,8 +30,9 @@ interface asset_interface {
 	public function get_vars( $post );
 
 	/**
-	 * @see WPDW\Device\Asset\asset_model
+	 * @see WPDW\Device\Asset\asset_method
 	 */
+	public function __construct( Array $args );
 	public function get( $post );
 	public function update( $post, $value );
 }

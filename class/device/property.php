@@ -9,9 +9,6 @@ trait property {
 	use \WPDW\Util\Singleton;
 	use Module\Functions;
 
-	private $domain;
-	private $domain_alias;
-
 	/**
 	 * @var array
 	 */
@@ -32,10 +29,9 @@ trait property {
 	 * @access protected
 	 */
 	protected function __construct() {
-		$this->domain = explode( '\\', __CLASS__ )[1];
-		$this->domain_alias = array_flip( \WPDW\Options::get_domains_alias() )[$this->domain];
 		if ( $this->isDefined( 'assets' ) )
 			array_walk( $this->assets, [ &$this, 'prepare_assets' ] );
+		_var_dump( $this );
 	}
 
 	/**
