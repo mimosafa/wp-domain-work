@@ -1,15 +1,13 @@
 <?php
+namespace mimosafa;
 
 /**
  * Decoder, php array and json data to DOM element
- * Folked from 'wakisuke / Decoder.php'
+ * Folked from 'wakisuke/Decoder.php'
  * 
  * @see https://gist.github.com/wakisuke/8000861
  */
-
-namespace mimosafa;
-
-class Decoder {
+trait Decoder {
 	
 	/**
 	 * @param  string $jsondata_string (required) json data
