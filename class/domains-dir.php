@@ -82,7 +82,7 @@ class Domains_Dir {
 	 * @var string
 	 */
 	private static $_error_message_1 = 'You\'ve enabled the %s domains directory, but %s not exist.';
-	private static $_error_message_2 = 'You\'ve enabled the %s domains directory, but theme\'re no valid domains in %s.';
+	private static $_error_message_2 = 'You\'ve enabled the %s domains directory, but there\'re no valid domains in %s.';
 
 	/**
 	 * Getter

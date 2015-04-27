@@ -1,8 +1,8 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class string implements asset_interface {
-	use asset_vars, asset_model;
+class type_string implements asset_interface {
+	use asset_method, asset_vars, asset_model;
 
 	private $model = 'post_meta';
 	private $multibyte = true;

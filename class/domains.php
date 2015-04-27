@@ -43,7 +43,7 @@ class Domains {
 				$this->init_post_type( $args );
 			else if ( array_key_exists( 'taxonomy', $args ) )
 				$this->init_taxonomy( $args );
-			# else if ( array_key_exists( 'endpoin', $args ) )
+			# else if ( array_key_exists( 'endpoint', $args ) )
 			# 	$this->init_endpoint( $args );
 			$this->init_class_loader( $domain, $args['files'] );
 		}

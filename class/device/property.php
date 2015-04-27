@@ -71,7 +71,7 @@ trait property {
 			return false;
 		if ( array_key_exists( $name, $class_names ) )
 			return $class_names[$name];
-		$class_name = __NAMESPACE__ . '\\Asset\\' . $name;
+		$class_name = __NAMESPACE__ . '\\Asset\\type_' . $name;
 		if ( class_exists( $class_name ) ) {
 			$class_names[$name] = $class_name;
 			return $class_name;
