@@ -1,7 +1,11 @@
 <?php
 namespace WPDW\Device\Module;
 
-trait Functions {
+trait Methods {
+
+	private function is( $arg ) {
+		return property_exists( __CLASS__, $arg ) && $arg;
+	}
 
 	/**
 	 * @access private

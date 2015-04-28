@@ -5,8 +5,6 @@ use WPDW\Options as OPT;
 
 class save_post {
 
-	private $post_type;
-
 	/**
 	 * @var WP_Domain\{$domain}\property
 	 */

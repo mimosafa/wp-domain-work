@@ -7,7 +7,7 @@ namespace WPDW\Device;
  */
 trait property {
 	use \WPDW\Util\Singleton;
-	use Module\Functions;
+	use Module\Methods;
 
 	/**
 	 * @var array
@@ -24,6 +24,13 @@ trait property {
 	];
 
 	/**
+	 * @var array
+	 */
+	private static $defaults = [
+		'menu_order' => [ 'type' => 'integer', 'model' => 'post_attribute', 'min' => 0, 'multiple' => false, ],
+	];
+
+	/**
 	 * Constructor
 	 *
 	 * @access protected
@@ -31,7 +38,7 @@ trait property {
 	protected function __construct() {
 		if ( $this->isDefined( 'assets' ) )
 			array_walk( $this->assets, [ &$this, 'prepare_assets' ] );
-		_var_dump( $this );
+		//_var_dump( $this );
 	}
 
 	/**
@@ -41,6 +48,10 @@ trait property {
 	 * @param  string $asset
 	 */
 	private function prepare_assets( &$args, $asset ) {
+		if ( array_key_exists( $asset, self::$defaults ) ) {
+			$args = array_merge( is_array( $args ) ? $args : [], self::$defaults[$asset ] );
+		}
+
 		if ( preg_match( '/\A[^a-z]|[^a-z0-9_]/', $asset ) ) :
 			$args = null;
 		elseif ( in_array( $asset, self::$excluded, true ) ) :
@@ -89,7 +100,7 @@ trait property {
 		if ( ! $this->isDefined( 'assets' ) )
 			return;
 		if ( ! $name )
-			return $this->assets;
+			return array_filter( $this->assets );
 		return array_key_exists( $name, $this->assets ) ? $this->assets[$name] : null;
 	}
 

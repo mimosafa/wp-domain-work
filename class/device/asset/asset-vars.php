@@ -48,7 +48,7 @@ trait asset_vars {
 		elseif ( $key === 'model' ) :
 			$method = 'get_' . $arg;
 			$arg = method_exists( __CLASS__, $method ) ? $arg : null;
-		elseif ( ! in_array( $key, [ 'type', 'model' ], true ) ) :
+		elseif ( $key !== 'type' ) :
 			$arg = null;
 		endif;
 	}

@@ -70,4 +70,17 @@ trait asset_model {
 		return \delete_post_meta( $post->ID, $this->name, $value );
 	}
 
+	/**
+	 * Model: post_attribute - get
+	 *
+	 * @access private
+	 *
+	 * @param  WP_Post $post
+	 * @param  mixed $value
+	 */
+	private function get_post_attribute( \WP_Post $post ) {
+		if ( property_exists( $post, $this->name ) )
+			return $post->{$this->name};
+	}
+
 }

@@ -5,7 +5,7 @@ namespace WPDW\Device;
  * @uses WPDW\Device\common
  */
 trait admin {
-	use Module\Initializer, Module\Functions;
+	use Module\Initializer, Module\Methods;
 	use \WPDW\Util\Array_Function;
 
 	/**
@@ -75,9 +75,16 @@ trait admin {
 				 */
 				$metabox = new Admin\meta_boxes( $this->domain );
 				foreach ( $this->meta_boxes as $meta_box_args ) {
-					if ( $args = $this->meta_box_arguments( $meta_box_args ) ) {
+					if ( $args = $this->meta_box_arguments( $meta_box_args ) )
 						$metabox->add( $args );
-					}
+				}
+			}
+			if ( $this->is( 'attribute_meta_box' ) ) {
+				$args = is_array( $this->attribute_meta_box ) ? $this->attribute_meta_box : [];
+				$attrFilter = function( $attr ) { return ! in_array( $attr, $this->done_assets, true ); };
+				if ( $attributes = array_filter( [ 'post_parent', 'menu_order' ], $attrFilter ) ) {
+					$args = array_merge( $args, [ 'attributes' => $attributes ] );
+					new Admin\attribute_meta_box( $this->domain, $args );
 				}
 			}
 		}

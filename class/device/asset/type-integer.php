@@ -33,7 +33,7 @@ class type_integer implements asset_interface {
 			$options['min_range'] = $this->min;
 		if ( $this->max !== null )
 			$options['max_range'] = $this->max;
-		if ( count( $options ) === 2 && $this->min > $this->max ) {
+		if ( count( $options ) === 3 && $this->min > $this->max ) {
 			unset( $options['min_range'] );
 			unset( $options['max_range'] );
 		}
