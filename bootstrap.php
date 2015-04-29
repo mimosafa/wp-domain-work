@@ -56,12 +56,13 @@ class WP_Domain_Work {
 	 * @access private
 	 */
 	private function init() {
-		if ( is_admin() )
-			add_action( 'init', 'WPDW\Settings::init' );
 		if ( $this->is_using_domains_dir() ) {
+			require_once WPDW_PLUGIN_DIR . '/inc/functions.php';
 			add_action( 'setup_theme', 'WPDW\Domains::init' );
 			add_action( 'setup_theme', 'WPDW\Router::init' );
 		}
+		if ( is_admin() )
+			add_action( 'init', 'WPDW\Settings::init' );
 	}
 
 	/**
@@ -88,7 +89,7 @@ class WP_Domain_Work {
 	 * @return int|boolean
 	 */
 	private function is_using_domains_dir() {
-		return OPT::get_root_domains() || OPT::get_theme_domains() || OPT::get_sample_domains() || false;
+		return OPT::get_root_domains() || OPT::get_theme_domains() || OPT::get_sample_domains();
 	}
 
 	/**

@@ -131,9 +131,13 @@ class Router {
 				// _var_dump( 'Dashboard!!!!!' );
 				break;
 		}
-		if ( isset( $maybe_ns ) && $maybe_ns && array_key_exists( $maybe_ns, $this->domains_alias ) ) {
-			$this->ns = $this->domains_alias[$maybe_ns];
-			$this->arguments = $q + [ 'domain' => $this->ns ];
+		/**
+		 * @uses WPDW\_domain()
+		 * @link wp-domain-work/inc/functions.php
+		 */
+		if ( isset( $maybe_ns ) && ( $domain = _domain( $maybe_ns ) ) ) {
+			$this->ns = $domain;
+			$this->arguments = $q + [ 'domain' => $domain ];
 		}
 	}
 
