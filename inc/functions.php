@@ -3,19 +3,6 @@ namespace WPDW;
 
 /**
  * @access private
- * 
- * @param  string $domain
- * @return WP_Domain\{$domain}\property
- */
-function _get_property( $domain ) {
-	if ( ! $domain = filter_var( $domain ) )
-		return null;
-	$class = 'WP_Domain\\' . $domain . '\\property';
-	return class_exists( $class ) ? $class::getInstance() : null;
-}
-
-/**
- * @access private
  *
  * @uses   WPDW\Options
  *
@@ -46,4 +33,17 @@ function _alias( $domain ) {
 	if ( ! $aliases )
 		$aliases = array_flip( Options::get_domains_alias() );
 	return isset( $aliases[$domain] ) ? $aliases[$domain] : '';
+}
+
+/**
+ * @access private
+ * 
+ * @param  string $domain
+ * @return WP_Domain\{$domain}\property
+ */
+function _property_object( $domain ) {
+	if ( ! $domain = filter_var( $domain ) )
+		return null;
+	$class = 'WP_Domain\\' . $domain . '\\property';
+	return class_exists( $class ) ? $class::getInstance() : null;
 }

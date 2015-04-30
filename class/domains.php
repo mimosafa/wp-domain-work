@@ -60,6 +60,7 @@ class Domains {
 			Options::update_domains_all( $domains_all );
 		if ( $domains_alias = $dd->domains_alias )
 			Options::update_domains_alias( $domains_alias );
+		add_action( 'wp_loaded', 'flush_rewrite_rules' );
 	}
 
 	/**

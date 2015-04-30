@@ -1,7 +1,7 @@
 <?php
 namespace WPDW\Device\Asset;
 
-trait asset_model {
+trait asset_models {
 
 	/**
 	 * Model: post_meta - get
@@ -80,7 +80,11 @@ trait asset_model {
 	 */
 	private function get_post_attribute( \WP_Post $post ) {
 		if ( property_exists( $post, $this->name ) )
-			return $post->{$this->name};
+			$return = $post->{$this->name};
+		if ( 'menu_order' === $this->name )
+			return (int) $return;
+		if ( 'post_parent' === $this->name )
+			return $return ? get_post( $return ) : null;
 	}
 
 }

@@ -2,7 +2,11 @@
 namespace WPDW\Device;
 
 /**
- * @uses WPDW\Device\common
+ * @uses   WPDW\Device\Module\Initializer
+ * @uses   WPDW\Device\Module\Initializer\Methods::is()
+ * @uses   WPDW\Device\Module\Initializer\Methods::isDefined()
+ * @uses   WPDW\Util\Array_Function::array_flatten()
+ * @global $pagenow
  */
 trait admin {
 	use Module\Initializer, Module\Methods;
@@ -27,6 +31,10 @@ trait admin {
 	 * Constructor
 	 *
 	 * @access private
+	 *
+	 * @uses   WPDW\_property_object()
+	 * @see    wp-domain-work/inc/functions.php
+	 *
 	 * @param  array $args {
 	 *     @see  WPDW\Router
 	 *     
@@ -37,10 +45,9 @@ trait admin {
 	 */
 	private function __construct( Array $args ) {
 		$this->domain = $args['domain'];
-		$class = 'WP_Domain\\' . $this->domain . '\\property';
-		if ( class_exists( $class ) )
-			$this->property = $class::getInstance();
+		$this->property = \WPDW\_property_object( $this->domain );
 		$this->init_page();
+		add_action( 'admin_enqueue_scripts', [ $this, 'scripts_handler' ] );
 	}
 
 	/**
@@ -49,10 +56,16 @@ trait admin {
 	 */
 	private function init_page() {
 		global $pagenow;
-		if ( in_array( $pagenow, [ 'edit.php', 'post.php', 'post-new.php' ], true ) )
+		if ( in_array( $pagenow, [ 'edit.php', 'post.php', 'post-new.php' ], true ) ) {
 			$this->init_post_type( $pagenow );
-		else if ( $pagenow === 'edit-tags.php' )
+			if ( $this->done_assets && $pagenow !== 'edit.php' )
+				/**
+				 * Exclude wrote custom fields from post custom meta box
+				 */
+				add_filter( 'is_protected_meta', [ $this, 'is_protected_meta' ], 10, 3 );
+		} else if ( $pagenow === 'edit-tags.php' ) {
 			$this->init_taxonomy( $pagenow );
+		}
 	}
 
 	/**
@@ -121,6 +134,26 @@ trait admin {
 	}
 
 	/**
+	 * @access public
+	 *
+	 * @see    https://github.com/mimosafa/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L573
+	 * @see    https://github.com/mimosafa/WordPress/blob/4.1-branch/wp-admin/includes/template.php#L560
+	 * @see    https://github.com/mimosafa/WordPress/blob/4.1-branch/wp-admin/includes/template.php#L579
+	 * @see    https://github.com/mimosafa/WordPress/blob/4.1-branch/wp-includes/meta.php#L1565
+	 *
+	 * @param  boolean $protected
+	 * @param  string  $meta_key
+	 * @param  string  $meta_type
+	 * @return boolean
+	 */
+	public function is_protected_meta( $protected, $meta_key, $meta_type ) {
+		if ( $meta_type === 'post' && in_array( $meta_key, $this->done_assets ) ) {
+			$protected = true;
+		}
+		return $protected;
+	}
+
+	/**
 	 * @access private
 	 *
 	 * @param  string $context (Optional)
@@ -185,5 +218,12 @@ trait admin {
 	private function init_taxonomy( $pagenow ) {
 		//
 	}
-	
+
+	public function scripts_handler( $pagenow ) {
+		global $pagenow;
+		if ( in_array( $pagenow, [ 'post.php', 'post-new.php'], true ) ) {
+			wp_enqueue_style( 'wpdw-post', \WPDW_PLUGIN_URL . '/css/post.css', [], '', 'screen' );
+		}
+	}
+
 }

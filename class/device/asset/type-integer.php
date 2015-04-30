@@ -2,7 +2,7 @@
 namespace WPDW\Device\Asset;
 
 class type_integer implements asset_interface {
-	use asset_method, asset_vars, asset_model;
+	use asset_methods, asset_vars, asset_models;
 
 	private $model = 'post_meta';
 	private $min = null;

@@ -12,22 +12,33 @@ trait property {
 	/**
 	 * @var array
 	 */
-	private $data = [];
+	private $_data = [];
 
 	/**
 	 * Words that are not allowed to be used as an asset name
 	 * @var array
 	 */
-	private static $excluded = [
+	private static $_excluded = [
+		/**
+		 * WordPress reserved words
+		 */
 		'_edit_last', '_edit_lock', '_wp_old_slug', '_thumbnail_id',
 		'_wp_attached_file', '_wp_page_template', '_wp_attachment_metadata',
+		
+		/**
+		 * Class reserved words (existing property name )
+		 */
+		'_data', '_excluded', '_default', '_options',
 	];
 
 	/**
 	 * @var array
 	 */
-	private static $defaults = [
+	private static $_defaults = [
 		'menu_order' => [ 'type' => 'integer', 'model' => 'post_attribute', 'min' => 0, 'multiple' => false, ],
+	];
+	private static $_options = [
+		'menu_order' => [ 'label' => 'Order' ],
 	];
 
 	/**
@@ -48,23 +59,29 @@ trait property {
 	 * @param  string $asset
 	 */
 	private function prepare_assets( &$args, $asset ) {
-		if ( array_key_exists( $asset, self::$defaults ) ) {
-			$args = array_merge( is_array( $args ) ? $args : [], self::$defaults[$asset ] );
-		}
+		if ( ! $args )
+			return;
 
-		if ( preg_match( '/\A[^a-z]|[^a-z0-9_]/', $asset ) ) :
+		if ( array_key_exists( $asset, self::$_defaults ) ) :
+			$args = is_array( $args ) ? $args : [];
+			if ( array_key_exists( $asset, self::$_options ) )
+				$args = array_merge( self::$_options[$asset], $args );
+			$args = array_merge( $args, self::$_defaults[$asset ] );
+		elseif ( preg_match( '/\A[^a-z]|[^a-z0-9_]/', $asset ) ) :
 			$args = null;
-		elseif ( in_array( $asset, self::$excluded, true ) ) :
+		elseif ( in_array( $asset, self::$_excluded, true ) ) :
 			$args = null;
-		elseif ( array_key_exists( 'type', $args ) ) :
+		endif;
+		
+		if ( $args && array_key_exists( 'type', $args ) ) {
 			if ( $class = $this->get_class_name( $args['type'] ) )
 			{
-				$args  = array_merge( $class::get_defaults(), $args );
+				$args = array_merge( $class::get_defaults(), $args );
 				array_walk( $args, $class . '::arguments_walker', $asset );
 			}
 			else
 				$args = null;
-		endif;
+		}
 	}
 
 	/**
@@ -99,9 +116,10 @@ trait property {
 	public function get_setting( $name = '' ) {
 		if ( ! $this->isDefined( 'assets' ) )
 			return;
+		$settings = array_filter( $this->assets );
 		if ( ! $name )
-			return array_filter( $this->assets );
-		return array_key_exists( $name, $this->assets ) ? $this->assets[$name] : null;
+			return $settings;
+		return array_key_exists( $name, $settings ) ? $settings[$name] : null;
 	}
 
 	/**
@@ -111,11 +129,11 @@ trait property {
 	 * @return boolean
 	 */
 	public function __isset( $name ) {
-		if ( array_key_exists( $name, $this->data ) )
+		if ( array_key_exists( $name, $this->_data ) )
 			return true;
 		if ( $setting = $this->get_setting( $name ) ) {
 			$class = $this->get_class_name( $setting['type'] );
-			$this->data[$name] = new $class( $setting );
+			$this->_data[$name] = new $class( $setting );
 			return true;
 		}
 		return false;
@@ -128,7 +146,7 @@ trait property {
 	 * @return WPDW\Device\Asset\{$type}
 	 */
 	public function __get( $name ) {
-		return isset( $this->$name ) ? $this->data[$name] : null;
+		return isset( $this->$name ) ? $this->_data[$name] : null;
 	}
 
 }

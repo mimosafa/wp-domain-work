@@ -1,7 +1,7 @@
 <?php
 namespace WPDW\Device\Asset;
 
-trait asset_method {
+trait asset_methods {
 
 	/**
 	 * Constructor

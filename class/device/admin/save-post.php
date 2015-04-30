@@ -19,15 +19,17 @@ class save_post {
 	 * Constructor
 	 *
 	 * @access protected
+	 *
+	 * @uses   WPDW\_property_object()
+	 * @see    wp-domain-work/inc/functions.php
+	 *
 	 * @param  string $domain
 	 */
 	public function __construct( $domain ) {
 		if ( ! $domain = filter_var( $domain ) )
 			return;
-		$class = 'WP_Domain\\' . $domain . '\\property';
-		if ( ! class_exists( $class ) )
+		if ( ! $this->property = \WPDW\_property_object( $domain ) )
 			return;
-		$this->property = $class::getInstance();
 		$this->nonce = new \WPDW\WP\nonce( $domain );
 		$this->init();
 	}

@@ -42,15 +42,17 @@ class meta_boxes {
 	 * Constructor
 	 *
 	 * @access protected
+	 *
+	 * @uses   WPDW\_property_object()
+	 * @see    wp-domain-work/inc/functions.php
+	 *
 	 * @param  string $domain
 	 */
 	public function __construct( $domain ) {
 		if ( ! $domain = filter_var( $domain ) )
 			return;
 		// property instance
-		$propClass = 'WP_Domain\\' . $domain . '\\property';
-		if ( class_exists( $propClass ) )
-			$this->property = $propClass::getInstance();
+		$this->property = \WPDW\_property_object( $domain );
 		// template instance
 		$this->template = new template( $domain );
 

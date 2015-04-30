@@ -10,6 +10,7 @@ trait asset_vars {
 
 	private $multiple = false;
 	private $required = false;
+	private $readonly = false;
 
 	/**
 	 * Get default arguments for class construction.
@@ -43,7 +44,7 @@ trait asset_vars {
 			$arg = self::sanitize_string( $arg );
 		elseif ( $key === 'description' ) :
 			$arg = self::sanitize_string( $arg );
-		elseif ( in_array( $key, [ 'multiple', 'required' ], true ) ) :
+		elseif ( in_array( $key, [ 'multiple', 'required', 'readonly' ], true ) ) :
 			$arg = self::validate_boolean( $arg, false );
 		elseif ( $key === 'model' ) :
 			$method = 'get_' . $arg;

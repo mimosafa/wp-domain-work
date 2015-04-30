@@ -2,7 +2,9 @@
 namespace WPDW;
 
 /**
- * @uses   WPDW\Options
+ * @uses   WPDW\_domain()
+ * @uses   WPDW\_alias()
+ * @see    wp-domain-work/inc/functions.php
  * @global $wp, $pagenow
  */
 class Router {
@@ -22,14 +24,9 @@ class Router {
 	/**
 	 * @var array
 	 */
-	private $domains_alias;
-
-	/**
-	 * @var array
-	 */
 	private $services = [
-		/* 'admin', */
-		'query'
+		'status',
+		'query',
 	];
 
 	/**
@@ -46,11 +43,9 @@ class Router {
 	/**
 	 * Constructor
 	 * @access protected
-	 * @uses   WPDW\Options
 	 * @return (void)
 	 */
 	protected function __construct() {
-		$this->domains_alias = Options::get_domains_alias();
 		! is_admin() ?  $this->template_redirect() : $this->admin_init();
 	}
 
@@ -66,6 +61,11 @@ class Router {
 
 	/**
 	 * @access public
+	 *
+	 * @uses   WPDW\_domain()
+	 * @uses   WPDW\_alias()
+	 * @see    wp-domain-work/inc/functions.php
+	 *
 	 * @return (void)
 	 */
 	public function parse_request() {
@@ -73,19 +73,20 @@ class Router {
 		if ( $wp->did_permalink ) {
 			$path = explode( '/', $wp->request );
 			$topPath = array_shift( $path );
-			if ( $topPath && in_array( $topPath, $this->domains_alias, true ) ) {
+			if ( $topPath && _alias( $topPath ) ) {
 				$this->ns = $topPath;
 				$this->arguments = $wp->query_vars + [ 'domain' => $this->ns ];
 			}
 		} else {
 			$q = $wp->query_vars;
-			if ( isset( $q['post_type'] ) && isset( $this->domains_alias[$q['post_type']] ) ) {
-				$this->ns = $this->domains_alias[$q['post_type']];
+			$topPath = array_shift( $path );
+			if ( isset( $q['post_type'] ) && ( $domain = _domain( $q['post_type'] ) ) ) {
+				$this->ns = $domain;
 			} else {
 				$excluded = $wp->public_query_vars + $wp->private_query_vars;
 				foreach ( $q as $key => $val ) {
-					if ( array_key_exists( $key, $this->domains_alias ) ) {
-						$this->ns = $this->domains_alias[$key];
+					if ( $domian = _domain( $key ) ) {
+						$this->ns = $domain;
 						break;
 					}
 				}
@@ -102,12 +103,16 @@ class Router {
 	 */
 	private function admin_init() {
 		$this->admin_parse_request();
-		array_unshift( $this->services, 'admin' );
+		array_push( $this->services, 'admin' );
 		add_action( 'admin_init', [ $this, 'init_service' ], 1 );
 	}
 
 	/**
 	 * @access public
+	 *
+	 * @uses   WPDW\_domain()
+	 * @see    wp-domain-work/inc/functions.php
+	 *
 	 * @return (void)
 	 */
 	public function admin_parse_request() {
@@ -131,10 +136,6 @@ class Router {
 				// _var_dump( 'Dashboard!!!!!' );
 				break;
 		}
-		/**
-		 * @uses WPDW\_domain()
-		 * @link wp-domain-work/inc/functions.php
-		 */
 		if ( isset( $maybe_ns ) && ( $domain = _domain( $maybe_ns ) ) ) {
 			$this->ns = $domain;
 			$this->arguments = $q + [ 'domain' => $domain ];
