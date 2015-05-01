@@ -79,7 +79,6 @@ class Router {
 			}
 		} else {
 			$q = $wp->query_vars;
-			$topPath = array_shift( $path );
 			if ( isset( $q['post_type'] ) && ( $domain = _domain( $q['post_type'] ) ) ) {
 				$this->ns = $domain;
 			} else {

@@ -2,37 +2,63 @@
 namespace WPDW;
 
 /**
+ * Find whether the string is 'domain'
+ *
  * @access private
  *
- * @uses   WPDW\Options
+ * @uses   WPDW\Domain
+ * @see    wp-domain-work/class/domains.php
  *
- * @param  string $alias
- * @return string
+ * @param  string $domain
+ * @return boolean
  */
-function _domain( $alias ) {
-	if ( ! $alias = filter_var( $alias ) )
-		return '';
-	static $domains = [];
-	if ( ! $domains )
-		$domains = Options::get_domains_alias();
-	return isset( $domains[$alias] ) ? $domains[$alias] : '';
+function _is_domain( $domain ) {
+	return Domain::_is_domain( $domain );
 }
 
 /**
+ * Find whether the post_type|taxonomy name is 'domain'
+ *
  * @access private
  *
- * @uses   WPDW\Options
+ * @uses   WPDW\Domain
+ * @see    wp-domain-work/class/domains.php
+ *
+ * @param  string $alias Post type OR taxonomy name
+ * @return boolean
+ */
+function _is_alias( $alias ) {
+	return Domain::_is_alias( $alias );
+}
+
+/**
+ * Get post_type|taxonomy name from domain name
+ *
+ * @access private
+ *
+ * @uses   WPDW\Domain
+ * @see    wp-domain-work/class/domains.php
  *
  * @param  string $domain
- * @return string
+ * @return string If supplied string is not domain, return empty string
  */
 function _alias( $domain ) {
-	if ( ! $domain = filter_var( $domain ) )
-		return '';
-	static $aliases = [];
-	if ( ! $aliases )
-		$aliases = array_flip( Options::get_domains_alias() );
-	return isset( $aliases[$domain] ) ? $aliases[$domain] : '';
+	return Domain::_alias( $domain );
+}
+
+/**
+ * Get domain name from post_type|taxonomy name
+ *
+ * @access private
+ *
+ * @uses   WPDW\Domain
+ * @see    wp-domain-work/class/domains.php
+ *
+ * @param  string $alias
+ * @return string If supplied string is not domain alias, return empty string
+ */
+function _domain( $alias ) {
+	return Domain::_domain( $alias );
 }
 
 /**

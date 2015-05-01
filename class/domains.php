@@ -137,3 +137,92 @@ class Domains {
 	}
 
 }
+
+/**
+ * Domain utility class
+ *
+ * - Wrapper functions is defined
+ * @see  wp-domain-work/inc/functions.php
+ *
+ * @uses WPDW\Util\Singleton
+ * @uses WPDW\Options
+ */
+class Domain {
+	use Util\Singleton;
+
+	/**
+	 * @var array
+	 */
+	private $domain_alias;
+	private $alias_domain;
+
+	/**
+	 * Constructor
+	 *
+	 * @access protected
+	 *
+	 * @uses   WPDW\Options
+	 * @return (void)
+	 */
+	protected function __construct() {
+		$this->alias_domain = Options::get_domains_alias() ?: [];
+		$this->domain_alias = $this->alias_domain ? array_flip( $this->alias_domain ) : [];
+	}
+
+	/**
+	 * Find whether the string is 'domain'
+	 *
+	 * @access public
+	 *
+	 * @param  string $domain
+	 * @return boolean
+	 */
+	public static function _is_domain( $domain ) {
+		$self = self::getInstance();
+		if ( ! $domain = filter_var( $domain ) )
+			return false;
+		return in_array( $domain, $self->alias_domain, true );
+	}
+
+	/**
+	 * Find whether the post_type|taxonomy name is 'domain'
+	 *
+	 * @access public
+	 *
+	 * @param  string $alias Post type OR taxonomy name
+	 * @return boolean
+	 */
+	public static function _is_alias( $alias ) {
+		$self = self::getInstance();
+		if ( ! $alias = filter_var( $alias ) )
+			return false;
+		return in_array( $alias, $self->domain_alias, true );
+	}
+
+	/**
+	 * Get post_type|taxonomy name from domain name
+	 *
+	 * @access public
+	 *
+	 * @param  string $domain
+	 * @return string If supplied string is not domain, return empty string
+	 */
+	public static function _alias( $domain ) {
+		$self = self::getInstance();
+		return $self->_is_domain( $domain ) ? $self->domain_alias[$domain] : '';
+	}
+
+	/**
+	 * Get domain name from post_type|taxonomy name
+	 *
+	 * @access public
+	 *
+	 * @param  string $alias
+	 * @return string If supplied string is not domain alias, return empty string
+	 */
+	public static function _domain( $alias ) {
+		$self = self::getInstance();
+		return $self->_is_alias( $alias ) ? $self->alias_domain[$alias] : '';
+	}
+
+}
