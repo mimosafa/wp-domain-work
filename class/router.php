@@ -19,15 +19,7 @@ class Router {
 	/**
 	 * @var array
 	 */
-	private $arguments = [];
-
-	/**
-	 * @var array
-	 */
-	private $services = [
-		'status',
-		'query',
-	];
+	private $services = [ 'status', 'query', ];
 
 	/**
 	 * Input vars definition. use in admin.
@@ -56,7 +48,7 @@ class Router {
 	 */
 	private function template_redirect() {
 		add_action( 'template_redirect', [ $this, 'parse_request' ], 0 );
-		add_action( 'template_redirect', [ $this, 'init_service' ], 1 );
+		add_action( 'template_redirect', [ $this, 'init_service' ], 0 );
 	}
 
 	/**
@@ -73,16 +65,14 @@ class Router {
 		if ( $wp->did_permalink ) {
 			$path = explode( '/', $wp->request );
 			$topPath = array_shift( $path );
-			if ( $topPath && _alias( $topPath ) ) {
+			if ( $topPath && _alias( $topPath ) )
 				$this->ns = $topPath;
-				$this->arguments = $wp->query_vars + [ 'domain' => $this->ns ];
-			}
 		} else {
 			$q = $wp->query_vars;
 			if ( isset( $q['post_type'] ) && ( $domain = _domain( $q['post_type'] ) ) ) {
 				$this->ns = $domain;
 			} else {
-				$excluded = $wp->public_query_vars + $wp->private_query_vars;
+				# $excluded = $wp->public_query_vars + $wp->private_query_vars;
 				foreach ( $q as $key => $val ) {
 					if ( $domian = _domain( $key ) ) {
 						$this->ns = $domain;
@@ -90,8 +80,6 @@ class Router {
 					}
 				}
 			}
-			if ( $this->ns )
-				$this->arguments = $q + [ 'domain' => $this->ns ];
 		}
 	}
 
@@ -103,7 +91,7 @@ class Router {
 	private function admin_init() {
 		$this->admin_parse_request();
 		array_push( $this->services, 'admin' );
-		add_action( 'admin_init', [ $this, 'init_service' ], 1 );
+		add_action( 'admin_init', [ $this, 'init_service' ], 0 );
 	}
 
 	/**
@@ -135,10 +123,8 @@ class Router {
 				// _var_dump( 'Dashboard!!!!!' );
 				break;
 		}
-		if ( isset( $maybe_ns ) && ( $domain = _domain( $maybe_ns ) ) ) {
+		if ( isset( $maybe_ns ) && ( $domain = _domain( $maybe_ns ) ) )
 			$this->ns = $domain;
-			$this->arguments = $q + [ 'domain' => $domain ];
-		}
 	}
 
 	/**
@@ -160,7 +146,7 @@ class Router {
 	private function exec( $cl ) {
 		$class = 'WP_Domain\\' . $this->ns . '\\' . $cl;
 		if ( class_exists( $class ) )
-			$class::init( $this->arguments );
+			$class::getInstance();
 	}
 
 }

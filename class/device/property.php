@@ -59,19 +59,19 @@ trait property {
 	 * @param  string $asset
 	 */
 	private function prepare_assets( &$args, $asset ) {
-		if ( ! $args )
-			return;
-
-		if ( array_key_exists( $asset, self::$_defaults ) ) :
+		if ( in_array( $asset, self::$_excluded, true ) ) :
+			$args = null;
+		elseif ( preg_match( '/\A[^a-z]|[^a-z0-9_]/', $asset ) ) :
+			$args = null;
+		elseif ( array_key_exists( $asset, self::$_defaults ) ) :
 			$args = is_array( $args ) ? $args : [];
 			if ( array_key_exists( $asset, self::$_options ) )
 				$args = array_merge( self::$_options[$asset], $args );
 			$args = array_merge( $args, self::$_defaults[$asset ] );
-		elseif ( preg_match( '/\A[^a-z]|[^a-z0-9_]/', $asset ) ) :
-			$args = null;
-		elseif ( in_array( $asset, self::$_excluded, true ) ) :
-			$args = null;
 		endif;
+
+		if ( ! $args )
+			return;
 		
 		if ( $args && array_key_exists( 'type', $args ) ) {
 			if ( $class = $this->get_class_name( $args['type'] ) )

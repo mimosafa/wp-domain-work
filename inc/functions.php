@@ -62,6 +62,8 @@ function _domain( $alias ) {
 }
 
 /**
+ * Get WP_Domain\{$domain}\property object
+ * 
  * @access private
  * 
  * @param  string $domain
@@ -71,5 +73,20 @@ function _property_object( $domain ) {
 	if ( ! $domain = filter_var( $domain ) )
 		return null;
 	$class = 'WP_Domain\\' . $domain . '\\property';
+	return class_exists( $class ) ? $class::getInstance() : null;
+}
+
+/**
+ * Get WP_Domain\{$domain}\status object
+ * 
+ * @access private
+ * 
+ * @param  string $domain
+ * @return WP_Domain\{$domain}\status
+ */
+function _status_object( $domain ) {
+	if ( ! $domain = filter_var( $domain ) )
+		return null;
+	$class = 'WP_Domain\\' . $domain . '\\status';
 	return class_exists( $class ) ? $class::getInstance() : null;
 }

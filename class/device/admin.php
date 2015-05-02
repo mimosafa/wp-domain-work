@@ -9,7 +9,7 @@ namespace WPDW\Device;
  * @global $pagenow
  */
 trait admin {
-	use Module\Initializer, Module\Methods;
+	use \WPDW\Util\Singleton, Module\Methods;
 	use \WPDW\Util\Array_Function;
 
 	/**
@@ -21,6 +21,11 @@ trait admin {
 	 * @var WP_Domain\{$domain}\property
 	 */
 	private $property;
+
+	/**
+	 * @var WP_Domain\{$domain}\status
+	 */
+	private $status;
 
 	/**
 	 * @var array
@@ -43,11 +48,22 @@ trait admin {
 	 * }
 	 * @return  (void)
 	 */
-	private function __construct( Array $args ) {
-		$this->domain = $args['domain'];
+	private function __construct() {
+		$this->domain = explode( '\\', __CLASS__ )[1];
 		$this->property = \WPDW\_property_object( $this->domain );
+		$this->status   = \WPDW\_status_object( $this->domain );
 		$this->init_page();
 		add_action( 'admin_enqueue_scripts', [ $this, 'scripts_handler' ] );
+
+		if ( $statuses = $this->status->get_labels() ) {
+			foreach ( $statuses as $status => $labels ) {
+				if ( $class = $this->status->get_class_name( $status ) ) {
+					new $class( $labels );
+				} else {
+					//
+				}
+			}
+		}
 	}
 
 	/**
