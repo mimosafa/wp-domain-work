@@ -67,8 +67,7 @@ class Router {
 			$topPath = array_shift( $path );
 			if ( $topPath && _alias( $topPath ) )
 				$this->ns = $topPath;
-		} else {
-			$q = $wp->query_vars;
+		} else if ( $q = $wp->query_vars ) {
 			if ( isset( $q['post_type'] ) && ( $domain = _domain( $q['post_type'] ) ) ) {
 				$this->ns = $domain;
 			} else {
@@ -80,6 +79,8 @@ class Router {
 					}
 				}
 			}
+		} else {
+			// Home
 		}
 	}
 
@@ -104,20 +105,20 @@ class Router {
 	 */
 	public function admin_parse_request() {
 		global $pagenow;
-		$q = filter_input_array( \INPUT_GET, self::$def, false ) ?: [];
+		$q = filter_input_array( \INPUT_GET, self::$def );
 		switch ( $pagenow ) {
 			case 'edit.php' :
 			case 'post-new.php' :
-				$maybe_ns = array_key_exists( 'post_type', $q ) ? $q['post_type'] : null;
+				$maybe_ns = $q['post_type'] ?: null;
 				break;
 			case 'post.php' :
 				/**
 				 * @see https://ja.forums.wordpress.org/topic/150122
 				 */
-				$maybe_ns = array_key_exists( 'post', $q ) ? get_post_type( $q['post'] ) : filter_input( \INPUT_POST, 'post_type' );
+				$maybe_ns = $q['post'] ? get_post_type( $q['post'] ) : filter_input( \INPUT_POST, 'post_type' );
 				break;
 			case 'edit-tags.php' :
-				$maybe_ns = array_key_exists( 'taxonomy', $q ) ? $q['taxonomy'] : null;
+				$maybe_ns = $q['taxonomy'] ?: null;
 				break;
 			case 'index.php' :
 				// _var_dump( 'Dashboard!!!!!' );
@@ -129,6 +130,7 @@ class Router {
 
 	/**
 	 * @access public
+	 * 
 	 * @return (void)
 	 */
 	public function init_service() {
@@ -140,6 +142,7 @@ class Router {
 
 	/**
 	 * @access private
+	 * 
 	 * @param  string $cl
 	 * @return (void)
 	 */

@@ -3,23 +3,32 @@ namespace WPDW\Device\Status;
 
 class publish {
 
+	private static $defaults = [
+		'name'        => '%s',
+		'description' => '%s',
+		'action'      => '%s',
+		'published_on' => '%s on:',
+		'publish_on'   => '%s on:',
+		'publish_immediately' => '%s <b>immediately</b>' 
+	];
+
 	private $texts = [
 
 		'Published' => [
-			'{{description}}',
-			'post' => '{{state}}',
+			'post' => '{{name}}',
+			'{{name}}',
 		],
 
 		'Published on: <b>%1$s</b>' => [
-			'{{description}} on: <b>%1$s</b>',
+			'{{published_on}} <b>%1$s</b>',
 		],
 
 		'Publish <b>immediately</b>' => [
-			'{{action}} <b>immediately</b>'
+			'{{publish_immediately}}'
 		],
 
 		'Publish on: <b>%1$s</b>' => [
-			'{{state}} on: <b>%%1$s</b>'
+			'{{publish_on}} <b>%%1$s</b>'
 		],
 
 		'Publish' => [
@@ -27,15 +36,47 @@ class publish {
 		],
 	];
 
+	public static function get_filter_definition() {
+		static $definition;
+		if ( ! $definition ) {
+			$definition = array_map( function( $var ) {
+				return $var === \FILTER_SANITIZE_FULL_SPECIAL_CHARS;
+			}, self::$defaults );
+		}
+		return $definition;
+	}
+
+	public static function get_defaults( $label ) {
+		if ( ! $label = filter_var( $label ) )
+			return;
+		$defaults = [];
+		foreach ( self::$defaults as $key => $val ) {
+			$defaults[$key] = sprintf( __( $val ), $label );
+		}
+		return $defaults;
+	}
+
 	public function __construct( Array $labels ) {
-		$def = array_fill_keys( [ 'state', 'description', 'action' ], \FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		if ( $labels = filter_var_array( $labels, $def ) ) {
+		if ( $labels = filter_var_array( $labels, $this->get_filter_definition() ) ) {
 			array_walk_recursive( $this->texts, [ $this, 'prepare_texts' ], $labels );
+			$this->texts = array_filter( $this->texts );
 		}
 	}
 
 	private function prepare_texts( &$str, $text, Array $labels ) {
-		// preg_replace()?
+		preg_match( '/\{\{([a-z_]+)\}\}/', $str, $m );
+		$key = $m[1];
+		if ( isset( $labels[$key] ) ) {
+			static $callback;
+			if ( ! $callback ) {
+				$callback = function( $m ) use ( $labels ) {
+					return $labels[$m[1]];
+				};
+			}
+			$str = preg_replace_callback( '/\{\{([a-z_]+)\}\}/', $callback, $str );
+		} else {
+			$str = null;
+		}
 	}
 
 	private function init() {
@@ -57,7 +98,8 @@ class publish {
 	}
 
 	public function gettext( $translated, $text ) {
-		//
+		if ( array_key_exists( $text, $this->texts ) )
+			$translated = $this->texts( $text );
 		return $translated;
 	}
 
