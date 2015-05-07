@@ -29,7 +29,6 @@ trait status {
 		array_walk( $this->statuses, [ $this, 'prepare_statuses' ] );
 		if ( ! $this->statuses = array_filter( $this->statuses ) )
 			return;
-		#_var_dump( $this->status_labels );
 
 		if ( explode( '\\', __CLASS__ )[1] === \WPDW\_domain( $this->get_post_type() ) )
 			$this->init();
@@ -39,7 +38,7 @@ trait status {
 	 * @access public
 	 * @return array
 	 */
-	public function get_labels( $status = null ) {
+	public function get_labels() {
 		return $this->status_labels;
 	}
 
@@ -161,18 +160,10 @@ trait status {
 				$labels = array_fill_keys( [
 					'name',
 					'description',
-					'save',
+					'action',
 				], \FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			}
 			return $labels;
-		} else if ( 'publish_labels' === $context ) {
-			return array_merge(
-				$this->get_filter_definition( 'labels' ),
-				[
-					'saved_on'         => \FILTER_SANITIZE_ENCODED,
-					'save_immediately' => \FILTER_SANITIZE_ENCODED
-				]
-			);
 		}
 	}
 

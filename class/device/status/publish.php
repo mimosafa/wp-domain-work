@@ -2,118 +2,94 @@
 namespace WPDW\Device\Status;
 
 class publish {
+	use built_in;
 
+	/**
+	 * Default labels for publish status
+	 *
+	 * @var array
+	 */
 	private static $defaults = [
-		'name'        => '%s',
-		'description' => '%s',
-		'action'      => '%s',
+		'name'   => '%s',
+		'action' => '%s',
 		'published_on' => '%s on:',
 		'publish_on'   => '%s on:',
-		'publish_immediately' => '%s <b>immediately</b>' 
+		'publish_immediately' => '%s <b>immediately</b>'
 	];
 
+	/**
+	 * Publish status' texts
+	 *
+	 * @var array
+	 */
 	private $texts = [
 
 		'Published' => [
+
+			/**
+			 * Label of status
+			 * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-includes/post.php#L112
+			 */
 			'post' => '{{name}}',
+
+			/**
+			 * Description of status (used by get_post_statuses)
+			 * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-includes/post.php#L908
+			 *
+			 * Submit meta box for display status & selectable option's label
+			 * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L76
+			 * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L98
+			 */
 			'{{name}}',
+
 		],
 
+		/**
+		 * Publish box date format in submit meta box (for publish or private posts)
+		 * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L170
+		 */
 		'Published on: <b>%1$s</b>' => [
 			'{{published_on}} <b>%1$s</b>',
 		],
 
+		/**
+		 * Publish box date format for draft status post, (no date specified ???)
+		 * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L172
+		 * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L180
+		 */
 		'Publish <b>immediately</b>' => [
 			'{{publish_immediately}}'
 		],
 
+		/**
+		 * Publish box date format for draft status post, (date specified ???)
+		 * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L176
+		 */
 		'Publish on: <b>%1$s</b>' => [
-			'{{publish_on}} <b>%%1$s</b>'
+			'{{publish_on}} <b>%1$s</b>'
 		],
 
+		/**
+		 * Submit button label for publishing action
+		 * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L253
+		 * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L254
+		 */
 		'Publish' => [
 			'{{action}}'
 		],
+
 	];
 
-	public static function get_filter_definition() {
-		static $definition;
-		if ( ! $definition ) {
-			$definition = array_map( function( $var ) {
-				return $var === \FILTER_SANITIZE_FULL_SPECIAL_CHARS;
-			}, self::$defaults );
-		}
-		return $definition;
-	}
-
-	public static function get_defaults( $label ) {
-		if ( ! $label = filter_var( $label ) )
-			return;
-		$defaults = [];
-		foreach ( self::$defaults as $key => $val ) {
-			$defaults[$key] = sprintf( __( $val ), $label );
-		}
-		return $defaults;
-	}
-
-	public function __construct( Array $labels ) {
-		if ( $labels = filter_var_array( $labels, $this->get_filter_definition() ) ) {
-			array_walk_recursive( $this->texts, [ $this, 'prepare_texts' ], $labels );
-			$this->texts = array_filter( $this->texts );
-		}
-	}
-
-	private function prepare_texts( &$str, $text, Array $labels ) {
-		preg_match( '/\{\{([a-z_]+)\}\}/', $str, $m );
-		$key = $m[1];
-		if ( isset( $labels[$key] ) ) {
-			static $callback;
-			if ( ! $callback ) {
-				$callback = function( $m ) use ( $labels ) {
-					return $labels[$m[1]];
-				};
-			}
-			$str = preg_replace_callback( '/\{\{([a-z_]+)\}\}/', $callback, $str );
-		} else {
-			$str = null;
-		}
-	}
-
-	private function init() {
-		add_action( 'current_screen', [ $this, 'set_gettext' ] );
-		add_action( 'admin_footer',   [ $this, 'reset_gettext' ] );
-		add_action( 'load-post.php',     [ $this, 'init_postpage' ] );
-		add_action( 'load-post-new.php', [ $this, 'init_postpage' ] );
-		add_action( 'load-edit.php',     [ $this, 'init_listpage' ] );
-	}
-
-	public function set_gettext() {
-		add_filter( 'gettext', [ $this, 'gettext' ], 10, 2 );
-		add_filter( 'gettext_with_context', [ $this, 'gettext_with_context' ], 10, 3 );
-	}
-
-	public function reset_gettext() {
-		remove_filter( 'gettext', [ $this, 'gettext' ] );
-		remove_filter( 'gettext_with_context', [ $this, 'gettext_with_context' ] );
-	}
-
-	public function gettext( $translated, $text ) {
-		if ( array_key_exists( $text, $this->texts ) )
-			$translated = $this->texts( $text );
-		return $translated;
-	}
-
-	public function gettext_with_context( $trabslated, $text, $context ) {
-		//
-		return $translated;
-	}
-
-	public function init_postpage() {
-		//
-	}
-
-	public function init_listpage() {
-		//
-	}
+	/**
+	 * JavaScript texts (postL10n)
+	 *
+	 * @var  array
+	 * @link https://github.com/WordPress/WordPress/blob/4.1-branch/wp-includes/script-loader.php#L446
+	 */
+	private $js_texts = [
+		'publishOnPast' => 'published_on',
+		'publish'   => 'action',
+		'published' => 'name'
+	];
 
 }
