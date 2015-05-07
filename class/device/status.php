@@ -11,13 +11,6 @@ trait status {
 	private $status_labels = [];
 
 	/**
-	 * @var array
-	 */
-	private static $built_ins = [
-		'publish', 'future', 'draft', 'pending', 'private', 'trash', 'auto-draft', 'inherit'
-	];
-
-	/**
 	 * @access protected
 	 *
 	 * @param  string $domain
@@ -27,47 +20,21 @@ trait status {
 		if ( ! $this->isDefined( 'statuses' ) )
 			return;
 		array_walk( $this->statuses, [ $this, 'prepare_statuses' ] );
-		if ( ! $this->statuses = array_filter( $this->statuses ) )
-			return;
-
-		if ( explode( '\\', __CLASS__ )[1] === \WPDW\_domain( $this->get_post_type() ) )
-			$this->init();
+		$this->statuses = array_filter( $this->statuses );
 	}
 
 	/**
-	 * @access public
-	 * @return array
-	 */
-	public function get_labels() {
-		return $this->status_labels;
-	}
-
-	/**
+	 * Initialize domain's(post_type's) post status
+	 * 
 	 * @access public
 	 * 
-	 * @param  string $status
-	 * @return string|boolean
-	 */
-	public function get_class_name( $status ) {
-		static $class_names = [];
-		if ( ! $status = filter_var( $status ) )
-			return false;
-		if ( array_key_exists( $status, $class_names ) )
-			return $class_names[$status];
-		$class = __NAMESPACE__ . '\\status\\' . $status;
-		if ( class_exists( $class ) ) {
-			$class_names[$status] = $class;
-			return $class;
-		}
-		return false;
-	}
-
-	/**
-	 * @access private
-	 * 
+	 * @see    WPDW\Device\admin::init()
 	 * @return (void)
 	 */
-	private function init() {
+	public function init() {
+		if ( ! $this->isDefined( 'statuses' ) )
+			return;
+
 		global $wp_post_statuses;
 		foreach ( $this->statuses as $status => $args ) {
 			if ( array_key_exists( $status, $wp_post_statuses ) ) {
@@ -76,6 +43,44 @@ trait status {
 			} else {
 				register_post_status( $status, $args );
 			}
+		}
+
+		/**
+		 * Check current global post_type
+		 */
+		if ( explode( '\\', __CLASS__ )[1] !== \WPDW\_domain( $this->get_post_type() ) )
+			return;
+
+		if ( $this->status_labels ) {
+			foreach ( $this->status_labels as $status => $labels ) {
+				if ( $class = $this->get_class_name( $status ) ) {
+					new $class( $labels );
+				} else {
+					Status\custom::add( $status, $labels );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Get current screen post_type
+	 *
+	 * @access private
+	 * @return string
+	 */
+	private function get_post_type() {
+		if ( ! is_admin() ) {
+			global $wp_query;
+			return $wp_query->get( 'post_type' );
+		} else {
+			if ( $post_type = filter_input( \INPUT_GET, 'post_type' ) )
+				return $post_type;
+			else if ( $post = filter_input( \INPUT_GET, 'post', \FILTER_VALIDATE_INT ) )
+				return \get_post_type( $post );
+			else if ( $post_type = filter_input( \INPUT_POST, 'post_type' ) )
+				return $post_type;
+			else
+				return '';
 		}
 	}
 
@@ -87,11 +92,17 @@ trait status {
 	 * @return (void)
 	 */
 	private function prepare_statuses( &$arg, $status ) {
+		// WordPress built-in statuses
+		static $built_ins = [
+			'publish', 'future', 'draft', 'pending',
+			'private', 'trash', 'auto-draft', 'inherit'
+		];
+
 		if ( ! $arg || ! is_array( $arg ) ) :
 			$arg = null;
 		elseif ( preg_match( '/[^a-z0-9_]/', $status ) ) :
 			$arg = null;
-		elseif ( in_array( $status, self::$built_ins, true ) && ! $this->get_class_name( $status ) ) :
+		elseif ( in_array( $status, $built_ins, true ) && ! $this->get_class_name( $status ) ) :
 			$arg = null;
 		else :
 			if ( $class = $this->get_class_name( $status ) ) {
@@ -99,7 +110,7 @@ trait status {
 				$labels_def = $class::get_filter_definition();
 			} else {
 				$arg = filter_var_array( $arg, $this->get_filter_definition( 'custom' ) );
-				$labels_def = $this->get_filter_definition( 'labels' );
+				$labels_def = Status\custom::$definition;
 			}
 			$arg['labels'] = filter_var_array( $arg['labels'] ?: [], $labels_def, false );
 			$label = $arg['label'] ?: $arg['labels']['name'] ?: null;
@@ -114,8 +125,9 @@ trait status {
 		$count_string = sprintf( '%s <span class="count">(%%s)</span>', $label );
 		$arg['label_count'] = _n_noop( $count_string, $count_string );
 
+		$action = array_key_exists( 'action', $arg['labels'] ) ? $arg['labels']['action'] : null;
 		$defaults = $class
-			? $class::get_defaults( $label )
+			? $class::get_defaults( $label, $action )
 			: [ 'name' => $label, 'description' => $label, 'action' => $label ]
 		;
 
@@ -123,6 +135,28 @@ trait status {
 		unset( $arg['labels'] );
 
 		$arg = array_filter( $arg, function( $var ) { return isset( $var ); } );
+	}
+
+	/**
+	 * @access private
+	 *
+	 * @uses   WPDW\Device\Status\{$status}
+	 * 
+	 * @param  string $status
+	 * @return string|boolean
+	 */
+	private function get_class_name( $status ) {
+		static $class_names = [];
+		if ( ! $status = filter_var( $status ) )
+			return false;
+		if ( array_key_exists( $status, $class_names ) )
+			return $class_names[$status];
+		$class = __NAMESPACE__ . '\\status\\' . $status;
+		if ( class_exists( $class ) ) {
+			$class_names[$status] = $class;
+			return $class;
+		}
+		return false;
 	}
 
 	/**
@@ -154,38 +188,6 @@ trait status {
 				);
 			}
 			return $custom;
-		} else if ( 'labels' === $context ) {
-			static $labels;
-			if ( ! $labels ) {
-				$labels = array_fill_keys( [
-					'name',
-					'description',
-					'action',
-				], \FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-			}
-			return $labels;
-		}
-	}
-
-	/**
-	 * Get current screen post_type
-	 *
-	 * @access private
-	 * @return string
-	 */
-	private function get_post_type() {
-		if ( ! is_admin() ) {
-			global $wp_query;
-			return $wp_query->get( 'post_type' );
-		} else {
-			if ( $post_type = filter_input( \INPUT_GET, 'post_type' ) )
-				return $post_type;
-			else if ( $post = filter_input( \INPUT_GET, 'post', \FILTER_VALIDATE_INT ) )
-				return \get_post_type( $post );
-			else if ( $post_type = filter_input( \INPUT_POST, 'post_type' ) )
-				return $post_type;
-			else
-				return '';
 		}
 	}
 

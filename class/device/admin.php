@@ -2,9 +2,8 @@
 namespace WPDW\Device;
 
 /**
- * @uses   WPDW\Device\Module\Initializer
- * @uses   WPDW\Device\Module\Initializer\Methods::is()
- * @uses   WPDW\Device\Module\Initializer\Methods::isDefined()
+ * @uses   WPDW\Device\Module\Methods::is()
+ * @uses   WPDW\Device\Module\Methods::isDefined()
  * @uses   WPDW\Util\Array_Function::array_flatten()
  * @global $pagenow
  */
@@ -21,11 +20,6 @@ trait admin {
 	 * @var WP_Domain\{$domain}\property
 	 */
 	private $property;
-
-	/**
-	 * @var WP_Domain\{$domain}\status
-	 */
-	private $status;
 
 	/**
 	 * @var array
@@ -51,37 +45,44 @@ trait admin {
 	private function __construct() {
 		$this->domain = explode( '\\', __CLASS__ )[1];
 		$this->property = \WPDW\_property_object( $this->domain );
-		$this->status   = \WPDW\_status_object( $this->domain );
-		$this->init_page();
-		add_action( 'admin_enqueue_scripts', [ $this, 'scripts_handler' ] );
 
-		if ( $statuses = $this->status->get_labels() ) {
-			foreach ( $statuses as $status => $labels ) {
-				if ( $class = $this->status->get_class_name( $status ) ) {
-					new $class( $labels );
-				} else {
-					//
-				}
-			}
-		}
+		$this->init();
 	}
 
 	/**
 	 * Initialize admin page
+	 * 
 	 * @access private
+	 *
+	 * @uses   WP_Domain\{$domain}\status
 	 */
-	private function init_page() {
+	private function init() {
 		global $pagenow;
 		if ( in_array( $pagenow, [ 'edit.php', 'post.php', 'post-new.php' ], true ) ) {
+			/**
+			 * Domain that registered as post_type
+			 */
+			if ( $statusInstance = \WPDW\_status_object( $this->domain ) )
+				/**
+				 * Post statuses
+				 */
+				$statusInstance->init();
+
 			$this->init_post_type( $pagenow );
+
 			if ( $this->done_assets && $pagenow !== 'edit.php' )
 				/**
 				 * Exclude wrote custom fields from post custom meta box
 				 */
 				add_filter( 'is_protected_meta', [ $this, 'is_protected_meta' ], 10, 3 );
+
 		} else if ( $pagenow === 'edit-tags.php' ) {
+			/**
+			 * Domain that registered as taxonomy
+			 */
 			$this->init_taxonomy( $pagenow );
 		}
+		add_action( 'admin_enqueue_scripts', [ $this, 'scripts_handler' ] );
 	}
 
 	/**
@@ -109,6 +110,10 @@ trait admin {
 				}
 			}
 			if ( $this->is( 'attribute_meta_box' ) ) {
+				/**
+				 * Attribute meta box
+				 * @uses  WPDW\Device\Admin\attribute_meta_box
+				 */
 				$args = is_array( $this->attribute_meta_box ) ? $this->attribute_meta_box : [];
 				$attrFilter = function( $attr ) { return ! in_array( $attr, $this->done_assets, true ); };
 				if ( $attributes = array_filter( [ 'post_parent', 'menu_order' ], $attrFilter ) ) {
@@ -132,11 +137,14 @@ trait admin {
 		$args = filter_var_array( $args, $this->get_filter_definition( 'meta_box' ), false );
 		if ( array_key_exists( 'asset', $args ) ) {
 			$assets = is_array( $args['asset'] ) ? array_filter( self::array_flatten( $args['asset'], true ) ) : (array) $args['asset'];
-			if ( ! array_key_exists( 'title', $args ) || ! $args['title'] ) {
-				$args['title'] = implode( ' / ', array_map( function( $asset ) {
-					$setting = $this->property->get_setting( $asset );
-					return $setting['label'] ?: ucwords( str_replace( '_', ' ', $asset ) );
-				}, $assets ) );
+			if ( ! array_key_exists( 'title', $args ) ) {
+				$args['title'] = implode(
+					' / ',
+					array_map( function( $asset ) {
+						$setting = $this->property->get_setting( $asset );
+						return $setting['label'] ?: ucwords( str_replace( '_', ' ', $asset ) );
+					}, $assets )
+				);
 			}
 			$args['asset'] = count( $assets ) > 1 ? $assets : array_shift( $assets );
 		}

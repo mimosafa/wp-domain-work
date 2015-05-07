@@ -51,12 +51,15 @@ trait built_in {
 	 * @param  string $label
 	 * @return array
 	 */
-	public static function get_defaults( $label ) {
+	public static function get_defaults( $label, $action = null ) {
 		if ( ! $label = filter_var( $label ) )
 			return;
 		$defaults = [];
 		foreach ( self::$defaults as $key => $val ) {
-			$defaults[$key] = sprintf( __( $val ), $label );
+			if ( $action && substr( $key, -3 ) === '_on' )
+				$defaults[$key] = sprintf( __( $val ), $action );
+			else
+				$defaults[$key] = sprintf( __( $val ), $label );
 		}
 		return $defaults;
 	}

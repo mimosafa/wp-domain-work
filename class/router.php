@@ -19,7 +19,7 @@ class Router {
 	/**
 	 * @var array
 	 */
-	private $services = [ 'status', 'query', ];
+	private $services = [ 'query' ];
 
 	/**
 	 * Input vars definition. use in admin.
