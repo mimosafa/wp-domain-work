@@ -178,12 +178,14 @@ trait status {
 			global $wp_query;
 			return $wp_query->get( 'post_type' );
 		} else {
-			return
-				filter_input( \INPUT_GET, 'post_type' ) ?:
-				\get_post_type( filter_input( \INPUT_GET, 'post' ) ) ?:
-				filter_input( \INPUT_POST, 'post_type' ) ?:
-				''
-			;
+			if ( $post_type = filter_input( \INPUT_GET, 'post_type' ) )
+				return $post_type;
+			else if ( $post = filter_input( \INPUT_GET, 'post', \FILTER_VALIDATE_INT ) )
+				return \get_post_type( $post );
+			else if ( $post_type = filter_input( \INPUT_POST, 'post_type' ) )
+				return $post_type;
+			else
+				return '';
 		}
 	}
 
