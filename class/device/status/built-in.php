@@ -35,11 +35,10 @@ trait built_in {
 	 */
 	public static function get_filter_definition() {
 		static $definition;
-		if ( ! $definition ) {
-			$definition = array_map( function( $var ) {
-				return $var === \FILTER_SANITIZE_FULL_SPECIAL_CHARS;
+		if ( ! $definition )
+			$definition = array_map( function() {
+				return \FILTER_SANITIZE_FULL_SPECIAL_CHARS;
 			}, self::$defaults );
-		}
 		return $definition;
 	}
 
@@ -77,19 +76,22 @@ trait built_in {
 	private function prepare_texts( &$str, $text, Array $labels ) {
 		preg_match( '/\{\{([a-z_]+)\}\}/', $str, $m );
 		$key = $m[1];
-		if ( isset( $labels[$key] ) ) {
-			static $callback;
-			if ( ! $callback ) {
-				$callback = function( $m ) use ( $labels ) {
-					return $labels[$m[1]];
-				};
-			}
-			$str = preg_replace_callback( '/\{\{([a-z_]+)\}\}/', $callback, $str );
-		} else {
+		if ( isset( $labels[$key] ) )
+			$str = preg_replace( '/\{\{([a-z_]+)\}\}/', $labels[$key], $str );
+		else
 			$str = null;
-		}
 	}
 
+	/**
+	 * Callback method for array_walk @__construct()
+	 *
+	 * @access private
+	 *
+	 * @param  string &$str
+	 * @param  string $key
+	 * @param  array  $labels
+	 * @return (void)
+	 */
 	private function prepare_js_texts( &$str, $key, Array $labels ) {
 		$str = $labels[$str] ?: null;
 	}

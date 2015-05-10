@@ -9,16 +9,25 @@ class custom {
 	 */
 	private $labels = [];
 
+	private static $default = [
+		'name' => '%s',
+		'description' => '%s',
+		'action' => 'Save as %s'
+	];
+
 	/**
 	 * Filter definition
 	 * 
 	 * @var array
 	 */
-	public static $definition = [
-		'name'        => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
-		'description' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
-		'action'      => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
-	];
+	public static function get_filter_definition() {
+		static $definition;
+		if ( ! $definition )
+			$definition = array_map( function() {
+				return \FILTER_SANITIZE_FULL_SPECIAL_CHARS;
+			}, self::$default );
+		return $definition;
+	}
 
 	/**
 	 * Add custom post status
@@ -34,15 +43,19 @@ class custom {
 	 * @return (void)
 	 */
 	public static function add( $status, Array $labels ) {
-		$self = self::getInstance();
-		if ( $status = filter_var( $status, \FILTER_VALIDATE_REGEXP, [ 'options' => [ 'regexp' => '/[a-z0-9_]+/' ] ] ) ) {
-			if ( $labels = filter_var_array( $labels, self::$definition ) ) {
-				$self->labels[$status] = array_merge(
-					array_fill_keys( array_keys( self::$definition ), $labels['name'] ),
-					$labels
-				);
-			}
+		static $options = [ 'options' => [ 'regexp' => '/[a-z0-9_]+/' ] ];
+		if ( $status = filter_var( $status, \FILTER_VALIDATE_REGEXP, $options ) ) {
+			$self = self::getInstance();
+			if ( $labels = filter_var_array( $labels, self::get_filter_definition() ) )
+				$self->labels[$status] = $labels;
 		}
+	}
+
+	public static function get_defaults( $label ) {
+		$callback = function ( $str ) use ( $label ) {
+			return sprintf( __( $str ), $label );
+		};
+		return array_map( $callback, self::$default );
 	}
 
 	/**
@@ -66,10 +79,16 @@ class custom {
 	 */
 	public function display_post_states( $post_states, $post ) {
 		if ( $this->labels ) {
-			$queried_status = isset( $_REQUEST['post_status'] ) ? $_REQUEST['post_status'] : '';
-			$post_status = $post->post_status;
-			if ( array_key_exists( $post_status, $this->labels ) && $post_status !== $queried_status )
-				$post_states[$post_status] = $this->labels[$post_status]['name'];
+			static $queried_status;
+			if ( ! isset( $queried_status ) )
+				$queried_status = isset( $_REQUEST['post_status'] ) ? $_REQUEST['post_status'] : '';
+			static $built_ins = [
+				'publish', 'future', 'draft', 'pending',
+				'private', 'trash', 'auto-draft', 'inherit'
+			];
+			$status = $post->post_status;
+			if ( ! in_array( $status, $built_ins, true ) && array_key_exists( $status, $this->labels ) && $status !== $queried_status )
+				$post_states[$status] = $this->labels[$status]['name'];
 		}
 		return $post_states;
 	}
@@ -86,21 +105,29 @@ class custom {
 	 */
 	public function post_submitbox() {
 		global $post;
-		$statusNow = $post->post_status;
-?>
+		$customs   = json_encode( $this->labels );
+		$statusNow = esc_js( $post->post_status );
+		echo <<<EOF
 <script type='text/javascript'>
-  jQuery(document).ready(function($){
-    var customs = <?php echo json_encode( $this->labels ); ?>,
-        statusNow = '<?php echo esc_js( $statusNow ); ?>', labelNow  = '';
-    $.each(customs, function(i, arr) {
-      var opt = $('<option />', { value: i, text: arr['name'] });
-      if (i===statusNow) { opt.attr('selected'); labelNow += arr['name']; }
-      $('select#post_status').append(opt);
-    });
-    if (labelNow) { $('#post-status-display').text(labelNow); }
-  });
+	jQuery( document ).ready( function( $ ) {
+		var customs = {$customs},
+		    statusNow = '{$statusNow}',
+		    labelNow  = '';
+		$.each( customs, function( i, arr ) {
+			var opt = $( '<option />', { value: i, text: arr['name'] } );
+			if ( i === statusNow ) {
+				opt.attr( 'selected', 'selected' );
+				labelNow += arr['name'];
+				$( '#save-post' ).val( arr['action'] );
+			}
+			$( 'select#post_status' ).append( opt );
+		});
+		if ( labelNow ) {
+			$( '#post-status-display' ).text( labelNow );
+		}
+	});
 </script>
-<?php
+EOF;
 	}
 
 }

@@ -62,26 +62,8 @@ trait status {
 		}
 	}
 
-	/**
-	 * Get current screen post_type
-	 *
-	 * @access private
-	 * @return string
-	 */
-	private function get_post_type() {
-		if ( ! is_admin() ) {
-			global $wp_query;
-			return $wp_query->get( 'post_type' );
-		} else {
-			if ( $post_type = filter_input( \INPUT_GET, 'post_type' ) )
-				return $post_type;
-			else if ( $post = filter_input( \INPUT_GET, 'post', \FILTER_VALIDATE_INT ) )
-				return \get_post_type( $post );
-			else if ( $post_type = filter_input( \INPUT_POST, 'post_type' ) )
-				return $post_type;
-			else
-				return '';
-		}
+	public static function get_post_stati( $args = [], $output = 'names', $operator = 'and' ) {
+		//
 	}
 
 	/**
@@ -110,7 +92,7 @@ trait status {
 				$labels_def = $class::get_filter_definition();
 			} else {
 				$arg = filter_var_array( $arg, $this->get_filter_definition( 'custom' ) );
-				$labels_def = Status\custom::$definition;
+				$labels_def = Status\custom::get_filter_definition();
 			}
 			$arg['labels'] = filter_var_array( $arg['labels'] ?: [], $labels_def, false );
 			$label = $arg['label'] ?: $arg['labels']['name'] ?: null;
@@ -128,13 +110,35 @@ trait status {
 		$action = array_key_exists( 'action', $arg['labels'] ) ? $arg['labels']['action'] : null;
 		$defaults = $class
 			? $class::get_defaults( $label, $action )
-			: [ 'name' => $label, 'description' => $label, 'action' => $label ]
+			: Status\custom::get_defaults( $label )
 		;
 
 		$this->status_labels[$status] = array_merge( $defaults, $arg['labels'] );
 		unset( $arg['labels'] );
 
 		$arg = array_filter( $arg, function( $var ) { return isset( $var ); } );
+	}
+
+	/**
+	 * Get current screen post_type
+	 *
+	 * @access private
+	 * @return string
+	 */
+	private function get_post_type() {
+		if ( ! is_admin() ) {
+			global $wp_query;
+			return $wp_query->get( 'post_type' );
+		} else {
+			if ( $post_type = filter_input( \INPUT_GET, 'post_type' ) )
+				return $post_type;
+			else if ( $post = filter_input( \INPUT_GET, 'post', \FILTER_VALIDATE_INT ) )
+				return \get_post_type( $post );
+			else if ( $post_type = filter_input( \INPUT_POST, 'post_type' ) )
+				return $post_type;
+			else
+				return '';
+		}
 	}
 
 	/**
