@@ -130,15 +130,18 @@ class attribute_meta_box {
 	 */
 	private function menu_order_form( $post ) {
 		$label = 'Order';
+		$attr  = '';
 		if ( $this->property && isset( $this->property->menu_order ) ) {
 			$setting = $this->property->get_setting( 'menu_order' );
 			$label = $setting['label'];
+			if ( $setting['readonly'] )
+				$attr .= ' readonly="readonly"';
 		}
 ?>
 <p><strong><?php _e( $label ) ?></strong></p>
 <p>
   <label class="screen-reader-text" for="menu_order"><?php _e( $label ) ?></label>
-  <input name="menu_order" type="number" id="menu_order" min="0" value="<?php echo esc_attr( $post->menu_order ) ?>" />
+  <input name="menu_order" type="number" id="menu_order" min="0" value="<?php echo esc_attr( $post->menu_order ) ?>" <?php echo $attr; ?>/>
 </p>
 <?php
 	}

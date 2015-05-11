@@ -53,11 +53,10 @@ trait status {
 
 		if ( $this->status_labels ) {
 			foreach ( $this->status_labels as $status => $labels ) {
-				if ( $class = $this->get_class_name( $status ) ) {
+				if ( $class = $this->get_class_name( $status ) )
 					new $class( $labels );
-				} else {
+				else
 					Status\custom::add( $status, $labels );
-				}
 			}
 		}
 	}
@@ -94,7 +93,7 @@ trait status {
 				$arg = filter_var_array( $arg, $this->get_filter_definition( 'custom' ) );
 				$labels_def = Status\custom::get_filter_definition();
 			}
-			$arg['labels'] = filter_var_array( $arg['labels'] ?: [], $labels_def, false );
+			$arg['labels'] = filter_var_array( $arg['labels'] ?: [], $labels_def );
 			if ( ! $label = $arg['label'] ?: $arg['labels']['name'] ?: null )
 				$arg = null;
 		endif;
@@ -108,14 +107,11 @@ trait status {
 		$count_string = sprintf( '%s <span class="count">(%%s)</span>', $label );
 		$arg['label_count'] = _n_noop( $count_string, $count_string );
 
-		$action = array_key_exists( 'action', $arg['labels'] ) ? $arg['labels']['action'] : null;
-		$defaults = $class
-			? $class::get_defaults( $label, $action )
-			: Status\custom::get_defaults( $label )
-		;
-
-		$this->status_labels[$status] = array_merge( $defaults, $arg['labels'] );
+		$labels = array_filter( $arg['labels'] );
 		unset( $arg['labels'] );
+		$action = array_key_exists( 'action', $labels ) ? $labels['action'] : null;
+		$defaults = $class ? $class::get_defaults( $label, $action ) : Status\custom::get_defaults( $label );
+		$this->status_labels[$status] = array_merge( $defaults, $labels );
 
 		$arg = array_filter( $arg, function( $var ) { return isset( $var ); } );
 	}

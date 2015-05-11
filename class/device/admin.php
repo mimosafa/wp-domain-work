@@ -252,6 +252,12 @@ trait admin {
 		//
 	}
 
+	/**
+	 * @access public
+	 * 
+	 * @param  string $pagenow
+	 * @return (void)
+	 */
 	public function scripts_handler( $pagenow ) {
 		global $pagenow;
 		if ( in_array( $pagenow, [ 'post.php', 'post-new.php'], true ) ) {

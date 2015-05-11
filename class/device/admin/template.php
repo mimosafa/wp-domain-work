@@ -175,9 +175,11 @@ class template {
 
 		if ( isset( $args['value'] ) )
 			$attr['value'] = esc_attr( $args['value'] );
-		if ( $args['max_len'] ) {
+		if ( $args['max_len'] )
 			$attr['maxlength'] = esc_attr( $args['max_len'] );
-		}
+		if ( $args['readonly'] )
+			$attr['readonly'] = 'readonly';
+
 		return [ 'element' => 'input', 'attribute' => $attr ];
 	}
 
@@ -204,6 +206,8 @@ class template {
 			$attr['min'] = esc_attr( $args['min'] );
 		if ( isset( $args['max'] ) )
 			$attr['max'] = esc_attr( $args['max'] );
+		if ( $args['readonly'] )
+			$attr['readonly'] = 'readonly';
 		//$attr['class'] = 'small-text';
 		return [ 'element' => 'input', 'attribute' => $attr ];
 	}

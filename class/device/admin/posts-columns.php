@@ -136,13 +136,12 @@ class posts_columns {
 	 * @access public
 	 */
 	public function columns_style() {
-		$styles = '';
 		if ( ! $this->columns )
 			return;
-		$customs = array_filter( array_keys( $this->columns ), function( $name ) {
-			return ! in_array( $name, self::$built_ins );
-		} );
-		if ( $customs ) {
+
+		$styles = '';
+		$callback = function( $var ) { return ! in_array( $var, self::$built_ins ); };
+		if ( $customs = array_filter( array_keys( $this->columns ), $callback ) ) {
 			array_walk( $customs, function( &$class ) { $class = '.column-' . $class; } );
 			$styles .= sprintf( "\t@media screen and (max-width: 782px) { %s { display: none; } }\n", implode( ', ', $customs ) );
 		}
@@ -150,12 +149,13 @@ class posts_columns {
 			foreach ( $this->narrow_columns as $name => $em )
 				$styles .= sprintf( "\tth.column-%s { width: %dem; }\n", $name, $em );
 		}
-		if ( $styles ) {
+		if ( ! $styles )
+			return;
+
 		echo <<<EOF
 <style type="text/css">
 {$styles}</style>\n
 EOF;
-		}
 	}
 
 }
