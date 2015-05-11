@@ -49,7 +49,7 @@ trait property {
 	protected function __construct() {
 		if ( $this->isDefined( 'assets' ) )
 			array_walk( $this->assets, [ &$this, 'prepare_assets' ] );
-		//_var_dump( $this );
+		#_var_dump( $this );
 	}
 
 	/**

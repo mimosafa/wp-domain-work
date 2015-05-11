@@ -27,7 +27,6 @@ interface asset_interface {
 	 * @see WPDW\Device\Asset\asset_vars
 	 */
 	public static function get_defaults();
-	public function get_vars( $post );
 
 	/**
 	 * @see WPDW\Device\Asset\asset_method
@@ -35,4 +34,5 @@ interface asset_interface {
 	public function __construct( Array $args );
 	public function get( $post );
 	public function update( $post, $value );
+	public function get_vars( $post );
 }

@@ -94,6 +94,15 @@ trait admin {
 			/**
 			 * Posts list page
 			 */
+			if ( $this->isDefined( 'columns' ) ) {
+				/**
+				 * Post columns
+				 * @uses  WPDW\Device\Admin\posts_columns
+				 */
+				$columns = new Admin\posts_columns( $this->domain );
+				foreach ( $this->columns as $name => $args )
+					$columns->add( $name, $args );
+			}
 		} else {
 			/**
 			 * Edit post page, add post page
@@ -101,7 +110,7 @@ trait admin {
 			if ( $this->isDefined( 'meta_boxes' ) ) {
 				/**
 				 * Meta boxes
-				 * @uses  WPDW\Device\Admin\meta_boxes::add()
+				 * @uses  WPDW\Device\Admin\meta_boxes
 				 */
 				$metabox = new Admin\meta_boxes( $this->domain );
 				foreach ( $this->meta_boxes as $meta_box_args ) {

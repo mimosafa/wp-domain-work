@@ -66,6 +66,8 @@ class custom {
 	protected function __construct() {
 		add_filter( 'display_post_states', [ $this, 'display_post_states' ], 10, 2 );
 		add_action( 'post_submitbox_misc_actions', [ $this, 'post_submitbox' ] );
+		add_action( 'admin_footer-post.php',     [ $this, 'overwrite_saveDraft' ], 100 );
+		add_action( 'admin_footer-post-new.php', [ $this, 'overwrite_saveDraft' ], 100 );
 	}
 
 	/**
@@ -112,7 +114,8 @@ class custom {
 	jQuery( document ).ready( function( $ ) {
 		var customs = {$customs},
 		    statusNow = '{$statusNow}',
-		    labelNow  = '';
+		    labelNow  = '',
+		    \$opts = $();
 		$.each( customs, function( i, arr ) {
 			var opt = $( '<option />', { value: i, text: arr['name'] } );
 			if ( i === statusNow ) {
@@ -120,12 +123,38 @@ class custom {
 				labelNow += arr['name'];
 				$( '#save-post' ).val( arr['action'] );
 			}
-			$( 'select#post_status' ).append( opt );
-		});
-		if ( labelNow ) {
+			\$opts = \$opts.add( opt );
+		} );
+		$( 'select#post_status' ).append( \$opts );
+		if ( labelNow )
 			$( '#post-status-display' ).text( labelNow );
-		}
 	});
+</script>
+EOF;
+	}
+
+	/**
+	 * @access public
+	 */
+	public function overwrite_saveDraft() {
+		$actions = json_encode( array_filter( array_map( function( $arr ) {
+			return array_key_exists( 'action', $arr ) ? $arr['action'] : null;
+		}, $this->labels ) ) );
+		echo <<<EOF
+<script type='text/javascript'>
+	window.postL10n = window.postL10n || {};
+	jQuery( document ).ready( function( $ ) {
+		var \$postStatus = $( '#post_status' ),
+		    actions = {$actions},
+		    defaultTxt = postL10n.saveDraft;
+		\$postStatus.on( 'change', function() {
+			var val = $(this).val();
+			if ( actions[val] !== undefined )
+				postL10n.saveDraft = actions[val];
+			else
+				postL10n.saveDraft = defaultTxt;
+		} );
+	} );
 </script>
 EOF;
 	}

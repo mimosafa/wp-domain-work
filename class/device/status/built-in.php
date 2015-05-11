@@ -1,6 +1,8 @@
 <?php
 namespace WPDW\Device\Status;
 
+use WPDW\Device\Admin\postL10n as postL10n;
+
 trait built_in {
 
 	/**
@@ -18,10 +20,8 @@ trait built_in {
 				$this->init();
 			if ( property_exists( __CLASS__, 'js_texts' ) ) {
 				array_walk( $this->js_texts, [ $this, 'prepare_js_texts' ], $labels );
-				if ( $this->js_texts = array_filter( $this->js_texts ) ) {
-					add_action( 'admin_footer-post.php', [ $this, 'init_js'], 99 );
-					add_action( 'admin_footer-post-new.php', [ $this, 'init_js'], 99 );
-				}
+				if ( $this->js_texts = array_filter( $this->js_texts ) )
+					$this->init_js();
 			}
 		}
 	}
@@ -111,17 +111,16 @@ trait built_in {
 		}
 	}
 
+	/**
+	 * Overwrite json data
+	 *
+	 * @access public
+	 *
+	 * @uses   WPDW\Device\Admin\postL10n::set()
+	 */
 	public function init_js() {
-		$scripts = '';
-		foreach ( $this->js_texts as $key => $text ) {
-			$js_text = wp_json_encode( $text );
-			$scripts .= "\t\t\tpostL10n.{$key} = {$js_text};\n";
-		}
-		echo <<<EOF
-<script type='text/javascript'>
-\t\t\twindow.postL10n = window.postL10n || {};
-{$scripts}\t\t</script>
-EOF;
+		foreach ( $this->js_texts as $key => $js_text )
+			postL10n::set( $key, $js_text );
 	}
 
 	/**
@@ -141,6 +140,8 @@ EOF;
 	}
 
 	/**
+	 * @access public
+	 *
 	 * @param  string $translated
 	 * @param  string $text
 	 * @return string
@@ -152,6 +153,8 @@ EOF;
 	}
 
 	/**
+	 * @access public
+	 *
 	 * @param  string $translated
 	 * @param  string $text
 	 * @param  string $context

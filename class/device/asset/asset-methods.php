@@ -43,4 +43,14 @@ trait asset_methods {
 			return $this->$update( $post, $value );
 	}
 
+	/**
+	 * @access public
+	 *
+	 * @param  int|WP_Post $post
+	 * @return array
+	 */
+	public function get_vars( $post ) {
+		return array_merge( get_object_vars( $this ), [ 'value' => $this->get( $post ) ] );
+	}
+
 }

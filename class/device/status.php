@@ -95,7 +95,8 @@ trait status {
 				$labels_def = Status\custom::get_filter_definition();
 			}
 			$arg['labels'] = filter_var_array( $arg['labels'] ?: [], $labels_def, false );
-			$label = $arg['label'] ?: $arg['labels']['name'] ?: null;
+			if ( ! $label = $arg['label'] ?: $arg['labels']['name'] ?: null )
+				$arg = null;
 		endif;
 
 		if ( ! $arg )

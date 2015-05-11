@@ -21,10 +21,6 @@ trait asset_vars {
 		return get_class_vars( __CLASS__ );
 	}
 
-	public function get_vars( $post ) {
-		return array_merge( get_object_vars( $this ), [ 'value' => $this->get( $post ) ] );
-	}
-
 	/**
 	 * Validate & Sanitize vars methods
 	 * - Used as callback for array_walk
