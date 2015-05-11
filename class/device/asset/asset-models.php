@@ -1,35 +1,7 @@
 <?php
 namespace WPDW\Device\Asset;
 
-trait asset_model {
-
-	/**
-	 * @access public
-	 *
-	 * @param  int|WP_Post $post
-	 * @return mized
-	 */
-	public function get( $post ) {
-		if ( ! $post = get_post( $post ) )
-			return;
-		$get = 'get_' . $this->model;
-		if ( method_exists( __CLASS__, $get ) )
-			return $this->$get( $post );
-	}
-
-	/**
-	 * @access public
-	 *
-	 * @param  int|WP_Post $post
-	 * @param  mixed $value
-	 */
-	public function update( $post, $value ) {
-		if ( ! $post = get_post( $post ) )
-			return;
-		$update = 'update_' . $this->model;
-		if ( method_exists( __CLASS__, $update ) )
-			return $this->$update( $post, $value );
-	}
+trait asset_models {
 
 	/**
 	 * Model: post_meta - get
@@ -65,7 +37,7 @@ trait asset_model {
 				foreach ( $old as $del )
 					$this->delete_post_meta( $post, $del );
 		} else {
-			$value = filter_var( $value, \FILTER_CALLBACK, [ 'options' => [ 'callback' => [ $this, 'filter' ] ] ] );
+			$value = filter_var( $value, \FILTER_CALLBACK, [ 'options' => [ $this, 'filter' ] ] );
 			if ( $value !== null )
 				return \update_post_meta( $post->ID, $this->name, $value );
 		}
@@ -81,7 +53,7 @@ trait asset_model {
 	 * @param  boolean $unique Optional
 	 */
 	private function add_post_meta( \WP_Post $post, $value, $unique = false ) {
-		$value = filter_var( $value, \FILTER_CALLBACK, [ 'options' => [ 'callback' => [ $this, 'filter' ] ] ] );
+		$value = filter_var( $value, \FILTER_CALLBACK, [ 'options' => [ $this, 'filter' ] ] );
 		if ( $value !== null )
 			return \add_post_meta( $post->ID, $this->name, $value, $unique );
 	}
@@ -96,6 +68,23 @@ trait asset_model {
 	 */
 	private function delete_post_meta( \WP_Post $post, $value ) {
 		return \delete_post_meta( $post->ID, $this->name, $value );
+	}
+
+	/**
+	 * Model: post_attribute - get
+	 *
+	 * @access private
+	 *
+	 * @param  WP_Post $post
+	 * @param  mixed $value
+	 */
+	private function get_post_attribute( \WP_Post $post ) {
+		if ( property_exists( $post, $this->name ) )
+			$return = $post->{$this->name};
+		if ( 'menu_order' === $this->name )
+			return (int) $return;
+		if ( 'post_parent' === $this->name )
+			return $return ? get_post( $return ) : null;
 	}
 
 }

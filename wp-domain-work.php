@@ -13,6 +13,7 @@ Domain Path: /languages
 
 define( 'WPDW_PLUGIN_FILE', __FILE__ );
 define( 'WPDW_PLUGIN_DIR', dirname( WPDW_PLUGIN_FILE ) );
+define( 'WPDW_PLUGIN_URL', plugins_url( '', __FILE__ ) );
 
 // Version requirement
 require_once dirname( __FILE__ ) . '/inc/version.php';

@@ -13,13 +13,9 @@ class template {
 
 	/**
 	 * Form elements id prefix
-	 */
-	const FORM_ID_PREFIX = 'wp-domain-work-form-';
-
-	/**
 	 * @var string
 	 */
-	private $context;
+	private $form_id_prefix = 'wp-domain-work-form-';
 
 	/**
 	 * @var WPDW\WP\nonce
@@ -35,7 +31,7 @@ class template {
 	public function __construct( $domain ) {
 		if ( ! is_string( $domain ) || ! $domain )
 			return;
-		$this->context = $domain;
+		$this->form_id_prefix .= $domain . '-';
 		/**
 		 * Nonce gen
 		 * - $domain must be the same as when saving
@@ -72,18 +68,20 @@ class template {
 	}
 
 	/**
+	 * Generate DOM array method
+	 *
 	 * @access private
 	 *
 	 * @param  array $args {
-	 *
+	 *     //
 	 * }
+	 * @return array
 	 */
 	private function generate_dom_array( Array $args ) {
 
 		static $name = '';
 		static $id   = '';
 		static $table  = [];
-		static $inline = [];
 
 		/**
 		 * @var string
@@ -97,6 +95,7 @@ class template {
 		$return = [];
 
 		if ( array_key_exists( 'assets', $args ) ) {
+
 			if ( $type === 'group' && empty( $table ) ) {
 				$table = [
 					'element' => 'table',
@@ -106,24 +105,25 @@ class template {
 					]
 				];
 				$tr_wrapper =& $table['children'][0]['children'];
+
 				foreach ( $args['assets'] as $child_args ) {
-					$id = self::FORM_ID_PREFIX . $this->context . '-' . $child_args['name'];
+					$id = $this->form_id_prefix . $child_args['name'];
 					$label = $child_args['label'] ?: ucwords( str_replace( '_', ' ', $child_args['name'] ) );
 					if ( $child_dom = $this->generate_dom_array( $child_args ) ) {
 						$tr_wrapper[] = [
-							'element' => 'tr',
+							'element'  => 'tr',
 							'children' => [
 								[
-									'element' => 'th',
+									'element'  => 'th',
 									'children' => [
 										[
-											'element' => 'label',
+											'element'   => 'label',
 											'attribute' => [ 'for' => esc_attr( $id ) ],
-											'text' => esc_html( $label )
+											'text'      => esc_html( $label )
 										]
 									]
 								], [
-									'element' => 'td',
+									'element'  => 'td',
 									'children' => $child_dom
 								]
 							]
@@ -131,45 +131,81 @@ class template {
 					}
 					$name = $id = ''; // init vars
 				}
+
 				if ( ! empty( $tr_wrapper ) ) {
 					$return[] = $table;
 				}
-				$table = []; // init vars
-			#} else if ( $type === 'set' ) {
-				//
+				$table = [];
 			}
+
 		} else {
+
 			$name = $name ?: $args['name'];
-			$id = $id ?: self::FORM_ID_PREFIX . $this->context . '-' . $name;
+			$id = $id ?: $this->form_id_prefix . $name;
 
-			$dom = [ 'element' => '', 'attribute' => [] ];
-			$attr =& $dom['attribute'];
-			if ( in_array( $type, [ 'string', 'integer', 'date', 'time', 'datetime' ] ) ) {
-				$dom['element'] = 'input';
-				$attr['id'] = esc_attr( $id );
-				$attr['name'] = esc_attr( $name );
-				if ( in_array( $type, [ 'string', 'integer'] ) ) {
-					if ( array_key_exists( 'value', $args ) ) {
-						$attr['value'] = esc_attr( $args['value'] );
-					}
-					if ( $type === 'string' ) {
-						$attr['type'] = 'text';
-						$attr['class'] = 'regular-text';
-						$attr['placeholder'] = esc_html( $args['label'] );
-					} else if ( $type === 'integer' ) {
-						$attr['type']  = 'number';
-						$attr['class'] = 'small-text';
-					}
-				}
-			}
+			$method = $type . '_dom_array';
+			$dom = method_exists( __CLASS__, $method ) ? $this->$method( $id, $name, $args ) : [];
+			if ( $args['readonly'] )
+				$dom['attribute']['readonly'] = 'readonly';
 
-			/**
-			 *
-			 */
 			$return[] = $dom;
 			$this->nonce_dom_array( $return, $args['name'] );
+
 		}
 		return $return;
+	}
+
+	/**
+	 * Type: string - Generate DOM array method
+	 *
+	 * @access private
+	 *
+	 * @param  string $id
+	 * @param  string $name
+	 * @param  array  $args
+	 * @return array
+	 */
+	private function string_dom_array( $id, $name, Array $args ) {
+		$attr = [
+			'type'  => 'text',
+			'id'    => esc_attr( $id ),
+			'name'  => esc_attr( $name ),
+			'class' => 'regular-text',
+		];
+
+		if ( isset( $args['value'] ) )
+			$attr['value'] = esc_attr( $args['value'] );
+		if ( $args['max_len'] ) {
+			$attr['maxlength'] = esc_attr( $args['max_len'] );
+		}
+		return [ 'element' => 'input', 'attribute' => $attr ];
+	}
+
+	/**
+	 * Type: integer - Generate DOM array method
+	 *
+	 * @access private
+	 *
+	 * @param  string $id
+	 * @param  string $name
+	 * @param  array  $args
+	 * @return array
+	 */
+	private function integer_dom_array( $id, $name, Array $args ) {
+		$attr = [
+			'type' => 'number',
+			'id'   => esc_attr( $id ),
+			'name' => esc_attr( $name ),
+		];
+
+		if ( isset( $args['value'] ) )
+			$attr['value'] = esc_attr( $args['value'] );
+		if ( isset( $args['min'] ) )
+			$attr['min'] = esc_attr( $args['min'] );
+		if ( isset( $args['max'] ) )
+			$attr['max'] = esc_attr( $args['max'] );
+		//$attr['class'] = 'small-text';
+		return [ 'element' => 'input', 'attribute' => $attr ];
 	}
 
 	/**

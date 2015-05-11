@@ -1,0 +1,46 @@
+@charset utf8;
+
+/**
+ * table style in meta box
+ */
+#side-sortables .form-table {
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+}
+#side-sortables .form-table td,
+#side-sortables .form-table th {
+  display: block;
+  width: auto;
+  vertical-align: middle;
+}
+#side-sortables .form-table span.description {
+  padding: 4px 0 0;
+  line-height: 1.4em
+}
+#side-sortables .form-table th {
+  padding-top: 10px;
+  padding-bottom: 0;
+  border-bottom: 0
+}
+#side-sortables .form-table td {
+  padding-top: 8px;
+  padding-left: 0
+}
+#side-sortables .form-table input.regular-text {
+  width: 100%
+}
+#side-sortables .form-table label {
+  font-size: 14px
+}
+#side-sortables .form-table fieldset label {
+  display: block
+}
+
+/**
+ * form parts
+ * @see Class: WPDW\Device\Admin\template::$form_id_prefix
+ */
+[id^="wp-domain-work-form-"] {
+  max-width: 100%;
+}

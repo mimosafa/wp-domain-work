@@ -43,7 +43,7 @@ class Domains {
 				$this->init_post_type( $args );
 			else if ( array_key_exists( 'taxonomy', $args ) )
 				$this->init_taxonomy( $args );
-			# else if ( array_key_exists( 'endpoin', $args ) )
+			# else if ( array_key_exists( 'endpoint', $args ) )
 			# 	$this->init_endpoint( $args );
 			$this->init_class_loader( $domain, $args['files'] );
 		}
@@ -60,6 +60,7 @@ class Domains {
 			Options::update_domains_all( $domains_all );
 		if ( $domains_alias = $dd->domains_alias )
 			Options::update_domains_alias( $domains_alias );
+		add_action( 'wp_loaded', 'flush_rewrite_rules' );
 	}
 
 	/**
@@ -133,6 +134,95 @@ class Domains {
 	 */
 	public static function add_path_prefix( $path ) {
 		return \WP_CONTENT_DIR . $path;
+	}
+
+}
+
+/**
+ * Domain utility class
+ *
+ * - Wrapper functions is defined
+ * @see  wp-domain-work/inc/functions.php
+ *
+ * @uses WPDW\Util\Singleton
+ * @uses WPDW\Options
+ */
+class Domain {
+	use Util\Singleton;
+
+	/**
+	 * @var array
+	 */
+	private $domain_alias;
+	private $alias_domain;
+
+	/**
+	 * Constructor
+	 *
+	 * @access protected
+	 *
+	 * @uses   WPDW\Options
+	 * @return (void)
+	 */
+	protected function __construct() {
+		$this->alias_domain = Options::get_domains_alias() ?: [];
+		$this->domain_alias = $this->alias_domain ? array_flip( $this->alias_domain ) : [];
+	}
+
+	/**
+	 * Find whether the string is 'domain'
+	 *
+	 * @access public
+	 *
+	 * @param  string $domain
+	 * @return boolean
+	 */
+	public static function _is_domain( $domain ) {
+		$self = self::getInstance();
+		if ( ! $domain = filter_var( $domain ) )
+			return false;
+		return in_array( $domain, $self->alias_domain, true );
+	}
+
+	/**
+	 * Find whether the post_type|taxonomy name is 'domain'
+	 *
+	 * @access public
+	 *
+	 * @param  string $alias Post type OR taxonomy name
+	 * @return boolean
+	 */
+	public static function _is_alias( $alias ) {
+		$self = self::getInstance();
+		if ( ! $alias = filter_var( $alias ) )
+			return false;
+		return in_array( $alias, $self->domain_alias, true );
+	}
+
+	/**
+	 * Get post_type|taxonomy name from domain name
+	 *
+	 * @access public
+	 *
+	 * @param  string $domain
+	 * @return string If supplied string is not domain, return empty string
+	 */
+	public static function _alias( $domain ) {
+		$self = self::getInstance();
+		return $self->_is_domain( $domain ) ? $self->domain_alias[$domain] : '';
+	}
+
+	/**
+	 * Get domain name from post_type|taxonomy name
+	 *
+	 * @access public
+	 *
+	 * @param  string $alias
+	 * @return string If supplied string is not domain alias, return empty string
+	 */
+	public static function _domain( $alias ) {
+		$self = self::getInstance();
+		return $self->_is_alias( $alias ) ? $self->alias_domain[$alias] : '';
 	}
 
 }

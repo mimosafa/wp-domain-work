@@ -10,6 +10,7 @@ trait asset_vars {
 
 	private $multiple = false;
 	private $required = false;
+	private $readonly = false;
 
 	/**
 	 * Get default arguments for class construction.
@@ -18,10 +19,6 @@ trait asset_vars {
 	 */
 	public static function get_defaults() {
 		return get_class_vars( __CLASS__ );
-	}
-
-	public function get_vars( $post ) {
-		return array_merge( get_object_vars( $this ), [ 'value' => $this->get( $post ) ] );
 	}
 
 	/**
@@ -43,12 +40,12 @@ trait asset_vars {
 			$arg = self::sanitize_string( $arg );
 		elseif ( $key === 'description' ) :
 			$arg = self::sanitize_string( $arg );
-		elseif ( in_array( $key, [ 'multiple', 'required' ], true ) ) :
+		elseif ( in_array( $key, [ 'multiple', 'required', 'readonly' ], true ) ) :
 			$arg = self::validate_boolean( $arg, false );
 		elseif ( $key === 'model' ) :
 			$method = 'get_' . $arg;
 			$arg = method_exists( __CLASS__, $method ) ? $arg : null;
-		elseif ( ! in_array( $key, [ 'type', 'model' ], true ) ) :
+		elseif ( $key !== 'type' ) :
 			$arg = null;
 		endif;
 	}
