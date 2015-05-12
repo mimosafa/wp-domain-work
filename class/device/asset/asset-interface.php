@@ -3,6 +3,8 @@ namespace WPDW\Device\Asset;
 
 interface asset_interface {
 
+	// private $model;
+
 	/**
 	 * @access public
 	 *
@@ -35,4 +37,19 @@ interface asset_interface {
 	public function get( $post );
 	public function update( $post, $value );
 	public function get_vars( $post );
+
+	/**
+	 * Return value for printing in list table column
+	 *
+	 * @access public
+	 *
+	 * - Hooked on '_wpdw_{$name}_column'
+	 * @see  WPDW\Device\Admin\posts_column::column_callback()
+	 *
+	 * @param  mixed $value
+	 * @param  int   $post_id
+	 * @return string
+	 */
+	public function print_column( $value, $post_id );
+
 }

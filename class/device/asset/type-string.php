@@ -49,4 +49,19 @@ class type_string implements asset_interface {
 		return $var;
 	}
 
+	/**
+	 * Print value in list table column - Hooked on '_wpdw_{$name}_column'
+	 *
+	 * @access public
+	 *
+	 * @see    WPDW\Device\Admin\posts_column::column_callback()
+	 *
+	 * @param  mixed $value
+	 * @param  int   $post_id
+	 * @return string
+	 */
+	public function print_column( $value, $post_id ) {
+		return esc_html( $value );
+	}
+
 }

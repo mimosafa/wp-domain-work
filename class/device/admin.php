@@ -118,6 +118,17 @@ trait admin {
 						$metabox->add( $args );
 				}
 			}
+			if ( $this->isDefined( 'edit_forms' ) ) {
+				/**
+				 * Edit forms
+				 * @uses  WPDW\Device\Admin\edit_form_advanced
+				 */
+				$editForm = new Admin\edit_form_advanced( $this->domain );
+				foreach ( $this->edit_forms as $edit_form_args ) {
+					if ( $args = $this->edit_form_arguments( $edit_form_args ) )
+						$editForm->add( $args );
+				}
+			}
 			if ( $this->is( 'attribute_meta_box' ) ) {
 				/**
 				 * Attribute meta box
@@ -164,6 +175,13 @@ trait admin {
 			return $args;
 		else
 			return null;
+	}
+
+	/**
+	 * @access private
+	 */
+	private function edit_form_arguments( Array $args ) {
+		//
 	}
 
 	/**
@@ -214,10 +232,10 @@ trait admin {
 					return is_callable( $var ) ? $var : null;
 				};
 				$common = [
-					'id' => [ 'filter' => \FILTER_VALIDATE_REGEXP, 'options' => [ 'regexp' => '/\A[a-z][a-z0-9_\-]+\z/', 'default' => null ] ],
+					'id'    => [ 'filter' => \FILTER_VALIDATE_REGEXP, 'options' => [ 'regexp' => '/\A[a-z][a-z0-9_\-]+\z/', 'default' => null ] ],
 					'title' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
 					'callback' => [ 'filter' => \FILTER_CALLBACK, 'options' => $callbackVar ],
-					'asset' => [ 'filter' => \FILTER_CALLBACK, 'options' => $assetVar ],
+					'asset'    => [ 'filter' => \FILTER_CALLBACK, 'options' => $assetVar ],
 					'description' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
 				];
 			}
@@ -242,6 +260,21 @@ trait admin {
 				$metabox['priority'] = [ 'filter' => \FILTER_CALLBACK, 'options' => $priorityVar ];
 			}
 			return $metabox;
+		} else if ( $context === 'edit_form' ) {
+			/**
+			 * Filter definition for (direct) edit form arguments
+			 * @var array
+			 */
+			static $editForm;
+			if ( ! $editForm ) {
+				$editForm = $this->get_filter_definition();
+				// context
+				$contextVar = function( $var ) {
+					return in_array( $var, [ 'top', 'before_permalink', 'after_title', 'after_editor' ], true ) ? $var : null;
+				};
+				$editForm['context'] = [ 'filter' => \FILTER_CALLBACK, 'options' => $contextVar ];
+			}
+			return $editForm;
 		}
 	}
 

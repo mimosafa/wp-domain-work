@@ -35,10 +35,17 @@ trait property {
 	 * @var array
 	 */
 	private static $_defaults = [
-		'menu_order' => [ 'type' => 'integer', 'model' => 'post_attribute', 'min' => 0, 'multiple' => false, ],
+		// Asset name
+		'menu_order'  => [ 'type' => 'integer', 'model' => 'post_attribute', 'multiple' => false, 'min' => 0, ],
+		'post_parent' => [ 'type' => 'post',    'model' => 'post_attribute', 'multiple' => false, ],
+		// Model
+		'post_children' => [ 'type' => 'post', ],
 	];
 	private static $_options = [
+		// Asset name
 		'menu_order' => [ 'label' => 'Order' ],
+		// Model
+		'post_children' => [ 'multiple' => true, ],
 	];
 
 	/**
@@ -67,7 +74,11 @@ trait property {
 			$args = is_array( $args ) ? $args : [];
 			if ( array_key_exists( $asset, self::$_options ) )
 				$args = array_merge( self::$_options[$asset], $args );
-			$args = array_merge( $args, self::$_defaults[$asset ] );
+			$args = array_merge( $args, self::$_defaults[$asset] );
+		elseif ( is_array( $args ) && isset( $args['model'] ) && array_key_exists( $args['model'], self::$_defaults ) ) :
+			if ( array_key_exists( $args['model'], self::$_options ) )
+				$args = array_merge( self::$_options[$args['model']], $args );
+			$args = array_merge( $args, self::$_defaults[$args['model']] );
 		endif;
 
 		if ( ! $args )

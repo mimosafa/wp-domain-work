@@ -19,7 +19,7 @@ trait asset_methods {
 	 * @access public
 	 *
 	 * @param  int|WP_Post $post
-	 * @return mized
+	 * @return mixed
 	 */
 	public function get( $post ) {
 		if ( ! $post = get_post( $post ) )

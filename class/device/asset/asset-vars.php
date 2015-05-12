@@ -3,14 +3,25 @@ namespace WPDW\Device\Asset;
 
 trait asset_vars {
 
-	private $type;
-	private $name;
-	private $label;
-	private $description;
+	/**
+	 * @var string
+	 */
+	protected $type;
+	protected $name;
+	protected $label;
+	protected $description;
 
-	private $multiple = false;
-	private $required = false;
-	private $readonly = false;
+	/**
+	 * @var boolean
+	 */
+	protected $multiple = false;
+	protected $required = false;
+	protected $readonly = false;
+
+	/**
+	 * @var string
+	 */
+	protected $glue = ', ';
 
 	/**
 	 * Get default arguments for class construction.
@@ -31,14 +42,12 @@ trait asset_vars {
 
 	/**
 	 * Commmon in some types
-	 * @access private
+	 * @access protected
 	 */
-	private static function common_arguments( &$arg, $key, $asset ) {
+	protected static function common_arguments( &$arg, $key, $asset ) {
 		if ( $key === 'name' ) :
 			$arg = $asset;
-		elseif ( $key === 'label' ) :
-			$arg = self::sanitize_string( $arg );
-		elseif ( $key === 'description' ) :
+		elseif ( in_array( $key, [ 'label', 'description', 'glue' ], true ) ) :
 			$arg = self::sanitize_string( $arg );
 		elseif ( in_array( $key, [ 'multiple', 'required', 'readonly' ], true ) ) :
 			$arg = self::validate_boolean( $arg, false );
@@ -52,24 +61,24 @@ trait asset_vars {
 
 	/**
 	 * Sanitize string
-	 * @access private
+	 * @access protected
 	 * @param  string $string
 	 * @return string
 	 */
-	private static function sanitize_string( $string ) {
+	protected static function sanitize_string( $string ) {
 		return (string) filter_var( $string, \FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 	}
 
 	/**
 	 * Validate integer
-	 * @access private
+	 * @access protected
 	 * @param  integer $int
 	 * @param  integer $default Optional
 	 * @param  integer $min     Optional
 	 * @param  integer $max     Optional
 	 * @return integer
 	 */
-	private static function validate_integer( $int, $default = null, $min = null, $max = null ) {
+	protected static function validate_integer( $int, $default = null, $min = null, $max = null ) {
 		$options = [ 'options' => [ 'default' => null ] ];
 		if ( isset( $default ) && is_int( $default ) )
 			$options['options']['default'] = (int) $default;
@@ -82,12 +91,12 @@ trait asset_vars {
 
 	/**
 	 * Validate boolean
-	 * @access private
+	 * @access protected
 	 * @param  boolean $bool
 	 * @param  boolean $default
 	 * @return boolean
 	 */
-	private static function validate_boolean( $bool, $default = false ) {
+	protected static function validate_boolean( $bool, $default = false ) {
 		return filter_var( $bool, \FILTER_VALIDATE_BOOLEAN, [ 'options' => [ 'default' => $default ] ] );
 	}
 

@@ -4,9 +4,16 @@ namespace WPDW\Device\Asset;
 class type_integer implements asset_interface {
 	use asset_methods, asset_vars, asset_models;
 
-	private $model = 'post_meta';
-	private $min = null;
-	private $max = null;
+	/**
+	 * @var string
+	 */
+	protected $model = 'post_meta';
+
+	/**
+	 * @var int|null
+	 */
+	protected $min = null;
+	protected $max = null;
 
 	/**
 	 * @see WPDW\Device\property::prepare_assets()
@@ -38,6 +45,21 @@ class type_integer implements asset_interface {
 			unset( $options['max_range'] );
 		}
 		return filter_var( $var, \FILTER_VALIDATE_INT, [ 'options' => $options ] );
+	}
+
+	/**
+	 * Print value in list table column - Hooked on '_wpdw_{$name}_column'
+	 *
+	 * @access public
+	 *
+	 * @see    WPDW\Device\Admin\posts_column::column_callback()
+	 *
+	 * @param  mixed $value
+	 * @param  int   $post_id
+	 * @return string
+	 */
+	public function print_column( $value, $post_id ) {
+		return esc_html( $value );
 	}
 
 }

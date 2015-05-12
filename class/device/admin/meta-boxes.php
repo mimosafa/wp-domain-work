@@ -23,8 +23,6 @@ class meta_boxes {
 	 */
 	private $template;
 
-	// private $save_post = [];
-
 	/**
 	 * Default arguments, also function as array sorter.
 	 * @var array
@@ -41,7 +39,7 @@ class meta_boxes {
 	/**
 	 * Constructor
 	 *
-	 * @access protected
+	 * @access public
 	 *
 	 * @uses   WPDW\_property_object()
 	 * @see    wp-domain-work/inc/functions.php

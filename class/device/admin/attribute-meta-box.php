@@ -99,8 +99,7 @@ class attribute_meta_box {
 		if ( in_array( 'post_parent', $this->attributes, true ) )
 			$this->post_parent_form( $post );
 
-		if ( count( $this->attributes ) == 2 )
-			do_action( self::ACTION_PREFIX . '_middle', $post );
+		do_action( self::ACTION_PREFIX . '_middle', $post );
 
 		if ( in_array( 'menu_order', $this->attributes, true ) )
 			$this->menu_order_form( $post );

@@ -6,24 +6,24 @@ trait asset_models {
 	/**
 	 * Model: post_meta - get
 	 *
-	 * @access private
+	 * @access protected
 	 *
 	 * @param  WP_Post $post
 	 * @return mixed
 	 */
-	private function get_post_meta( \WP_Post $post ) {
+	protected function get_post_meta( \WP_Post $post ) {
 		return \get_post_meta( $post->ID, $this->name, ! $this->multiple );
 	}
 
 	/**
 	 * Model: post_meta - update
 	 *
-	 * @access private
+	 * @access protected
 	 *
 	 * @param  WP_Post $post
 	 * @param  mixed $value
 	 */
-	private function update_post_meta( \WP_Post $post, $value ) {
+	protected function update_post_meta( \WP_Post $post, $value ) {
 		if ( is_array( $value ) ) {
 			if ( ! $this->multiple )
 				return;
@@ -46,13 +46,13 @@ trait asset_models {
 	/**
 	 * Model: post_meta - add
 	 *
-	 * @access private
+	 * @access protected
 	 *
 	 * @param  WP_Post $post
 	 * @param  mixed $value
 	 * @param  boolean $unique Optional
 	 */
-	private function add_post_meta( \WP_Post $post, $value, $unique = false ) {
+	protected function add_post_meta( \WP_Post $post, $value, $unique = false ) {
 		$value = filter_var( $value, \FILTER_CALLBACK, [ 'options' => [ $this, 'filter' ] ] );
 		if ( $value !== null )
 			return \add_post_meta( $post->ID, $this->name, $value, $unique );
@@ -61,30 +61,58 @@ trait asset_models {
 	/**
 	 * Model: post_meta - delete
 	 *
-	 * @access private
+	 * @access protected
 	 *
 	 * @param  WP_Post $post
 	 * @param  mixed $value
 	 */
-	private function delete_post_meta( \WP_Post $post, $value ) {
+	protected function delete_post_meta( \WP_Post $post, $value ) {
 		return \delete_post_meta( $post->ID, $this->name, $value );
 	}
 
 	/**
 	 * Model: post_attribute - get
 	 *
-	 * @access private
+	 * @access protected
 	 *
 	 * @param  WP_Post $post
 	 * @param  mixed $value
 	 */
-	private function get_post_attribute( \WP_Post $post ) {
+	protected function get_post_attribute( \WP_Post $post ) {
 		if ( property_exists( $post, $this->name ) )
 			$return = $post->{$this->name};
 		if ( 'menu_order' === $this->name )
 			return (int) $return;
 		if ( 'post_parent' === $this->name )
 			return $return ? get_post( $return ) : null;
+	}
+
+	/**
+	 * Model: post_attribute - update
+	 *
+	 * @access protected
+	 *
+	 * @param  WP_Post $post
+	 * @param  mixed $value
+	 */
+	protected function update_post_attribute( \WP_Post $post, $value ) {
+		// ..yet
+	}
+
+	/**
+	 * Model: post_children - get
+	 *
+	 * @access protected
+	 *
+	 * @param  WP_Post $post
+	 * @param  mixed $value
+	 */
+	protected function get_post_children( \WP_Post $post ) {
+		$args = [ 'post_parent' => $post->ID ];
+		if ( $this->post_type )
+			$args['post_type'] = $this->post_type;
+		//
+		return get_posts( $args );
 	}
 
 }

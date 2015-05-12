@@ -123,13 +123,26 @@ class posts_columns {
 	/**
 	 * @access public
 	 *
+	 * @uses WPDW\Device\Asset\type_{$type}
+	 *
 	 * @param  string $column_name
 	 * @param  int    $post_id
 	 * @return (void)
 	 */
 	public function column_callback( $column_name, $post_id ) {
-		$data = $this->property->$column_name;
-		echo esc_html( $data->get( $post_id ) );
+		static $done = [];
+		$data =& $this->property->$column_name;
+		if ( ! in_array( $column_name, $done, true ) ) {
+			/**
+			 * Add filter for printing in column only once
+			 *
+			 * @uses WPDW\Device\Asset\type_{$type}::print_column()
+			 */
+			add_filter( '_wpdw_' . $column_name . '_column', [ $data, 'print_column' ], 10, 2 );
+			$done[] = $column_name;
+		}
+		$value = $data->get( $post_id );
+		echo apply_filters( '_wpdw_' . $column_name . '_column', $value, $post_id );
 	}
 
 	/**
