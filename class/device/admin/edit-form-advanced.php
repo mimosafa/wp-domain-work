@@ -28,9 +28,9 @@ class edit_form_advanced {
 	 * @var array
 	 */
 	private static $_defaults = [
-		/**
-		 * Yet!
-		 */
+		'id'       => null,
+		'title'    => null,
+		'callback' => null,
 		'context'  => 'after_editor',
 	];
 
@@ -57,7 +57,12 @@ class edit_form_advanced {
 	 * @access public
 	 */
 	public function add( Array $args ) {
-		//
+		#_var_dump( $args );
 	}
+
+	/**
+	 * @access public
+	 */
+	public function print_html() {} 
 
 }

@@ -114,7 +114,7 @@ trait admin {
 				 */
 				$metabox = new Admin\meta_boxes( $this->domain );
 				foreach ( $this->meta_boxes as $meta_box_args ) {
-					if ( $args = $this->meta_box_arguments( $meta_box_args ) )
+					if ( $args = $this->_pt_arguments( 'meta_box', $meta_box_args ) )
 						$metabox->add( $args );
 				}
 			}
@@ -125,7 +125,7 @@ trait admin {
 				 */
 				$editForm = new Admin\edit_form_advanced( $this->domain );
 				foreach ( $this->edit_forms as $edit_form_args ) {
-					if ( $args = $this->edit_form_arguments( $edit_form_args ) )
+					if ( $args = $this->_pt_arguments( 'edit_form', $edit_form_args ) )
 						$editForm->add( $args );
 				}
 			}
@@ -153,11 +153,11 @@ trait admin {
 	 * @param  array $args
 	 * @return array
 	 */
-	private function meta_box_arguments( Array $args ) {
-		$args = filter_var_array( $args, $this->get_filter_definition( 'meta_box' ), false );
-		if ( array_key_exists( 'asset', $args ) ) {
+	private function _pt_arguments( $context, Array $args ) {
+		$args = filter_var_array( $args, $this->get_filter_definition( $context ) );
+		if ( $args['asset'] ) {
 			$assets = is_array( $args['asset'] ) ? array_filter( self::array_flatten( $args['asset'], true ) ) : (array) $args['asset'];
-			if ( ! array_key_exists( 'title', $args ) ) {
+			if ( ! $args['title'] ) {
 				$args['title'] = implode(
 					' / ',
 					array_map( function( $asset ) {
@@ -175,13 +175,6 @@ trait admin {
 			return $args;
 		else
 			return null;
-	}
-
-	/**
-	 * @access private
-	 */
-	private function edit_form_arguments( Array $args ) {
-		//
 	}
 
 	/**
