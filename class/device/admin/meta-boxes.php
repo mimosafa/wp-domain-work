@@ -133,7 +133,7 @@ class meta_boxes extends post {
 		if ( array_key_exists( 'description', $metabox['args'] ) )
 			$args = array_merge( $args, [ 'description' => $metabox['args']['description'] ] );
 
-		$this->template->output( $args );
+		self::$template->output( $args );
 	}
 
 }

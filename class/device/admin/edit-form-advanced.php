@@ -123,7 +123,7 @@ class edit_form_advanced extends post {
 			$args = array_merge( $args, [ 'description' => $array['args']['description'] ] );
 
 		echo "\t<h3>{$array['title']}</h3>";
-		$this->template->output( $args );
+		self::$template->output( $args );
 	}
 
 }

@@ -24,7 +24,7 @@ trait property {
 		'_wp_attached_file', '_wp_page_template', '_wp_attachment_metadata',
 		
 		// Class reserved words (existing property name )
-		'_data', '_excluded', '_required', '_default',
+		'assets', '_data', '_excluded', '_required', '_default',
 	];
 
 	/**
@@ -84,7 +84,7 @@ trait property {
 			array_walk( $this->assets, [ &$this, 'prepare_assets' ] );
 			$this->assets = array_filter( $this->assets );
 		}
-		_var_dump( $this );
+		#_var_dump( $this );
 	}
 
 	/**

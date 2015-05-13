@@ -17,7 +17,7 @@ abstract class post {
 	/**
 	 * @var WPDW\Device\Admin\template
 	 */
-	protected $template;
+	protected static $template;
 
 	/**
 	 * @var array
@@ -38,7 +38,8 @@ abstract class post {
 		if ( ! $domain = filter_var( $domain ) )
 			return;
 		$this->property = \WPDW\_property_object( $domain );
-		$this->template = new template( $domain );
+		if ( ! self::$template )
+			self::$template = new template( $domain );
 
 		static $done = false;
 		if ( ! $done ) {

@@ -29,7 +29,7 @@ class template {
 	 * @return (void)
 	 */
 	public function __construct( $domain ) {
-		if ( ! is_string( $domain ) || ! $domain )
+		if ( ! $domain = filter_var( $domain ) )
 			return;
 		$this->form_id_prefix .= $domain . '-';
 		/**
