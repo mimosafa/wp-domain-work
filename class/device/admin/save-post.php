@@ -16,6 +16,13 @@ class save_post {
 	private $nonce;
 
 	/**
+	 * @var array
+	 */
+	private static $default_forms = [
+		'post_title', 'post_name', 'menu_order', // ...and more
+	];
+
+	/**
 	 * Constructor
 	 *
 	 * @access protected
@@ -49,7 +56,9 @@ class save_post {
 		if ( ! $settings = $this->property->get_setting() )
 			return $post_id;
 
-		foreach ( $settings as $key => $arg ) {
+		foreach ( array_keys( $settings ) as $key ) {
+			if ( in_array( $key, self::$default_forms, true ) )
+				continue;
 			$nonce = $this->nonce->get_nonce( $key );
 			if ( ! array_key_exists( $nonce, $_POST ) )
 				continue;

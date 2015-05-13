@@ -108,6 +108,7 @@ class template {
 
 				foreach ( $args['assets'] as $child_args ) {
 					$id = $this->form_id_prefix . $child_args['name'];
+					$_id = $id;
 					$label = $child_args['label'] ?: ucwords( str_replace( '_', ' ', $child_args['name'] ) );
 					if ( $child_dom = $this->generate_dom_array( $child_args ) ) {
 						$tr_wrapper[] = [
@@ -118,7 +119,7 @@ class template {
 									'children' => [
 										[
 											'element'   => 'label',
-											'attribute' => [ 'for' => esc_attr( $id ) ],
+											'attribute' => [ 'for' => esc_attr( $_id ) ],
 											'text'      => esc_html( $label )
 										]
 									]
@@ -152,6 +153,23 @@ class template {
 			$this->nonce_dom_array( $return, $args['name'] );
 
 		}
+
+		if ( $type !== 'group' )
+			$id = $name = '';
+
+		if ( array_key_exists( 'description', $args ) && $args['description'] ) {
+			$desc = [
+				'element' => 'p',
+				'text'    => esc_html( $args['description'] ),
+			];
+			if ( 'group' === $type ) {
+				array_unshift( $return, $desc );
+			} else {
+				$desc['attribute'] = [ 'class' => 'description' ];
+				$return[] = $desc;
+			}
+		}
+
 		return $return;
 	}
 

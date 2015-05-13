@@ -38,9 +38,29 @@
 }
 
 /**
- * form parts
+ * Form parts
  * @see Class: WPDW\Device\Admin\template::$form_id_prefix
  */
 [id^="wp-domain-work-form-"] {
   max-width: 100%;
+}
+/**
+ * @see Class: WPDW\Device\Admin\edit-form-advanced
+ */
+[id^="wpdw-div-"] {
+  margin-bottom: 20px;
+  padding: 0 .25em;
+}
+#postdivrich + [id^="wpdw-div-"] {
+  padding-top: 1em;
+}
+#titlediv > [id^="wpdw-div-"] {
+  margin-bottom: 10px;
+}
+#post > [id^="wpdw-div-"] > h3,
+#post-body-content [id^="wpdw-div-"] > h3 {
+  color: #23282d;
+  font-size: 16px;
+  padding: 0;
+  margin: 1em 0 .25em;
 }

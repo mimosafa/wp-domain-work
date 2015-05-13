@@ -1,7 +1,7 @@
 <?php
 namespace WPDW\Device\Admin;
 
-class meta_boxes {
+class meta_boxes extends post {
 
 	/**
 	 * Meta box id prefix
@@ -12,16 +12,6 @@ class meta_boxes {
 	 * @var array
 	 */
 	private $meta_boxes = [];
-
-	/**
-	 * @var  WP_Domain\{$domain}\property
-	 */
-	private $property;
-
-	/**
-	 * @var WPDW\Device\Admin\template
-	 */
-	private $template;
 
 	/**
 	 * Default arguments, also function as array sorter.
@@ -47,14 +37,8 @@ class meta_boxes {
 	 * @param  string $domain
 	 */
 	public function __construct( $domain ) {
-		if ( ! $domain = filter_var( $domain ) )
-			return;
-		// property instance
-		$this->property = \WPDW\_property_object( $domain );
-		// template instance
-		$this->template = new template( $domain );
-
-		self::$_defaults['callback'] = [ &$this, 'print_html' ];
+		parent::__construct( $domain );
+		self::$_defaults['callback'] = [ &$this, 'meta_box' ];
 		add_action( 'add_meta_boxes', [ &$this, 'add_meta_boxes' ] );
 	}
 
@@ -75,6 +59,8 @@ class meta_boxes {
 	 * @return (void)
 	 */
 	public function add( Array $args ) {
+		if ( ! $args = $this->prepare_arguments( 'meta_box', $args ) )
+			return;
 		$args = array_merge( self::$_defaults, $args );
 		if ( ! $args['id'] )
 			$args['id'] = implode( '-', (array) $args['asset'] );
@@ -128,7 +114,7 @@ class meta_boxes {
 	 * }
 	 * @return (void)
 	 */
-	public function print_html( $post, $metabox ) {
+	public function meta_box( $post, $metabox ) {
 		if ( ! $this->property )
 			return;
 

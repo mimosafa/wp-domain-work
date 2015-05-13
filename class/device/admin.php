@@ -4,12 +4,10 @@ namespace WPDW\Device;
 /**
  * @uses   WPDW\Device\Module\Methods::is()
  * @uses   WPDW\Device\Module\Methods::isDefined()
- * @uses   WPDW\Util\Array_Function::array_flatten()
  * @global $pagenow
  */
 trait admin {
 	use \WPDW\Util\Singleton, Module\Methods;
-	use \WPDW\Util\Array_Function;
 
 	/**
 	 * @var string
@@ -22,11 +20,6 @@ trait admin {
 	private $property;
 
 	/**
-	 * @var array
-	 */
-	private $done_assets = [];
-
-	/**
 	 * Constructor
 	 *
 	 * @access private
@@ -34,12 +27,6 @@ trait admin {
 	 * @uses   WPDW\_property_object()
 	 * @see    wp-domain-work/inc/functions.php
 	 *
-	 * @param  array $args {
-	 *     @see  WPDW\Router
-	 *     
-	 *     @type string $domain
-	 *     ..
-	 * }
 	 * @return  (void)
 	 */
 	private function __construct() {
@@ -65,16 +52,12 @@ trait admin {
 			if ( $statusInstance = \WPDW\_status_object( $this->domain ) )
 				/**
 				 * Post statuses
+				 * @uses WP_Domain\{$domain}\status::init()
+				 * @see  WPDW\Device\status::init()
 				 */
 				$statusInstance->init();
 
 			$this->init_post_type( $pagenow );
-
-			if ( $this->done_assets && $pagenow !== 'edit.php' )
-				/**
-				 * Exclude wrote custom fields from post custom meta box
-				 */
-				add_filter( 'is_protected_meta', [ $this, 'is_protected_meta' ], 10, 3 );
 
 		} else if ( $pagenow === 'edit-tags.php' ) {
 			/**
@@ -87,13 +70,12 @@ trait admin {
 
 	/**
 	 * @access private
-	 * @param  string $pagenow edit.php|post.php|post-new.php
+	 *
+	 * @param  string $pagenow
+	 * @return (void)
 	 */
 	private function init_post_type( $pagenow ) {
 		if ( $pagenow === 'edit.php' ) {
-			/**
-			 * Posts list page
-			 */
 			if ( $this->isDefined( 'columns' ) ) {
 				/**
 				 * Post columns
@@ -104,19 +86,14 @@ trait admin {
 					$columns->add( $name, $args );
 			}
 		} else {
-			/**
-			 * Edit post page, add post page
-			 */
 			if ( $this->isDefined( 'meta_boxes' ) ) {
 				/**
 				 * Meta boxes
 				 * @uses  WPDW\Device\Admin\meta_boxes
 				 */
 				$metabox = new Admin\meta_boxes( $this->domain );
-				foreach ( $this->meta_boxes as $meta_box_args ) {
-					if ( $args = $this->_pt_arguments( 'meta_box', $meta_box_args ) )
-						$metabox->add( $args );
-				}
+				foreach ( $this->meta_boxes as $meta_box_args )
+					$metabox->add( $meta_box_args );
 			}
 			if ( $this->isDefined( 'edit_forms' ) ) {
 				/**
@@ -124,10 +101,8 @@ trait admin {
 				 * @uses  WPDW\Device\Admin\edit_form_advanced
 				 */
 				$editForm = new Admin\edit_form_advanced( $this->domain );
-				foreach ( $this->edit_forms as $edit_form_args ) {
-					if ( $args = $this->_pt_arguments( 'edit_form', $edit_form_args ) )
-						$editForm->add( $args );
-				}
+				foreach ( $this->edit_forms as $edit_form_args )
+					$editForm->add( $edit_form_args );
 			}
 			if ( $this->is( 'attribute_meta_box' ) ) {
 				/**
@@ -135,140 +110,11 @@ trait admin {
 				 * @uses  WPDW\Device\Admin\attribute_meta_box
 				 */
 				$args = is_array( $this->attribute_meta_box ) ? $this->attribute_meta_box : [];
-				$attrFilter = function( $attr ) { return ! in_array( $attr, $this->done_assets, true ); };
-				if ( $attributes = array_filter( [ 'post_parent', 'menu_order' ], $attrFilter ) ) {
-					$args = array_merge( $args, [ 'attributes' => $attributes ] );
-					new Admin\attribute_meta_box( $this->domain, $args );
-				}
+				$args = array_merge( [ 'attributes' => [ 'post_parent', 'menu_order' ] ], $args );
+				new Admin\attribute_meta_box( $this->domain, $args );
 			}
 		}
 		new Admin\save_post( $this->domain );
-	}
-
-	/**
-	 * @access private
-	 *
-	 * @uses WPDW\Util\Array_Function::array_flatten()
-	 *
-	 * @param  array $args
-	 * @return array
-	 */
-	private function _pt_arguments( $context, Array $args ) {
-		$args = filter_var_array( $args, $this->get_filter_definition( $context ) );
-		if ( $args['asset'] ) {
-			$assets = is_array( $args['asset'] ) ? array_filter( self::array_flatten( $args['asset'], true ) ) : (array) $args['asset'];
-			if ( ! $args['title'] ) {
-				$args['title'] = implode(
-					' / ',
-					array_map( function( $asset ) {
-						$setting = $this->property->get_setting( $asset );
-						return $setting['label'] ?: ucwords( str_replace( '_', ' ', $asset ) );
-					}, $assets )
-				);
-			}
-			$args['asset'] = count( $assets ) > 1 ? $assets : array_shift( $assets );
-		}
-		$args = array_filter( $args );
-		if ( array_key_exists( 'asset', $args ) )
-			return $args;
-		else if ( array_key_exists( 'callback', $args ) && array_key_exists( 'id', $args ) )
-			return $args;
-		else
-			return null;
-	}
-
-	/**
-	 * @access public
-	 *
-	 * @see    https://github.com/mimosafa/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L573
-	 * @see    https://github.com/mimosafa/WordPress/blob/4.1-branch/wp-admin/includes/template.php#L560
-	 * @see    https://github.com/mimosafa/WordPress/blob/4.1-branch/wp-admin/includes/template.php#L579
-	 * @see    https://github.com/mimosafa/WordPress/blob/4.1-branch/wp-includes/meta.php#L1565
-	 *
-	 * @param  boolean $protected
-	 * @param  string  $meta_key
-	 * @param  string  $meta_type
-	 * @return boolean
-	 */
-	public function is_protected_meta( $protected, $meta_key, $meta_type ) {
-		if ( $meta_type === 'post' && in_array( $meta_key, $this->done_assets ) ) {
-			$protected = true;
-		}
-		return $protected;
-	}
-
-	/**
-	 * @access private
-	 *
-	 * @param  string $context (Optional)
-	 * @return array
-	 */
-	private function get_filter_definition( $context = null ) {
-		if ( ! $context ) {
-			/**
-			 * Common filter definition
-			 * @var array
-			 */
-			static $common;
-			if ( ! $common ) {
-				// asset
-				$assetVar = function( $var ) {
-					if ( ! $this->property || in_array( $var, $this->done_assets, true ) )
-						return null;
-					if ( ! $this->property->get_setting( $var ) )
-						return null;
-					$this->done_assets[] = $var;
-					return $var;
-				};
-				// callback
-				$callbackVar = function( $var ) {
-					return is_callable( $var ) ? $var : null;
-				};
-				$common = [
-					'id'    => [ 'filter' => \FILTER_VALIDATE_REGEXP, 'options' => [ 'regexp' => '/\A[a-z][a-z0-9_\-]+\z/', 'default' => null ] ],
-					'title' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
-					'callback' => [ 'filter' => \FILTER_CALLBACK, 'options' => $callbackVar ],
-					'asset'    => [ 'filter' => \FILTER_CALLBACK, 'options' => $assetVar ],
-					'description' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
-				];
-			}
-			return $common;
-		} else if ( $context === 'meta_box' ) {
-			/**
-			 * Filter definition for meta box arguments
-			 * @var array
-			 */
-			static $metabox;
-			if ( ! $metabox ) {
-				$metabox = $this->get_filter_definition();
-				// context
-				$contextVar = function( $var ) {
-					return in_array( $var, [ 'normal', 'advanced', 'side' ], true ) ? $var : null;
-				};
-				// priority
-				$priorityVar = function( $var ) {
-					return in_array( $var, [ 'high', 'core', 'default', 'low' ], true ) ? $var : null;
-				};
-				$metabox['context']  = [ 'filter' => \FILTER_CALLBACK, 'options' => $contextVar ];
-				$metabox['priority'] = [ 'filter' => \FILTER_CALLBACK, 'options' => $priorityVar ];
-			}
-			return $metabox;
-		} else if ( $context === 'edit_form' ) {
-			/**
-			 * Filter definition for (direct) edit form arguments
-			 * @var array
-			 */
-			static $editForm;
-			if ( ! $editForm ) {
-				$editForm = $this->get_filter_definition();
-				// context
-				$contextVar = function( $var ) {
-					return in_array( $var, [ 'top', 'before_permalink', 'after_title', 'after_editor' ], true ) ? $var : null;
-				};
-				$editForm['context'] = [ 'filter' => \FILTER_CALLBACK, 'options' => $contextVar ];
-			}
-			return $editForm;
-		}
 	}
 
 	/**

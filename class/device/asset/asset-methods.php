@@ -13,6 +13,8 @@ trait asset_methods {
 			if ( property_exists( __CLASS__, $key ) )
 				$this->$key = $val;
 		}
+		if ( ! $this->multiple )
+			unset( $this->glue );
 	}
 
 	/**

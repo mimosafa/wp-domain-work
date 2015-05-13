@@ -6,10 +6,10 @@ namespace WPDW\Device;
  * @uses WPDW\Device\Module\Functions
  */
 trait property {
-	use \WPDW\Util\Singleton;
-	use Module\Methods;
+	use \WPDW\Util\Singleton, Module\Methods;
 
 	/**
+	 * Asset data
 	 * @var array
 	 */
 	private $_data = [];
@@ -19,33 +19,59 @@ trait property {
 	 * @var array
 	 */
 	private static $_excluded = [
-		/**
-		 * WordPress reserved words
-		 */
+		// WordPress reserved words
 		'_edit_last', '_edit_lock', '_wp_old_slug', '_thumbnail_id',
 		'_wp_attached_file', '_wp_page_template', '_wp_attachment_metadata',
 		
-		/**
-		 * Class reserved words (existing property name )
-		 */
-		'_data', '_excluded', '_default', '_options',
+		// Class reserved words (existing property name )
+		'_data', '_excluded', '_required', '_default',
 	];
 
 	/**
+	 * Required arguments
 	 * @var array
 	 */
-	private static $_defaults = [
-		// Asset name
-		'menu_order'  => [ 'type' => 'integer', 'model' => 'post_attribute', 'multiple' => false, 'min' => 0, ],
-		'post_parent' => [ 'type' => 'post',    'model' => 'post_attribute', 'multiple' => false, ],
-		// Model
-		'post_children' => [ 'type' => 'post', ],
+	private static $_required = [
+
+		// On basis of asset name
+		'asset' => [
+			'menu_order'  => [ 'type' => 'integer', 'model' => 'post_attribute', 'multiple' => false, 'min' => 0, ],
+			'post_parent' => [ 'type' => 'post',    'model' => 'post_attribute', 'multiple' => false, ],
+		],
+
+		// On basis of model
+		'model' => [
+			'post_children' => [ 'type' => 'post', ],
+		],
+
+		// On basis of type
+		'type' => [
+			//
+		],
+
 	];
-	private static $_options = [
-		// Asset name
-		'menu_order' => [ 'label' => 'Order' ],
-		// Model
-		'post_children' => [ 'multiple' => true, ],
+
+	/**
+	 * Default arguments
+	 * @var array
+	 */
+	private static $_default = [
+
+		// On basis of asset name
+		'asset' => [
+			'menu_order' => [ 'label' => 'Order' ],
+		],
+
+		// On basis of model
+		'model' => [
+			'post_children' => [ 'multiple' => true, ],
+		],
+
+		// On basis of type
+		'type' => [
+			//
+		],
+
 	];
 
 	/**
@@ -54,9 +80,11 @@ trait property {
 	 * @access protected
 	 */
 	protected function __construct() {
-		if ( $this->isDefined( 'assets' ) )
+		if ( $this->isDefined( 'assets' ) ) {
 			array_walk( $this->assets, [ &$this, 'prepare_assets' ] );
-		#_var_dump( $this );
+			$this->assets = array_filter( $this->assets );
+		}
+		_var_dump( $this );
 	}
 
 	/**
@@ -68,17 +96,27 @@ trait property {
 	private function prepare_assets( &$args, $asset ) {
 		if ( in_array( $asset, self::$_excluded, true ) ) :
 			$args = null;
+
 		elseif ( preg_match( '/\A[^a-z]|[^a-z0-9_]/', $asset ) ) :
 			$args = null;
-		elseif ( array_key_exists( $asset, self::$_defaults ) ) :
+
+		/**
+		 * Default & option arguments by asset name
+		 */
+		elseif ( array_key_exists( $asset, self::$_required['asset'] ) ) :
 			$args = is_array( $args ) ? $args : [];
-			if ( array_key_exists( $asset, self::$_options ) )
-				$args = array_merge( self::$_options[$asset], $args );
-			$args = array_merge( $args, self::$_defaults[$asset] );
-		elseif ( is_array( $args ) && isset( $args['model'] ) && array_key_exists( $args['model'], self::$_defaults ) ) :
-			if ( array_key_exists( $args['model'], self::$_options ) )
-				$args = array_merge( self::$_options[$args['model']], $args );
-			$args = array_merge( $args, self::$_defaults[$args['model']] );
+			if ( array_key_exists( $asset, self::$_default['asset'] ) )
+				$args = array_merge( self::$_default['asset'][$asset], $args );
+			$args = array_merge( $args, self::$_required['asset'][$asset] );
+
+		/**
+		 * Default & option arguments by model
+		 */
+		elseif ( is_array( $args ) && isset( $args['model'] ) && array_key_exists( $args['model'], self::$_required['model'] ) ) :
+			if ( array_key_exists( $args['model'], self::$_default['model'] ) )
+				$args = array_merge( self::$_default['model'][$args['model']], $args );
+			$args = array_merge( $args, self::$_required['model'][$args['model']] );
+
 		endif;
 
 		if ( ! $args )
@@ -127,10 +165,9 @@ trait property {
 	public function get_setting( $name = '' ) {
 		if ( ! $this->isDefined( 'assets' ) )
 			return;
-		$settings = array_filter( $this->assets );
 		if ( ! $name )
-			return $settings;
-		return array_key_exists( $name, $settings ) ? $settings[$name] : null;
+			return $this->assets;
+		return array_key_exists( $name, $this->assets ) ? $this->assets[$name] : null;
 	}
 
 	/**

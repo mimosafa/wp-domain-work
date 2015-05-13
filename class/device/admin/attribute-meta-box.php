@@ -1,8 +1,11 @@
 <?php
 namespace WPDW\Device\Admin;
 
-class attribute_meta_box {
+class attribute_meta_box extends post {
 
+	/**
+	 * Action tag prefix
+	 */
 	const ACTION_PREFIX = '_wpdw_admin_attribute_meta_box_';
 
 	/**
@@ -14,7 +17,7 @@ class attribute_meta_box {
 	/**
 	 * @var WP_Domain\{$domain}\property
 	 */
-	private $property;
+	protected $property;
 
 	/**
 	 * @var array
@@ -26,7 +29,7 @@ class attribute_meta_box {
 	 */
 	private static $def = [
 		'title' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
-		'attributes' => [ 'filter' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS, 'flags' => \FILTER_REQUIRE_ARRAY ],
+		'attributes' => [ 'filter' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS, 'flags' => \FILTER_FORCE_ARRAY ],
 	];
 
 	/**
@@ -60,6 +63,11 @@ class attribute_meta_box {
 	 * @return boolean
 	 */
 	private function attributes_filter( $attr ) {
+		/**
+		 * @uses WPDW\Device\Admin\post::$done_assets
+		 */
+		if ( in_array( $attr, self::$done_assets, true ) )
+			return false;
 		if ( $this->property && isset( $this->property->$attr ) )
 			return true;
 		else if ( get_post_type_object( $this->post_type )->hierarchical )
@@ -94,17 +102,17 @@ class attribute_meta_box {
 	 * @return (void)
 	 */
 	public function attribute_meta_box( $post ) {
-		do_action( self::ACTION_PREFIX . '_top', $post );
+		do_action( self::ACTION_PREFIX . 'top', $post );
 
 		if ( in_array( 'post_parent', $this->attributes, true ) )
 			$this->post_parent_form( $post );
 
-		do_action( self::ACTION_PREFIX . '_middle', $post );
+		do_action( self::ACTION_PREFIX . 'middle', $post );
 
 		if ( in_array( 'menu_order', $this->attributes, true ) )
 			$this->menu_order_form( $post );
 
-		do_action( self::ACTION_PREFIX . '_bottom', $post );
+		do_action( self::ACTION_PREFIX . 'bottom', $post );
 	}
 
 	/**
