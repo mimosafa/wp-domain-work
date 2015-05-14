@@ -3,7 +3,6 @@ namespace WPDW\Device;
 
 trait status {
 	use \WPDW\Util\Singleton, Module\Methods;
-	use \WPDW\Util\Array_Function;
 
 	/**
 	 * @var array

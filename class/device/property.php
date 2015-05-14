@@ -32,23 +32,18 @@ trait property {
 	 * @var array
 	 */
 	private static $_required = [
-
 		// On basis of asset name
 		'asset' => [
 			'menu_order'  => [ 'type' => 'integer', 'model' => 'post_attribute', 'multiple' => false, 'min' => 0, ],
 			'post_parent' => [ 'type' => 'post',    'model' => 'post_attribute', 'multiple' => false, ],
 		],
 
-		// On basis of model
-		'model' => [
-			'post_children' => [ 'type' => 'post', ],
-		],
-
 		// On basis of type
 		'type' => [
-			//
+			'post_children' => [ 'type' => 'post', 'model' => 'post_children', ],
+			'time' => [ 'type' => 'datetime', 'input_type' => 'time', ],
+			'boolean' => [ 'multiple' => false, ]
 		],
-
 	];
 
 	/**
@@ -56,22 +51,16 @@ trait property {
 	 * @var array
 	 */
 	private static $_default = [
-
 		// On basis of asset name
 		'asset' => [
 			'menu_order' => [ 'label' => 'Order' ],
 		],
 
-		// On basis of model
-		'model' => [
-			'post_children' => [ 'multiple' => true, ],
-		],
-
 		// On basis of type
 		'type' => [
-			//
+			'post_children' => [ 'multiple' => true, ],
+			'time' => [ 'input_format' => 'H:i', 'output_format' => 'H:i', ]
 		],
-
 	];
 
 	/**
@@ -84,7 +73,7 @@ trait property {
 			array_walk( $this->assets, [ &$this, 'prepare_assets' ] );
 			$this->assets = array_filter( $this->assets );
 		}
-		#_var_dump( $this );
+		_var_dump( $this );
 	}
 
 	/**
@@ -101,7 +90,7 @@ trait property {
 			$args = null;
 
 		/**
-		 * Default & option arguments by asset name
+		 * Required & Default arguments on basis of asset name
 		 */
 		elseif ( array_key_exists( $asset, self::$_required['asset'] ) ) :
 			$args = is_array( $args ) ? $args : [];
@@ -110,12 +99,12 @@ trait property {
 			$args = array_merge( $args, self::$_required['asset'][$asset] );
 
 		/**
-		 * Default & option arguments by model
+		 * Required & Default arguments on basis of type
 		 */
-		elseif ( is_array( $args ) && isset( $args['model'] ) && array_key_exists( $args['model'], self::$_required['model'] ) ) :
-			if ( array_key_exists( $args['model'], self::$_default['model'] ) )
-				$args = array_merge( self::$_default['model'][$args['model']], $args );
-			$args = array_merge( $args, self::$_required['model'][$args['model']] );
+		elseif ( is_array( $args ) && isset( $args['type'] ) && array_key_exists( $args['type'], self::$_required['type'] ) ) :
+			if ( array_key_exists( $args['type'], self::$_default['type'] ) )
+				$args = array_merge( self::$_default['type'][$args['type']], $args );
+			$args = array_merge( $args, self::$_required['type'][$args['type']] );
 
 		endif;
 
@@ -125,8 +114,12 @@ trait property {
 		if ( $args && array_key_exists( 'type', $args ) ) {
 			if ( $class = $this->get_class_name( $args['type'] ) )
 			{
+				/**
+				 * @uses WPDW\Device\Asset\type_{$type}
+				 */
 				$args = array_merge( $class::get_defaults(), $args );
 				array_walk( $args, $class . '::arguments_walker', $asset );
+				$class::arguments_filter( $args );
 			}
 			else
 				$args = null;

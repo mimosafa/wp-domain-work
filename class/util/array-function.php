@@ -35,7 +35,7 @@ trait Array_Function {
 	 * @param  boolean $filter_null
 	 * @return array
 	 */
-	public static function array_flatten( Array $array, $filter_null = false ) {
+	public static function flatten( Array $array, $filter_null = false ) {
 		$return = iterator_to_array( new \RecursiveIteratorIterator ( new \RecursiveArrayIterator( $array ) ), false );
 		return $filter_null ? array_filter( $return, function( $var ) { return $var !== null; } ) : $return;
 	}

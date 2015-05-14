@@ -10,11 +10,9 @@ trait asset_methods {
 	 */
 	public function __construct( Array $args ) {
 		foreach ( $args as $key => $val ) {
-			if ( property_exists( __CLASS__, $key ) )
+			if ( property_exists( __CLASS__, $key ) && isset( $key ) )
 				$this->$key = $val;
 		}
-		if ( ! $this->multiple )
-			unset( $this->glue );
 	}
 
 	/**

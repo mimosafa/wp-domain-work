@@ -68,7 +68,7 @@ class posts_columns {
 		if ( $args['label'] ) 
 			$label = $args['label'];
 		else if ( $setting = $this->property->get_setting( $name ) )
-			$label = $setting['label'] ?: ucwords( str_replace( '_', ' ', $name ) );
+			$label = $setting['label'];
 		if ( isset( $label ) ) {
 			$this->columns[$name] .= $label;
 			if ( $args['narrow'] )

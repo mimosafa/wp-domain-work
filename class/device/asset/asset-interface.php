@@ -17,6 +17,8 @@ interface asset_interface {
 	 */
 	public static function arguments_walker( &$arg, $key, $asset );
 
+	public static function arguments_filter( &$args );
+
 	/**
 	 * @access public
 	 *

@@ -56,25 +56,38 @@ class save_post {
 		if ( ! $settings = $this->property->get_setting() )
 			return $post_id;
 
-		foreach ( array_keys( $settings ) as $key ) {
+		foreach ( $settings as $key => $setting ) {
+			
 			if ( in_array( $key, self::$default_forms, true ) )
 				continue;
+
 			$nonce = $this->nonce->get_nonce( $key );
 			if ( ! array_key_exists( $nonce, $_POST ) )
 				continue;
-			if ( ! $this->nonce->check_admin_referer( $key ) )
-				continue;
-			if ( ! array_key_exists( $key, $_POST ) )
-				continue;
+
+			$this->nonce->check_admin_referer( $key );
+
+			if ( ! array_key_exists( $key, $_POST ) ) {
+				if ( $setting['type'] !== 'boolean' )
+					continue;
+				else
+					/**
+					 * For unchecked boolean
+					 */
+					$_POST[$key] = '';
+			}
+
 			if ( ! $assetInstance = $this->property->$key )
 				continue;
+
 			if ( is_array( $_POST[$key] ) )
 				$value = filter_input( \INPUT_POST, $key, \FILTER_DEFAULT, \FILTER_FORCE_ARRAY );
 			else
 				$value = filter_input( \INPUT_POST, $key );
+
 			$assetInstance->update( $post_id, $value );
 		}
-
+		return $post_id;
 	}
 
 }

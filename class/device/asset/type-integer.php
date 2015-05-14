@@ -30,7 +30,21 @@ class type_integer implements asset_interface {
 			$arg = self::validate_integer( $arg );
 		else :
 			// Common
-			self::common_arguments( $arg, $key, $asset );
+			self::common_arguments_walker( $arg, $key, $asset );
+		endif;
+	}
+
+	/**
+	 * @see WPDW\Device\property::prepare_assets()
+	 *
+	 * @param  mixed  &$arg
+	 * @return (void)
+	 */
+	public static function arguments_filter( &$args ) {
+		if ( $args['min'] > $args['max'] ) :
+			$args['min'] = $args['max'] = null;
+		else :
+			self::common_arguments_filter( $args );
 		endif;
 	}
 

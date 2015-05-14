@@ -35,7 +35,21 @@ class type_post implements asset_interface {
 		elseif ( $key === 'query_args' && isset( $arg ) ) :
 			// ...yet
 		else :
-			self::common_arguments( $arg, $key, $asset );
+			self::common_arguments_walker( $arg, $key, $asset );
+		endif;
+	}
+
+	/**
+	 * @see WPDW\Device\property::prepare_assets()
+	 *
+	 * @param  mixed  &$arg
+	 * @return (void)
+	 */
+	public static function arguments_filter( &$args ) {
+		if ( ! $args['post_status'] ) :
+			$args['post_status'] = 'publish';
+		else :
+			self::common_arguments_filter( $args );
 		endif;
 	}
 

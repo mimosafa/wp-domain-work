@@ -110,6 +110,12 @@ class template {
 					$id = $this->form_id_prefix . $child_args['name'];
 					$_id = $id;
 					$label = $child_args['label'] ?: ucwords( str_replace( '_', ' ', $child_args['name'] ) );
+
+					/**
+					 * Add argument for group member
+					 */
+					$child_args['member_of'] = 'group';
+
 					if ( $child_dom = $this->generate_dom_array( $child_args ) ) {
 						$tr_wrapper[] = [
 							'element'  => 'tr',
@@ -188,7 +194,6 @@ class template {
 			'type'  => 'text',
 			'id'    => esc_attr( $id ),
 			'name'  => esc_attr( $name ),
-			'class' => 'regular-text',
 		];
 
 		if ( isset( $args['value'] ) )
@@ -197,6 +202,8 @@ class template {
 			$attr['maxlength'] = esc_attr( $args['max_len'] );
 		if ( $args['readonly'] )
 			$attr['readonly'] = 'readonly';
+
+		$attr['class'] = 'regular-text';
 
 		return [ 'element' => 'input', 'attribute' => $attr ];
 	}
@@ -226,8 +233,75 @@ class template {
 			$attr['max'] = esc_attr( $args['max'] );
 		if ( $args['readonly'] )
 			$attr['readonly'] = 'readonly';
-		//$attr['class'] = 'small-text';
+
 		return [ 'element' => 'input', 'attribute' => $attr ];
+	}
+
+	/**
+	 * Type: datetime - Generate DOM array method
+	 *
+	 * @access private
+	 *
+	 * @param  string $id
+	 * @param  string $name
+	 * @param  array  $args
+	 * @return array
+	 */
+	private function datetime_dom_array( $id, $name, Array $args ) {
+		$attr = [
+			'type' => $args['input_type'],
+			'id'   => esc_attr( $id ),
+			'name' => esc_attr( $name ),
+		];
+
+		if ( isset( $args['value'] ) )
+			$attr['value'] = esc_attr( $args['value'] );
+		/*
+		if ( isset( $args['min'] ) )
+			$attr['min'] = esc_attr( $args['min'] );
+		if ( isset( $args['max'] ) )
+			$attr['max'] = esc_attr( $args['max'] );
+		*/
+		if ( $args['readonly'] )
+			$attr['readonly'] = 'readonly';
+
+		return [ 'element' => 'input', 'attribute' => $attr ];
+	}
+
+	/**
+	 * Type: boolean - Generate DOM array method
+	 *
+	 * @access private
+	 *
+	 * @param  string $id
+	 * @param  string $name
+	 * @param  array  $args
+	 * @return array
+	 */
+	private function boolean_dom_array( $id, $name, Array $args ) {
+		$el = [
+			'element' => 'input',
+			'attribute' => [
+				'type'  => 'checkbox',
+				'id'    => esc_attr( $id ),
+				'name'  => esc_attr( $name ),
+				'value' => 1,
+			],
+		];
+		if ( $args['value'] )
+			$el['attribute']['checked'] = 'checked';
+
+		if ( isset( $args['member_of'] ) && $args['member_of'] === 'group' ) {
+			return $el;
+		}
+
+		$return = [
+			'element'   => 'label',
+			'attribute' => [ 'for' => esc_attr( $id ), /*'class' => \WPDW_FORM_PREFIX . 'checkbox'*/ ],
+			'children'  => [ $el ],
+			'text'      => esc_html( $args['label'] ),
+		];
+		return $return;
 	}
 
 	/**

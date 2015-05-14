@@ -13,7 +13,7 @@ class type_string implements asset_interface {
 	/**
 	 * @see WPDW\Device\property::prepare_assets()
 	 *
-	 * @param  mixed  $arg
+	 * @param  mixed  &$arg
 	 * @param  string $key
 	 * @param  string $asset
 	 * @return (void)
@@ -29,7 +29,21 @@ class type_string implements asset_interface {
 			$arg = @preg_match( $pattern, '' ) !== false ? $arg : '';
 		else :
 			// Common
-			self::common_arguments( $arg, $key, $asset );
+			self::common_arguments_walker( $arg, $key, $asset );
+		endif;
+	}
+
+	/**
+	 * @see WPDW\Device\property::prepare_assets()
+	 *
+	 * @param  mixed  &$arg
+	 * @return (void)
+	 */
+	public static function arguments_filter( &$args ) {
+		if ( $args['min_len'] > $args['max_len'] ) :
+			$args['min_len'] = $args['max_len'] = 0;
+		else :
+			self::common_arguments_filter( $args );
 		endif;
 	}
 

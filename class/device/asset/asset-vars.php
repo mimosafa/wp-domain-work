@@ -44,7 +44,7 @@ trait asset_vars {
 	 * Commmon in some types
 	 * @access protected
 	 */
-	protected static function common_arguments( &$arg, $key, $asset ) {
+	protected static function common_arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'name' ) :
 			$arg = $asset;
 		elseif ( in_array( $key, [ 'label', 'description', 'glue' ], true ) ) :
@@ -56,6 +56,12 @@ trait asset_vars {
 			$arg = method_exists( __CLASS__, $method ) ? $arg : null;
 		elseif ( $key !== 'type' ) :
 			$arg = null;
+		endif;
+	}
+
+	protected static function common_arguments_filter( &$args ) {
+		if ( ! $args['label'] ) :
+			$args['label'] = ucwords( str_replace( '_', ' ', $args['name'] ) );
 		endif;
 	}
 

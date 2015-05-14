@@ -54,7 +54,7 @@ abstract class post {
 	/**
 	 * @access protected
 	 *
-	 * @uses WPDW\Util\Array_Function::array_flatten()
+	 * @uses WPDW\Util\Array_Function::flatten()
 	 *
 	 * @param  array $args
 	 * @return array
@@ -62,13 +62,12 @@ abstract class post {
 	protected function prepare_arguments( $context, Array $args ) {
 		$args = filter_var_array( $args, $this->get_filter_definition( $context ) );
 		if ( $args['asset'] ) {
-			$assets = is_array( $args['asset'] ) ? array_filter( self::array_flatten( $args['asset'], true ) ) : (array) $args['asset'];
+			$assets = is_array( $args['asset'] ) ? array_filter( self::flatten( $args['asset'], true ) ) : (array) $args['asset'];
 			if ( ! $args['title'] ) {
 				$args['title'] = implode(
 					' / ',
 					array_map( function( $asset ) {
-						$setting = $this->property->get_setting( $asset );
-						return $setting['label'] ?: ucwords( str_replace( '_', ' ', $asset ) );
+						return $this->property->get_setting( $asset )['label'];
 					}, $assets )
 				);
 			}
