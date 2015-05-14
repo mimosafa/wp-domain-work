@@ -73,6 +73,10 @@ trait status {
 	 * @return (void)
 	 */
 	private function prepare_statuses( &$arg, $status ) {
+		// Excluded status names (existing files @./status/)
+		static $excluded = [
+			'built_in', 'custom',
+		];
 		// WordPress built-in statuses
 		static $built_ins = [
 			'publish', 'future', 'draft', 'pending',
@@ -82,6 +86,8 @@ trait status {
 		if ( ! $arg || ! is_array( $arg ) ) :
 			$arg = null;
 		elseif ( preg_match( '/[^a-z0-9_]/', $status ) ) :
+			$arg = null;
+		elseif ( in_array( $status, $excluded, true ) ) :
 			$arg = null;
 		elseif ( in_array( $status, $built_ins, true ) && ! $this->get_class_name( $status ) ) :
 			$arg = null;
