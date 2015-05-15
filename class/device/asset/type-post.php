@@ -26,17 +26,22 @@ class type_post extends asset_abstract {
 		endif;
 	}
 
-	public function output_filter( $var ) {
-		if ( is_array( $var ) && $this->multiple ) {
+	protected function output_filter( $value ) {
+		if ( is_array( $value ) && $this->multiple ) {
 			$posts = [];
-			foreach ( $var as $post ) {
-				if ( $post = get_post( $post ) )
-					$posts[] = $post;
+			foreach ( $value as $val ) {
+				if ( $val = get_post( $val ) )
+					$posts[] = $val;
 			}
 			return $posts;
 		}
-		$post = ! is_array( $var ) ? $var : array_shift( $var );
-		return get_post( $post );
+		$value = ! is_array( $value ) ? $value : array_shift( $value );
+		return get_post( $value );
+	}
+
+	protected function input_filter( $value, \WP_Post $post ) {
+		// @todo
+		return $value;
 	}
 
 	/**

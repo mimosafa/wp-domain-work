@@ -9,8 +9,6 @@ interface asset {
 	public function get( $post );
 	public function update( $post, $value );
 
-	public function output_filter( $var );
-	// @todo public function input_filter( $var );
 
 	public function print_column( $value, $post_id );
 

@@ -3,6 +3,9 @@ namespace WPDW\Device\Asset;
 
 abstract class asset_abstract {
 
+	abstract protected function output_filter( $value );
+	abstract protected function input_filter( $value, \WP_Post $post );
+
 	/**
 	 * Constructor
 	 *
@@ -40,6 +43,8 @@ abstract class asset_abstract {
 	 *
 	 * @access public
 	 *
+	 * @uses   WPDW\Device\type_{$type}::input_filter()
+	 *
 	 * @param  int|WP_Post $post
 	 * @param  mixed $value
 	 */
@@ -47,7 +52,7 @@ abstract class asset_abstract {
 		if ( ! $this->model || ! $post = get_post( $post ) )
 			return;
 		$update = 'update_' . $this->model;
-		return $this->$update( $post, $value );
+		return $this->$update( $post, $this->input_filter( $value, $post ) );
 	}
 
 	/**

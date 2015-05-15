@@ -37,9 +37,7 @@ trait asset_models {
 				foreach ( $old as $del )
 					$this->delete_post_meta( $post, $del );
 		} else {
-			$value = filter_var( $value, \FILTER_CALLBACK, [ 'options' => [ $this, 'filter' ] ] );
-			if ( $value !== null )
-				return \update_post_meta( $post->ID, $this->name, $value );
+			return \update_post_meta( $post->ID, $this->name, $value );
 		}
 	}
 
@@ -53,9 +51,7 @@ trait asset_models {
 	 * @param  boolean $unique Optional
 	 */
 	protected function add_post_meta( \WP_Post $post, $value, $unique = false ) {
-		$value = filter_var( $value, \FILTER_CALLBACK, [ 'options' => [ $this, 'filter' ] ] );
-		if ( $value !== null )
-			return \add_post_meta( $post->ID, $this->name, $value, $unique );
+		return \add_post_meta( $post->ID, $this->name, $value, $unique );
 	}
 
 	/**

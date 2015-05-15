@@ -26,9 +26,14 @@ class type_datetime extends asset_abstract {
 		endif;
 	}
 
-	public function output_filter( $var ) {
-		// yet
-		return filter_var( $var /**/ );
+	protected function output_filter( $value ) {
+		// @todo
+		return filter_var( $value );
+	}
+
+	protected function input_filter( $value, \WP_Post $post ) {
+		// @todo
+		return $value;
 	}
 
 	public function print_column( $value, $post_id ) {

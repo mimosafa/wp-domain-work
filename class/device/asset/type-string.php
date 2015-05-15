@@ -38,20 +38,25 @@ class type_string extends asset_abstract implements asset {
 		endif;
 	}
 
-	public function output_filter( $var ) {
+	protected function output_filter( $value ) {
 		if ( $this->regexp ) {
-			if ( ! preg_match( $this->regexp, $var ) )
+			if ( ! preg_match( $this->regexp, $value ) )
 				return null;
 		}
 		if ( $this->min < $this->max ) {
 			$strlen = $this->multibyte ? 'mb_strlen' : 'strlen';
-			$len = $strlen( $var );
+			$len = $strlen( $value );
 			if ( $this->min && $len < $this->min )
 				return null;
 			if ( $this->max && $len > $this->max )
 				return null;
 		}
-		return $var;
+		return $value;
+	}
+
+	protected function input_filter( $value, \WP_Post $post ) {
+		// @todo
+		return $value;
 	}
 
 	/**

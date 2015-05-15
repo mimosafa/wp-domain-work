@@ -26,7 +26,7 @@ class type_integer extends asset_abstract {
 		endif;
 	}
 
-	public function output_filter( $var ) {
+	protected function output_filter( $value ) {
 		$options = [ 'default' => null ];
 		if ( $this->min !== null )
 			$options['min_range'] = $this->min;
@@ -36,7 +36,12 @@ class type_integer extends asset_abstract {
 			unset( $options['min_range'] );
 			unset( $options['max_range'] );
 		}
-		return filter_var( $var, \FILTER_VALIDATE_INT, [ 'options' => $options ] );
+		return filter_var( $value, \FILTER_VALIDATE_INT, [ 'options' => $options ] );
+	}
+
+	protected function input_filter( $value, \WP_Post $post ) {
+		// @todo
+		return $value;
 	}
 
 	/**
