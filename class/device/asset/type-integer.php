@@ -1,13 +1,8 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_integer implements asset_interface {
-	use asset_methods, asset_vars, asset_models;
-
-	/**
-	 * @var string
-	 */
-	protected $model = 'post_meta';
+class type_integer extends asset_abstract {
+	use asset_vars, asset_models;
 
 	/**
 	 * @var int|null
@@ -15,40 +10,23 @@ class type_integer implements asset_interface {
 	protected $min = null;
 	protected $max = null;
 
-	/**
-	 * @see WPDW\Device\property::prepare_assets()
-	 *
-	 * @param  mixed  $arg
-	 * @param  string $key
-	 * @param  string $asset
-	 * @return (void)
-	 */
-	public static function arguments_walker( &$arg, $key, $asset ) {
+	public function __construct( Array $args ) {
+		parent::__construct( $args );
+		if ( is_int( $this->min ) && is_int( $this->max) && $this->min > $this->max )
+			$this->min = $this->max = null;
+	}
+
+	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'min' && isset( $arg ) ) :
 			$arg = self::validate_integer( $arg );
 		elseif ( $key === 'max' && isset( $arg ) ) :
 			$arg = self::validate_integer( $arg );
 		else :
-			// Common
-			self::common_arguments_walker( $arg, $key, $asset );
+			parent::arguments_walker( $arg, $key, $asset );
 		endif;
 	}
 
-	/**
-	 * @see WPDW\Device\property::prepare_assets()
-	 *
-	 * @param  mixed  &$arg
-	 * @return (void)
-	 */
-	public static function arguments_filter( &$args ) {
-		if ( $args['min'] > $args['max'] ) :
-			$args['min'] = $args['max'] = null;
-		else :
-			self::common_arguments_filter( $args );
-		endif;
-	}
-
-	public function filter( $var ) {
+	public function output_filter( $var ) {
 		$options = [ 'default' => null ];
 		if ( $this->min !== null )
 			$options['min_range'] = $this->min;

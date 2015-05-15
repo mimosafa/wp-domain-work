@@ -1,32 +1,23 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_boolean implements asset_interface {
-	use asset_methods, asset_vars, asset_models;
-
-	protected $model = 'post_meta';
+class type_boolean extends asset_abstract {
+	use asset_vars, asset_models;
 
 	// yet
 
-	/**
-	 * @see WPDW\Device\property::prepare_assets()
-	 *
-	 * @param  mixed  $arg
-	 * @param  string $key
-	 * @param  string $asset
-	 * @return (void)
-	 */
+	public function __construct( Array $args ) {
+		parent::__construct( $args );
+		if ( $this->multiple )
+			$this->multiple = false;
+	}
+
 	public static function arguments_walker( &$arg, $key, $asset ) {
 		// yet
-		self::common_arguments_walker( $arg, $key, $asset );
+		parent::arguments_walker( $arg, $key, $asset );
 	}
 
-	public static function arguments_filter( &$args ) {
-		// yet
-		self::common_arguments_filter( $args );
-	}
-
-	public function filter( $var ) {
+	public function output_filter( $var ) {
 		return filter_var( $var, \FILTER_VALIDATE_BOOLEAN, \FILTER_NULL_ON_FAILURE );
 	}
 

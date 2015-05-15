@@ -1,63 +1,54 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_string implements asset_interface {
-	use asset_methods, asset_vars, asset_models;
-
-	private $model = 'post_meta';
-	private $multibyte = true;
-	private $min_len = 0;
-	private $max_len = 0;
-	private $regexp = '';
+class type_string extends asset_abstract implements asset {
+	use asset_vars, asset_models;
 
 	/**
-	 * @see WPDW\Device\property::prepare_assets()
-	 *
-	 * @param  mixed  &$arg
-	 * @param  string $key
-	 * @param  string $asset
-	 * @return (void)
+	 * @var boolean
 	 */
-	public static function arguments_walker( &$arg, $key, $asset ) {
+	protected $multibyte = true;
+
+	/**
+	 * @var int
+	 */
+	protected $min = 0;
+	protected $max = 0;
+
+	/**
+	 * @var string Regexp
+	 */
+	protected $regexp = '';
+
+	public function __construct( Array $args ) {
+		parent::__construct( $args );
+		if ( $this->min > $this->max )
+			$this->min = $this->max = 0;
+	}
+
+	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'multibyte' ) :
 			$arg = self::validate_boolean( $arg, true );
-		elseif ( $key === 'min_len' ) :
-			$arg = self::validate_integer( $arg, 0, 0 );
-		elseif ( $key === 'max_len' ) :
+		elseif ( in_array( $key, [ 'min', 'max' ], true ) ) :
 			$arg = self::validate_integer( $arg, 0, 1 );
 		elseif ( $key === 'regexp' && $arg ) :
 			$arg = @preg_match( $pattern, '' ) !== false ? $arg : '';
 		else :
-			// Common
-			self::common_arguments_walker( $arg, $key, $asset );
+			parent::arguments_walker( $arg, $key, $asset );
 		endif;
 	}
 
-	/**
-	 * @see WPDW\Device\property::prepare_assets()
-	 *
-	 * @param  mixed  &$arg
-	 * @return (void)
-	 */
-	public static function arguments_filter( &$args ) {
-		if ( $args['min_len'] > $args['max_len'] ) :
-			$args['min_len'] = $args['max_len'] = 0;
-		else :
-			self::common_arguments_filter( $args );
-		endif;
-	}
-
-	public function filter( $var ) {
+	public function output_filter( $var ) {
 		if ( $this->regexp ) {
 			if ( ! preg_match( $this->regexp, $var ) )
 				return null;
 		}
-		if ( $this->min_len < $this->max_len ) {
+		if ( $this->min < $this->max ) {
 			$strlen = $this->multibyte ? 'mb_strlen' : 'strlen';
 			$len = $strlen( $var );
-			if ( $this->min_len && $len < $this->min_len )
+			if ( $this->min && $len < $this->min )
 				return null;
-			if ( $this->max_len && $len > $this->max_len )
+			if ( $this->max && $len > $this->max )
 				return null;
 		}
 		return $var;

@@ -15,55 +15,6 @@ trait property {
 	private $_data = [];
 
 	/**
-	 * Words that are not allowed to be used as an asset name
-	 * @var array
-	 */
-	private static $_excluded = [
-		// WordPress reserved words
-		'_edit_last', '_edit_lock', '_wp_old_slug', '_thumbnail_id',
-		'_wp_attached_file', '_wp_page_template', '_wp_attachment_metadata',
-		
-		// Class reserved words (existing property name )
-		'assets', '_data', '_excluded', '_required', '_default',
-	];
-
-	/**
-	 * Required arguments
-	 * @var array
-	 */
-	private static $_required = [
-		// On basis of asset name
-		'asset' => [
-			'menu_order'  => [ 'type' => 'integer', 'model' => 'post_attribute', 'multiple' => false, 'min' => 0, ],
-			'post_parent' => [ 'type' => 'post',    'model' => 'post_attribute', 'multiple' => false, ],
-		],
-
-		// On basis of type
-		'type' => [
-			'post_children' => [ 'type' => 'post', 'model' => 'post_children', ],
-			'time' => [ 'type' => 'datetime', 'input_type' => 'time', ],
-			'boolean' => [ 'multiple' => false, ]
-		],
-	];
-
-	/**
-	 * Default arguments
-	 * @var array
-	 */
-	private static $_default = [
-		// On basis of asset name
-		'asset' => [
-			'menu_order' => [ 'label' => 'Order' ],
-		],
-
-		// On basis of type
-		'type' => [
-			'post_children' => [ 'multiple' => true, ],
-			'time' => [ 'input_format' => 'H:i', 'output_format' => 'H:i', ]
-		],
-	];
-
-	/**
 	 * Constructor
 	 *
 	 * @access protected
@@ -73,7 +24,7 @@ trait property {
 			array_walk( $this->assets, [ &$this, 'prepare_assets' ] );
 			$this->assets = array_filter( $this->assets );
 		}
-		_var_dump( $this );
+		#_var_dump( $this );
 	}
 
 	/**
@@ -83,51 +34,114 @@ trait property {
 	 * @param  string $asset
 	 */
 	private function prepare_assets( &$args, $asset ) {
-		if ( in_array( $asset, self::$_excluded, true ) ) :
-			$args = null;
+		/**
+		 * Words that are not allowed to be used as an asset name
+		 * @var array
+		 */
+		static $excluded = [
+			// WordPress reserved words
+			'_edit_last', '_edit_lock', '_wp_old_slug', '_thumbnail_id',
+			'_wp_attached_file', '_wp_page_template', '_wp_attachment_metadata',
+			
+			// Class reserved words (existing property name )
+			'assets', '_data',
+		];
 
+		if ( in_array( $asset, $excluded, true ) ) :
+			$args = null;
 		elseif ( preg_match( '/\A[^a-z]|[^a-z0-9_]/', $asset ) ) :
 			$args = null;
+		else :
+			$this->prepare_asset_arguments( $asset, $args );
+		endif;
+
+		if ( $args && ! $this->get_class_name( $args['type'] ) )
+			$args = null;
+
+		if ( ! $args )
+			return;
 
 		/**
-		 * Required & Default arguments on basis of asset name
+		 * @uses WPDW\Device\Asset\type_{$type}::prepare_arguments()
+		 * @see  Trait: WPDW\Device\Asset\asset_vars::prepare_arguments()
 		 */
-		elseif ( array_key_exists( $asset, self::$_required['asset'] ) ) :
-			$args = is_array( $args ) ? $args : [];
-			if ( array_key_exists( $asset, self::$_default['asset'] ) )
-				$args = array_merge( self::$_default['asset'][$asset], $args );
-			$args = array_merge( $args, self::$_required['asset'][$asset] );
+		$class = $this->get_class_name( $args['type'] );
+		$class::prepare_arguments( $args, $asset );
+	}
+
+	/**
+	 * @access private
+	 *
+	 * @param  string $asset
+	 * @param  array|mixed &$args
+	 */
+	private function prepare_asset_arguments( $asset, &$args ) {
+		/**
+		 * Required & Default arguments on basis of asset
+		 */
+		static $_asset_args = [
+			'menu_order' => [
+				'required' => [ 'type' => 'integer', 'model' => 'post_attribute', 'multiple' => false, 'min' => 0, ],
+				'default'  => [ 'label' => 'Order' ]
+			],
+			'post_parent' => [
+				'required' => [ 'type' => 'post', 'model' => 'post_attribute', 'multiple' => false, ],
+			],
+		];
 
 		/**
 		 * Required & Default arguments on basis of type
 		 */
-		elseif ( is_array( $args ) && isset( $args['type'] ) && array_key_exists( $args['type'], self::$_required['type'] ) ) :
-			if ( array_key_exists( $args['type'], self::$_default['type'] ) )
-				$args = array_merge( self::$_default['type'][$args['type']], $args );
-			$args = array_merge( $args, self::$_required['type'][$args['type']] );
+		static $_type_args = [
+			'string' => [
+				'default' => [ 'model' => 'post_meta', 'multibyte' => true, ]
+			],
+			'integer' => [
+				'default' => [ 'model' => 'post_meta' ]
+			],
+			'boolean' => [
+				'default' => [ 'model' => 'post_meta', ]
+			],
+			'datetime' => [
+				'required' => [ 'type' => 'datetime', 'input_type' => 'datetime_local', ],
+				'default'  => [ 'model' => 'post_meta', 'input_format' => 'Y-m-d H:i:s', 'output_format' => 'Y-m-d H:i', ]
+			],
+			'date' => [
+				'required' => [ 'type' => 'datetime', 'input_type' => 'date', ],
+				'default'  => [ 'model' => 'post_meta', 'input_format' => 'Y-m-d', 'output_format' => 'Y-m-d', ]
+			],
+			'time' => [
+				'required' => [ 'type' => 'datetime', 'input_type' => 'time', ],
+				'default'  => [ 'model' => 'post_meta', 'input_format' => 'H:i', 'output_format' => 'H:i', ]
+			],
+			'post_children' => [
+				'required' => [ 'type' => 'post', 'model' => 'post_children' ],
+				'default'  => [ 'multiple' => true, ]
+			],
+		];
 
-		endif;
-
-		if ( ! $args )
-			return;
-		
-		if ( $args && array_key_exists( 'type', $args ) ) {
-			if ( $class = $this->get_class_name( $args['type'] ) )
-			{
-				/**
-				 * @uses WPDW\Device\Asset\type_{$type}
-				 */
-				$args = array_merge( $class::get_defaults(), $args );
-				array_walk( $args, $class . '::arguments_walker', $asset );
-				$class::arguments_filter( $args );
+		if ( array_key_exists( $asset, $_asset_args ) ) {
+			$args = is_array( $args ) ? $args : [];
+			if ( array_key_exists( 'default', $_asset_args[$asset] ) )
+				$args = array_merge( $_asset_args[$asset]['default'], $args );
+			if ( array_key_exists( 'required', $_asset_args[$asset] ) )
+				$args = array_merge( $args, $_asset_args[$asset]['required'] );
+		} else if ( is_array( $args ) && isset( $args['type'] ) ) {
+			$type = $args['type'];
+			if ( array_key_exists( $type, $_type_args ) ) {
+				if ( array_key_exists( 'default', $_type_args[$type] ) )
+					$args = array_merge( $_type_args[$type]['default'], $args );
+				if ( array_key_exists( 'required', $_type_args[$type] ) )
+					$args = array_merge( $args, $_type_args[$type]['required'] );
 			}
-			else
-				$args = null;
+		} else {
+			$args = null;
 		}
 	}
 
 	/**
 	 * @access private
+	 *
 	 * @param  string $type
 	 * @return string|boolean
 	 */

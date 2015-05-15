@@ -8,6 +8,7 @@ trait asset_vars {
 	 */
 	protected $type;
 	protected $name;
+	protected $model;
 	protected $label;
 	protected $description;
 
@@ -24,86 +25,21 @@ trait asset_vars {
 	protected $glue = ', ';
 
 	/**
-	 * Get default arguments for class construction.
-	 * @access public
-	 * @return array Class vars
-	 */
-	public static function get_defaults() {
-		return get_class_vars( __CLASS__ );
-	}
-
-	/**
-	 * Validate & Sanitize vars methods
-	 * - Used as callback for array_walk
+	 * WP_Domain\{$domain}\property::$assets arguments provisioner
 	 *
-	 * @see WPDW\Device\Asset\{$type}::arguments_walker()
-	 * @see WPDW\Device\property::__construct()
+	 * @see  WPDW\Device\property::prepare_assets()
+	 *
+	 * @access public
+	 *
+	 * @param  array  &$args
+	 * @param  string $asset
 	 */
+	public static function prepare_arguments( Array &$args, $asset ) {
+		$args = array_merge( get_class_vars( __CLASS__ ), $args );
+		array_walk( $args, __CLASS__ . '::arguments_walker', $asset );
 
-	/**
-	 * Commmon in some types
-	 * @access protected
-	 */
-	protected static function common_arguments_walker( &$arg, $key, $asset ) {
-		if ( $key === 'name' ) :
-			$arg = $asset;
-		elseif ( in_array( $key, [ 'label', 'description', 'glue' ], true ) ) :
-			$arg = self::sanitize_string( $arg );
-		elseif ( in_array( $key, [ 'multiple', 'required', 'readonly' ], true ) ) :
-			$arg = self::validate_boolean( $arg, false );
-		elseif ( $key === 'model' ) :
-			$method = 'get_' . $arg;
-			$arg = method_exists( __CLASS__, $method ) ? $arg : null;
-		elseif ( $key !== 'type' ) :
-			$arg = null;
-		endif;
-	}
-
-	protected static function common_arguments_filter( &$args ) {
-		if ( ! $args['label'] ) :
+		if ( ! $args['label'] )
 			$args['label'] = ucwords( str_replace( '_', ' ', $args['name'] ) );
-		endif;
-	}
-
-	/**
-	 * Sanitize string
-	 * @access protected
-	 * @param  string $string
-	 * @return string
-	 */
-	protected static function sanitize_string( $string ) {
-		return (string) filter_var( $string, \FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-	}
-
-	/**
-	 * Validate integer
-	 * @access protected
-	 * @param  integer $int
-	 * @param  integer $default Optional
-	 * @param  integer $min     Optional
-	 * @param  integer $max     Optional
-	 * @return integer
-	 */
-	protected static function validate_integer( $int, $default = null, $min = null, $max = null ) {
-		$options = [ 'options' => [ 'default' => null ] ];
-		if ( isset( $default ) && is_int( $default ) )
-			$options['options']['default'] = (int) $default;
-		if ( isset( $min ) )
-			$options['options']['min_range'] = (int) $min;
-		if ( isset( $max ) && (int) $max > $options['options']['min_range'] )
-			$options['options']['max_range'] = (int) $max;
-		return (int) filter_var( $int, \FILTER_VALIDATE_INT, $options );
-	}
-
-	/**
-	 * Validate boolean
-	 * @access protected
-	 * @param  boolean $bool
-	 * @param  boolean $default
-	 * @return boolean
-	 */
-	protected static function validate_boolean( $bool, $default = false ) {
-		return filter_var( $bool, \FILTER_VALIDATE_BOOLEAN, [ 'options' => [ 'default' => $default ] ] );
 	}
 
 }

@@ -1,28 +1,18 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_datetime implements asset_interface {
-	use asset_methods, asset_vars, asset_models;
-
-	protected $model = 'post_meta';
+class type_datetime extends asset_abstract {
+	use asset_vars, asset_models;
 
 	protected $input_type = 'datetime_local';
 
 	protected $input_format  = 'Y-m-d H:i:s';
-	protected $output_format = 'Y-m-d H:i:s';
+	protected $output_format = 'Y-m-d H:i';
 
 	protected $min = null;
 	protected $max = null;
 
-	/**
-	 * @see WPDW\Device\property::prepare_assets()
-	 *
-	 * @param  mixed  $arg
-	 * @param  string $key
-	 * @param  string $asset
-	 * @return (void)
-	 */
-	public static function arguments_walker( &$arg, $key, $asset ) {
+	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'input_type' && isset( $arg ) ) :
 			static $typeLists = [ 'datetime_local', 'date', 'time' ];
 			$arg = in_array( $arg, $typeLists, true ) ? $arg : $typeLists[0];
@@ -32,16 +22,11 @@ class type_datetime implements asset_interface {
 			// yet
 
 		else :
-			self::common_arguments_walker( $arg, $key, $asset );
+			parent::arguments_walker( $arg, $key, $asset );
 		endif;
 	}
 
-	public static function arguments_filter( &$args ) {
-		// yet
-		self::common_arguments_filter( $args );
-	}
-
-	public function filter( $var ) {
+	public function output_filter( $var ) {
 		// yet
 		return filter_var( $var /**/ );
 	}

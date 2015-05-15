@@ -34,6 +34,7 @@ class Settings {
 			;
 			$this->default_settings();
 		}
+		$this->pageInstance = apply_filters( 'wp_domain_work_settings_page', $this->pageInstance );
 	}
 
 	private function default_settings() {

@@ -107,21 +107,8 @@ class edit_form_advanced extends post {
 	 * @return (void)
 	 */
 	private function print_edit_form( $array, \WP_Post $post ) {
-		// asset
 		$asset = $array['args']['asset'];
-
-		if ( is_array( $asset ) ) {
-			$args = [ 'type' => 'group', 'assets' => [] ];
-			foreach ( $asset as $a )
-				$args['assets'][] = $this->property->$a->get_vars( $post );
-		} else {
-			$args = $this->property->$asset->get_vars( $post );
-		}
-
-		// description
-		if ( array_key_exists( 'description', $array['args'] ) )
-			$args = array_merge( $args, [ 'description' => $array['args']['description'] ] );
-
+		$args  = $this->get_recipe( $asset, $array['args'], $post );
 		echo "\t<h3>{$array['title']}</h3>";
 		self::$template->output( $args );
 	}

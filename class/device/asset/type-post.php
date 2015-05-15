@@ -1,13 +1,8 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_post implements asset_interface {
-	use asset_methods, asset_vars, asset_models;
-
-	/**
-	 * @var string
-	 */
-	protected $model;
+class type_post extends asset_abstract {
+	use asset_vars, asset_models;
 
 	/**
 	 * @var array
@@ -16,15 +11,7 @@ class type_post implements asset_interface {
 	protected $post_status = [ 'publish' ];
 	protected $query_args  = [];
 
-	/**
-	 * @see WPDW\Device\property::prepare_assets()
-	 *
-	 * @param  mixed  $arg
-	 * @param  string $key
-	 * @param  string $asset
-	 * @return (void)
-	 */
-	public static function arguments_walker( &$arg, $key, $asset ) {
+	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'post_type' && isset( $arg ) ) :
 			$arg = array_filter( (array) $arg, function( $pt ) {
 				return post_type_exists( $pt );
@@ -35,25 +22,22 @@ class type_post implements asset_interface {
 		elseif ( $key === 'query_args' && isset( $arg ) ) :
 			// ...yet
 		else :
-			self::common_arguments_walker( $arg, $key, $asset );
+			parent::arguments_walker( $arg, $key, $asset );
 		endif;
 	}
 
-	/**
-	 * @see WPDW\Device\property::prepare_assets()
-	 *
-	 * @param  mixed  &$arg
-	 * @return (void)
-	 */
-	public static function arguments_filter( &$args ) {
-		if ( ! $args['post_status'] ) :
-			$args['post_status'] = 'publish';
-		else :
-			self::common_arguments_filter( $args );
-		endif;
+	public function output_filter( $var ) {
+		if ( is_array( $var ) && $this->multiple ) {
+			$posts = [];
+			foreach ( $var as $post ) {
+				if ( $post = get_post( $post ) )
+					$posts[] = $post;
+			}
+			return $posts;
+		}
+		$post = ! is_array( $var ) ? $var : array_shift( $var );
+		return get_post( $post );
 	}
-
-	public function filter( $var ) {}
 
 	/**
 	 * Return value for printing in list table column

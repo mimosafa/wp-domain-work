@@ -115,24 +115,8 @@ class meta_boxes extends post {
 	 * @return (void)
 	 */
 	public function meta_box( $post, $metabox ) {
-		if ( ! $this->property )
-			return;
-
-		// asset
-		$asset  = $metabox['args']['asset'];
-
-		if ( is_array( $asset ) ) {
-			$args = [ 'type' => 'group', 'assets' => [] ];
-			foreach ( $asset as $a )
-				$args['assets'][] = $this->property->$a->get_vars( $post );
-		} else {
-			$args = $this->property->$asset->get_vars( $post );
-		}
-
-		// description
-		if ( array_key_exists( 'description', $metabox['args'] ) )
-			$args = array_merge( $args, [ 'description' => $metabox['args']['description'] ] );
-
+		$asset = $metabox['args']['asset'];
+		$args = $this->get_recipe( $asset, $metabox['args'], $post );
 		self::$template->output( $args );
 	}
 

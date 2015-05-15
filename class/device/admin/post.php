@@ -164,6 +164,29 @@ abstract class post {
 	}
 
 	/**
+	 * @access protected
+	 *
+	 * @param  string|array $asset
+	 * @param  array $args
+	 * @param  WP_Post $post
+	 * @return array
+	 */
+	protected function get_recipe( $asset, Array $args, \WP_Post $post ) {
+		if ( is_array( $asset ) ) {
+			$recipe = [ 'type' => 'group', 'assets' => [] ];
+			foreach ( $asset as $a )
+				$recipe['assets'][] = $this->property->$a->get_recipe( $post );
+		} else {
+			$recipe = $this->property->$asset->get_recipe( $post );
+		}
+		// description
+		if ( array_key_exists( 'description', $args ) )
+			$recipe = array_merge( $recipe, [ 'description' => $args['description'] ] );
+
+		return $recipe;
+	}
+
+	/**
 	 * @access public
 	 *
 	 * @see    https://github.com/mimosafa/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L573

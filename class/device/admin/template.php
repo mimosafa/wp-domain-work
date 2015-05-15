@@ -158,11 +158,13 @@ class template {
 			$return[] = $dom;
 			$this->nonce_dom_array( $return, $args['name'] );
 
-		}
-
-		if ( $type !== 'group' )
 			$id = $name = '';
 
+		}
+
+		/**
+		 * Form description
+		 */
 		if ( array_key_exists( 'description', $args ) && $args['description'] ) {
 			$desc = [
 				'element' => 'p',
@@ -198,8 +200,8 @@ class template {
 
 		if ( isset( $args['value'] ) )
 			$attr['value'] = esc_attr( $args['value'] );
-		if ( $args['max_len'] )
-			$attr['maxlength'] = esc_attr( $args['max_len'] );
+		if ( $args['max'] )
+			$attr['maxlength'] = esc_attr( $args['max'] );
 		if ( $args['readonly'] )
 			$attr['readonly'] = 'readonly';
 

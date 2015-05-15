@@ -79,12 +79,7 @@ trait asset_models {
 	 * @param  mixed $value
 	 */
 	protected function get_post_attribute( \WP_Post $post ) {
-		if ( property_exists( $post, $this->name ) )
-			$return = $post->{$this->name};
-		if ( 'menu_order' === $this->name )
-			return (int) $return;
-		if ( 'post_parent' === $this->name )
-			return $return ? get_post( $return ) : null;
+		return property_exists( $post, $this->name ) ? $post->{$this->name} : null;
 	}
 
 	/**
