@@ -16,8 +16,6 @@ abstract class asset_abstract {
 		}
 		if ( ! $this->multiple )
 			unset( $this->glue );
-		if ( ! $this->label )
-			$this->label = ucwords( str_replace( '_', ' ', $this->name ) );
 	}
 
 	/**
