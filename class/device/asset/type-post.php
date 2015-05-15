@@ -11,12 +11,22 @@ class type_post extends asset_abstract {
 	protected $post_status = [ 'publish' ];
 	protected $query_args  = [];
 
+	protected $field = 'ID'; // @todo Which field stored
+
+	public function __construct( Array $args ) {
+		parent::__construct( $args );
+		if ( $this->field !== 'ID' && ( ! $this->post_type || count( $this->post_type ) > 1 ) )
+			$this->field = 'ID';
+	}
+
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'post_type' && isset( $arg ) ) :
 			$arg = array_filter( (array) $arg, function( $pt ) {
 				return post_type_exists( $pt );
 			} );
 			$arg = $arg ?: null;
+		elseif ( $key === 'field' ) :
+			$arg = in_array( $arg, [ 'ID', 'post_name' ], true ) ? $arg : 'ID';
 		elseif ( $key === 'post_status' && isset( $arg ) ) :
 			// ...yet
 		elseif ( $key === 'query_args' && isset( $arg ) ) :
@@ -60,18 +70,12 @@ class type_post extends asset_abstract {
 		if ( ! isset( $value ) )
 			return;
 		if ( is_array( $value ) ) {
-			if ( $this->multiple ) {
-				array_walk( $value, function( &$post ) {
-					$post = $this->_print_in_admin( $post );
-				} );
-				return implode( $this->glue, $value );
-			} else {
-				$post = get_post( array_shift( $value ) );
-				// triger_error
-			}
+			array_walk( $value, function( &$post ) {
+				$post = $this->_print_in_admin( $post );
+			} );
+			return implode( $this->glue, $value );
 		}
-		$post = get_post( $value );
-		return $this->_print_in_admin( $post );
+		return $this->_print_in_admin( $value );
 	}
 
 	/**
