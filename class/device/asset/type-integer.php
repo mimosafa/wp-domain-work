@@ -17,9 +17,7 @@ class type_integer extends asset_abstract {
 	}
 
 	protected static function arguments_walker( &$arg, $key, $asset ) {
-		if ( $key === 'min' && isset( $arg ) ) :
-			$arg = self::validate_integer( $arg );
-		elseif ( $key === 'max' && isset( $arg ) ) :
+		if ( in_array( $key, [ 'min', 'max' ], true ) ) :
 			$arg = self::validate_integer( $arg );
 		else :
 			parent::arguments_walker( $arg, $key, $asset );
@@ -32,10 +30,6 @@ class type_integer extends asset_abstract {
 			$options['min_range'] = $this->min;
 		if ( $this->max !== null )
 			$options['max_range'] = $this->max;
-		if ( count( $options ) === 3 && $this->min > $this->max ) {
-			unset( $options['min_range'] );
-			unset( $options['max_range'] );
-		}
 		return filter_var( $value, \FILTER_VALIDATE_INT, [ 'options' => $options ] );
 	}
 

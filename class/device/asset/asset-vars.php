@@ -20,6 +20,11 @@ trait asset_vars {
 	protected $readonly = false;
 
 	/**
+	 * @var array
+	 */
+	protected $deps;
+
+	/**
 	 * @var string
 	 */
 	protected $glue = ', ';

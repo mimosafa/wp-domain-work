@@ -12,6 +12,8 @@ class type_datetime extends asset_abstract {
 	protected $min = null;
 	protected $max = null;
 
+	protected $step = null;
+
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'input_type' && isset( $arg ) ) :
 			static $typeLists = [ 'datetime_local', 'date', 'time' ];
@@ -20,7 +22,8 @@ class type_datetime extends asset_abstract {
 			// yet
 		elseif ( in_array( $key, [ 'min', 'max'], true ) ) :
 			// yet
-
+		elseif ( $key === 'step' ) :
+			$arg = self::validate_integer( $arg, null, 1 );
 		else :
 			parent::arguments_walker( $arg, $key, $asset );
 		endif;

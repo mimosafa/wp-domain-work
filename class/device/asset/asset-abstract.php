@@ -84,6 +84,8 @@ abstract class asset_abstract {
 			$arg = self::sanitize_string( $arg );
 		elseif ( in_array( $key, [ 'multiple', 'required', 'readonly' ], true ) ) :
 			$arg = self::validate_boolean( $arg, false );
+		elseif ( in_array( $key, [ 'deps' ], true ) ) :
+			$arg = filter_var( $arg, \FILTER_VALIDATE_BOOLEAN, \FILTER_REQUIRE_ARRAY );
 		elseif ( $key === 'model' ) :
 			$method = 'get_' . $arg;
 			$arg = method_exists( __NAMESPACE__ . '\\asset_models', $method ) ? $arg : null;
@@ -123,7 +125,7 @@ abstract class asset_abstract {
 			$options['options']['min_range'] = (int) $min;
 		if ( isset( $max ) && (int) $max > $options['options']['min_range'] )
 			$options['options']['max_range'] = (int) $max;
-		return (int) filter_var( $int, \FILTER_VALIDATE_INT, $options );
+		return filter_var( $int, \FILTER_VALIDATE_INT, $options );
 	}
 
 	/**

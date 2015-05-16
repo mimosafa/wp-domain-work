@@ -152,8 +152,6 @@ class template {
 
 			$method = $type . '_dom_array';
 			$dom = method_exists( __CLASS__, $method ) ? $this->$method( $id, $name, $args ) : [];
-			if ( $args['readonly'] )
-				$dom['attribute']['readonly'] = 'readonly';
 
 			$return[] = $dom;
 			$this->nonce_dom_array( $return, $args['name'] );
@@ -258,6 +256,8 @@ class template {
 
 		if ( isset( $args['value'] ) )
 			$attr['value'] = esc_attr( $args['value'] );
+		if ( isset( $args['step'] ) )
+			$attr['step'] = esc_attr( $args['step'] );
 		/*
 		if ( isset( $args['min'] ) )
 			$attr['min'] = esc_attr( $args['min'] );
@@ -292,6 +292,8 @@ class template {
 		];
 		if ( $args['value'] )
 			$el['attribute']['checked'] = 'checked';
+		if ( $args['readonly'] )
+			$el['attribute']['class'] = 'wpdw-checkbox-readonly';
 
 		if ( isset( $args['member_of'] ) && $args['member_of'] === 'group' ) {
 			return $el;
