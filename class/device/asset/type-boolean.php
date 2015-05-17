@@ -17,13 +17,8 @@ class type_boolean extends asset_abstract {
 		parent::arguments_walker( $arg, $key, $asset );
 	}
 
-	protected function output_filter( $value ) {
+	protected function filter( $value, $post = null ) {
 		return filter_var( $value, \FILTER_VALIDATE_BOOLEAN, \FILTER_NULL_ON_FAILURE );
-	}
-
-	protected function input_filter( $value, \WP_Post $post ) {
-		// @todo
-		return $value;
 	}
 
 	public function print_column( $value, $post_id ) {

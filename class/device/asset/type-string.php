@@ -38,7 +38,7 @@ class type_string extends asset_abstract implements asset {
 		endif;
 	}
 
-	protected function output_filter( $value ) {
+	protected function filter( $value, $post = null ) {
 		if ( $this->regexp ) {
 			if ( ! preg_match( $this->regexp, $value ) )
 				return null;
@@ -51,11 +51,6 @@ class type_string extends asset_abstract implements asset {
 			if ( $this->max && $len > $this->max )
 				return null;
 		}
-		return $value;
-	}
-
-	protected function input_filter( $value, \WP_Post $post ) {
-		// @todo
 		return $value;
 	}
 

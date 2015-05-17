@@ -24,18 +24,13 @@ class type_integer extends asset_abstract {
 		endif;
 	}
 
-	protected function output_filter( $value ) {
+	protected function filter( $value, $post = null ) {
 		$options = [ 'default' => null ];
 		if ( $this->min !== null )
 			$options['min_range'] = $this->min;
 		if ( $this->max !== null )
 			$options['max_range'] = $this->max;
 		return filter_var( $value, \FILTER_VALIDATE_INT, [ 'options' => $options ] );
-	}
-
-	protected function input_filter( $value, \WP_Post $post ) {
-		// @todo
-		return $value;
 	}
 
 	/**

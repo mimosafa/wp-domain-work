@@ -10,8 +10,7 @@ abstract class asset_abstract {
 	 */
 	protected static $_properties = [];
 
-	abstract protected function output_filter( $value );
-	abstract protected function input_filter( $value, \WP_Post $post );
+	abstract protected function filter( $value, $post = null );
 
 	/**
 	 * Constructor
@@ -44,7 +43,7 @@ abstract class asset_abstract {
 		if ( ! $this->model || ! $post = get_post( $post ) )
 			return;
 		$get = 'get_' . $this->model;
-		return $this->output_filter( $this->$get( $post ) );
+		return $this->filter( $this->$get( $post ) );
 	}
 
 	/**
@@ -61,7 +60,7 @@ abstract class asset_abstract {
 		if ( ! $this->model || ! $post = get_post( $post ) )
 			return;
 		$update = 'update_' . $this->model;
-		return $this->$update( $post, $this->input_filter( $value, $post ) );
+		return $this->$update( $post, $this->filter( $value, $post ) );
 	}
 
 	/**
@@ -94,7 +93,7 @@ abstract class asset_abstract {
 		elseif ( in_array( $key, [ 'multiple', 'required', 'readonly' ], true ) ) :
 			$arg = self::validate_boolean( $arg, false );
 		elseif ( in_array( $key, [ 'deps' ], true ) ) :
-			$arg = filter_var( $arg, \FILTER_VALIDATE_BOOLEAN, \FILTER_REQUIRE_ARRAY );
+			$arg = filter_var( $arg, \FILTER_DEFAULT, \FILTER_REQUIRE_ARRAY );
 		elseif ( $key === 'model' ) :
 			$method = 'get_' . $arg;
 			$arg = method_exists( __NAMESPACE__ . '\\asset_models', $method ) ? $arg : null;

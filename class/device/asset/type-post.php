@@ -36,7 +36,7 @@ class type_post extends asset_abstract {
 		endif;
 	}
 
-	protected function output_filter( $value ) {
+	protected function filter( $value, $post = null ) {
 		if ( is_array( $value ) && $this->multiple ) {
 			$posts = [];
 			foreach ( $value as $val ) {
@@ -47,11 +47,6 @@ class type_post extends asset_abstract {
 		}
 		$value = ! is_array( $value ) ? $value : array_shift( $value );
 		return get_post( $value );
-	}
-
-	protected function input_filter( $value, \WP_Post $post ) {
-		// @todo
-		return $value;
 	}
 
 	/**

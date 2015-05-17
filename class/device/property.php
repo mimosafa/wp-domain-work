@@ -67,7 +67,6 @@ trait property {
 		 */
 		$class = $this->get_class_name( $args['type'] );
 		$class::prepare_arguments( $args, $asset );
-		$args['domain'] = explode( '\\', __CLASS__ )[1];
 	}
 
 	/**
@@ -138,6 +137,8 @@ trait property {
 		} else {
 			$args = null;
 		}
+		if ( $args )
+			$args['domain'] = explode( '\\', __CLASS__ )[1];
 	}
 
 	/**
