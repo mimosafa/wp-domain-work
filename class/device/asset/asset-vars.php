@@ -6,6 +6,7 @@ trait asset_vars {
 	/**
 	 * @var string
 	 */
+	protected $domain;
 	protected $type;
 	protected $name;
 	protected $model;
@@ -40,7 +41,13 @@ trait asset_vars {
 	 * @param  string $asset
 	 */
 	public static function prepare_arguments( Array &$args, $asset ) {
-		$args = array_merge( get_class_vars( __CLASS__ ), $args );
+		static $defaults;
+		if ( ! $defaults ) {
+			$defaults = get_class_vars( __CLASS__ );
+			// Unset static vars
+			unset( $defaults['_properties'] );
+		}
+		$args = array_merge( $defaults, $args );
 		array_walk( $args, __CLASS__ . '::arguments_walker', $asset );
 
 		if ( ! $args['label'] )

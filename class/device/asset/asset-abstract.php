@@ -3,6 +3,13 @@ namespace WPDW\Device\Asset;
 
 abstract class asset_abstract {
 
+	/**
+	 * @var array {
+	 *     @type WP_Domain\{$domain}\property $domain
+	 * }
+	 */
+	protected static $_properties = [];
+
 	abstract protected function output_filter( $value );
 	abstract protected function input_filter( $value, \WP_Post $post );
 
@@ -17,6 +24,8 @@ abstract class asset_abstract {
 			if ( property_exists( $this, $key ) && isset( $key ) )
 				$this->$key = $val;
 		}
+		if ( ! array_key_exists( $args['domain'], self::$_properties ) )
+			self::$_properties[$args['domain']] = \WPDW\_property_object( $args['domain'] );
 		if ( ! $this->multiple )
 			unset( $this->glue );
 	}
@@ -89,7 +98,7 @@ abstract class asset_abstract {
 		elseif ( $key === 'model' ) :
 			$method = 'get_' . $arg;
 			$arg = method_exists( __NAMESPACE__ . '\\asset_models', $method ) ? $arg : null;
-		elseif ( $key !== 'type' ) :
+		elseif ( ! in_array( $key, [ 'domain', 'type', ], true ) ) :
 			$arg = null;
 		endif;
 	}
