@@ -136,20 +136,12 @@ class Router {
 	public function init_service() {
 		if ( ! $this->ns )
 			return;
-		foreach ( $this->services as $service )
-			$this->exec( $service );
-	}
-
-	/**
-	 * @access private
-	 * 
-	 * @param  string $cl
-	 * @return (void)
-	 */
-	private function exec( $cl ) {
-		$class = 'WP_Domain\\' . $this->ns . '\\' . $cl;
-		if ( class_exists( $class ) )
-			$class::getInstance();
+		$ns = 'WP_Domain\\' . $this->ns . '\\';
+		foreach ( $this->services as $service ) {
+			$class = $ns . $service;
+			if ( class_exists( $class ) )
+				$class::getInstance();
+		}
 	}
 
 }

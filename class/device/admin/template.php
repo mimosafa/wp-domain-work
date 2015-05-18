@@ -96,7 +96,7 @@ class template {
 
 		if ( array_key_exists( 'assets', $args ) ) {
 
-			if ( $type === 'group' && empty( $table ) ) {
+			if ( $type === '_plural_assets' && empty( $table ) ) {
 				$table = [
 					'element' => 'table',
 					'attribute' => [ 'class' => 'form-table' ],
@@ -114,7 +114,7 @@ class template {
 					/**
 					 * Add argument for group member
 					 */
-					$child_args['member_of'] = 'group';
+					$child_args['member_of'] = '_plural_assets';
 
 					if ( $child_dom = $this->generate_dom_array( $child_args ) ) {
 						$tr_wrapper[] = [
@@ -168,7 +168,7 @@ class template {
 				'element' => 'p',
 				'text'    => esc_html( $args['description'] ),
 			];
-			if ( 'group' === $type ) {
+			if ( '_plural_assets' === $type ) {
 				array_unshift( $return, $desc );
 			} else {
 				$desc['attribute'] = [ 'class' => 'description' ];
@@ -295,7 +295,7 @@ class template {
 		if ( $args['readonly'] )
 			$el['attribute']['class'] = 'wpdw-checkbox-readonly';
 
-		if ( isset( $args['member_of'] ) && $args['member_of'] === 'group' ) {
+		if ( isset( $args['member_of'] ) && $args['member_of'] === '_plural_assets' ) {
 			return $el;
 		}
 

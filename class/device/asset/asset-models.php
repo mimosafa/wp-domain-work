@@ -99,10 +99,10 @@ trait asset_models {
 	 * @param  mixed $value
 	 */
 	protected function get_post_children( \WP_Post $post ) {
-		$args = [ 'post_parent' => $post->ID ];
+		$args = $this->query_args;
 		if ( $this->post_type )
 			$args['post_type'] = $this->post_type;
-		//
+		$args['post_parent'] = $post->ID;
 		return get_posts( $args );
 	}
 

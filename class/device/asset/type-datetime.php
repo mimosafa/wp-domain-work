@@ -1,8 +1,8 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_datetime extends asset_abstract {
-	use asset_vars, asset_models;
+class type_datetime extends asset_simple {
+	use asset_vars;
 
 	protected $input_type = 'datetime_local';
 
@@ -29,7 +29,7 @@ class type_datetime extends asset_abstract {
 		endif;
 	}
 
-	protected function filter( $value, $post = null ) {
+	protected function filter_callback( $value, $post = null ) {
 		// @todo
 		return filter_var( $value );
 	}

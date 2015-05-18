@@ -1,19 +1,20 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_string extends asset_abstract implements asset {
-	use asset_vars, asset_models;
+class type_string extends asset_simple {
+	use asset_vars;
 
 	/**
 	 * @var boolean
 	 */
-	protected $multibyte = true;
+	protected $multibyte;
+	protected $paragraph; // @todo
 
 	/**
 	 * @var int
 	 */
-	protected $min = 0;
-	protected $max = 0;
+	protected $min;
+	protected $max;
 
 	/**
 	 * @var string Regexp
@@ -27,8 +28,10 @@ class type_string extends asset_abstract implements asset {
 	}
 
 	protected static function arguments_walker( &$arg, $key, $asset ) {
-		if ( $key === 'multibyte' ) :
+		if ( in_array( $key, [ 'multibyte' ] ) ) :
 			$arg = self::validate_boolean( $arg, true );
+		elseif ( in_array( $key, [ 'paragraph' ] ) ) :
+			$arg = self::validate_boolean( $arg, false );
 		elseif ( in_array( $key, [ 'min', 'max' ], true ) ) :
 			$arg = self::validate_integer( $arg, 0, 1 );
 		elseif ( $key === 'regexp' && $arg ) :
@@ -38,7 +41,7 @@ class type_string extends asset_abstract implements asset {
 		endif;
 	}
 
-	protected function filter( $value, $post = null ) {
+	protected function filter_callback( $value, $post = null ) {
 		if ( $this->regexp ) {
 			if ( ! preg_match( $this->regexp, $value ) )
 				return null;

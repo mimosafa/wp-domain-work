@@ -1,16 +1,7 @@
 <?php
 namespace WPDW\Device\Asset;
 
-abstract class asset_abstract {
-
-	/**
-	 * @var array {
-	 *     @type WP_Domain\{$domain}\property $domain
-	 * }
-	 */
-	protected static $_properties = [];
-
-	abstract protected function filter( $value, $post = null );
+abstract class asset_abstract implements asset {
 
 	/**
 	 * Constructor
@@ -23,72 +14,19 @@ abstract class asset_abstract {
 			if ( property_exists( $this, $key ) && isset( $key ) )
 				$this->$key = $val;
 		}
-		if ( ! array_key_exists( $args['domain'], self::$_properties ) )
-			self::$_properties[$args['domain']] = \WPDW\_property_object( $args['domain'] );
 		if ( ! $this->multiple )
-			unset( $this->glue );
+			unset( $this->delimiter );
 	}
 
 	/**
-	 * Get value
-	 *
-	 * @access public
-	 *
-	 * @uses   WPDW\Device\type_{$type}::output_filter()
-	 *
-	 * @param  int|WP_Post $post
-	 * @return mixed
-	 */
-	public function get( $post ) {
-		if ( ! $this->model || ! $post = get_post( $post ) )
-			return;
-		$get = 'get_' . $this->model;
-		return $this->filter( $this->$get( $post ) );
-	}
-
-	/**
-	 * Update value
-	 *
-	 * @access public
-	 *
-	 * @uses   WPDW\Device\type_{$type}::input_filter()
-	 *
-	 * @param  int|WP_Post $post
-	 * @param  mixed $value
-	 */
-	public function update( $post, $value ) {
-		if ( ! $this->model || ! $post = get_post( $post ) )
-			return;
-		$update = 'update_' . $this->model;
-		return $this->$update( $post, $this->filter( $value, $post ) );
-	}
-
-	/**
-	 * Return recipe of the asset as array
-	 *
-	 * @access public
-	 *
-	 * @param  int|WP_Post $post
-	 * @return array
-	 */
-	public function get_recipe( $post ) {
-		return array_merge( get_object_vars( $this ), [ 'value' => $this->get( $post ) ] );
-	}
-
-	/**
-	 * Array_walk callback function used in WPDW\Device\type_{$type}::prepare_arguments()
-	 *
 	 * @access protected
 	 *
-	 * @param  mixed  &$arg
-	 * @param  string $key
-	 * @param  string $asset
-	 * @return (void)
+	 * @see    WPDW\Device\asset_vars::prepare_arguments()
 	 */
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'name' ) :
 			$arg = $asset;
-		elseif ( in_array( $key, [ 'label', 'description', 'glue' ], true ) ) :
+		elseif ( in_array( $key, [ 'label', 'description', 'delimiter' ], true ) ) :
 			$arg = self::sanitize_string( $arg );
 		elseif ( in_array( $key, [ 'multiple', 'required', 'readonly' ], true ) ) :
 			$arg = self::validate_boolean( $arg, false );

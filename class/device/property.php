@@ -6,7 +6,7 @@ namespace WPDW\Device;
  * @uses WPDW\Device\Module\Functions
  */
 trait property {
-	use \WPDW\Util\Singleton, Module\Methods;
+	use \WPDW\Util\Singleton, \WPDW\Util\Array_Function, Module\Methods;
 
 	/**
 	 * Asset data
@@ -72,6 +72,8 @@ trait property {
 	/**
 	 * @access private
 	 *
+	 * @uses   WPDW\Util\Array_Function::md_merge()
+	 *
 	 * @param  string $asset
 	 * @param  array|mixed &$args
 	 */
@@ -100,7 +102,8 @@ trait property {
 				'default' => [ 'model' => 'post_meta' ]
 			],
 			'boolean' => [
-				'default' => [ 'model' => 'post_meta', ]
+				'required' => [ 'multiple' => false ],
+				'default'  => [ 'model' => 'post_meta', ]
 			],
 			'datetime' => [
 				'required' => [ 'type' => 'datetime', 'input_type' => 'datetime_local', ],
@@ -116,23 +119,27 @@ trait property {
 			],
 			'post_children' => [
 				'required' => [ 'type' => 'post', 'model' => 'post_children' ],
-				'default'  => [ 'multiple' => true, ]
+				'default'  => [ 'multiple' => true, 'query_args' => [ 'orderby' => 'menu_order', 'order' => 'ASC' ] ]
+			],
+
+			'sentence' => [
+				'required' => [ 'model' => 'assets' ],
 			],
 		];
 
 		if ( array_key_exists( $asset, $_asset_args ) ) {
 			$args = is_array( $args ) ? $args : [];
 			if ( array_key_exists( 'default', $_asset_args[$asset] ) )
-				$args = array_merge( $_asset_args[$asset]['default'], $args );
+				$args = self::md_merge( $_asset_args[$asset]['default'], $args );
 			if ( array_key_exists( 'required', $_asset_args[$asset] ) )
-				$args = array_merge( $args, $_asset_args[$asset]['required'] );
+				$args = self::md_merge( $args, $_asset_args[$asset]['required'] );
 		} else if ( is_array( $args ) && isset( $args['type'] ) ) {
 			$type = $args['type'];
 			if ( array_key_exists( $type, $_type_args ) ) {
 				if ( array_key_exists( 'default', $_type_args[$type] ) )
-					$args = array_merge( $_type_args[$type]['default'], $args );
+					$args = self::md_merge( $_type_args[$type]['default'], $args );
 				if ( array_key_exists( 'required', $_type_args[$type] ) )
-					$args = array_merge( $args, $_type_args[$type]['required'] );
+					$args = self::md_merge( $args, $_type_args[$type]['required'] );
 			}
 		} else {
 			$args = null;

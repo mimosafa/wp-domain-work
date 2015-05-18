@@ -173,7 +173,7 @@ abstract class post {
 	 */
 	protected function get_recipe( $asset, Array $args, \WP_Post $post ) {
 		if ( is_array( $asset ) ) {
-			$recipe = [ 'type' => 'group', 'assets' => [] ];
+			$recipe = [ 'type' => '_plural_assets', 'assets' => [] ];
 			foreach ( $asset as $a )
 				$recipe['assets'][] = $this->property->$a->get_recipe( $post );
 		} else {

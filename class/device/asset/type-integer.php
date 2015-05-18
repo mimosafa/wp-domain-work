@@ -1,8 +1,8 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_integer extends asset_abstract {
-	use asset_vars, asset_models;
+class type_integer extends asset_simple {
+	use asset_vars;
 
 	/**
 	 * @var int|null
@@ -24,7 +24,7 @@ class type_integer extends asset_abstract {
 		endif;
 	}
 
-	protected function filter( $value, $post = null ) {
+	protected function filter_callback( $value, $post = null ) {
 		$options = [ 'default' => null ];
 		if ( $this->min !== null )
 			$options['min_range'] = $this->min;

@@ -1,8 +1,8 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_post extends asset_abstract {
-	use asset_vars, asset_models;
+class type_post extends asset_simple {
+	use asset_vars;
 
 	/**
 	 * @var array
@@ -29,24 +29,19 @@ class type_post extends asset_abstract {
 			$arg = in_array( $arg, [ 'ID', 'post_name' ], true ) ? $arg : 'ID';
 		elseif ( $key === 'post_status' && isset( $arg ) ) :
 			// ...yet
-		elseif ( $key === 'query_args' && isset( $arg ) ) :
+		elseif ( $key === 'query_args' ) :
 			// ...yet
 		else :
 			parent::arguments_walker( $arg, $key, $asset );
 		endif;
 	}
 
-	protected function filter( $value, $post = null ) {
-		if ( is_array( $value ) && $this->multiple ) {
-			$posts = [];
-			foreach ( $value as $val ) {
-				if ( $val = get_post( $val ) )
-					$posts[] = $val;
-			}
-			return $posts;
-		}
-		$value = ! is_array( $value ) ? $value : array_shift( $value );
-		return get_post( $value );
+	protected function filter_callback( $value, $post = null ) {
+		if ( is_object( $value ) && get_class( $value ) === 'WP_Post' )
+			return $value;
+		if ( $value === absint( $value ) )
+			return get_post( $value );
+		return null;
 	}
 
 	/**
@@ -68,7 +63,7 @@ class type_post extends asset_abstract {
 			array_walk( $value, function( &$post ) {
 				$post = $this->_print_in_admin( $post );
 			} );
-			return implode( $this->glue, $value );
+			return implode( $this->delimiter, $value );
 		}
 		return $this->_print_in_admin( $value );
 	}
