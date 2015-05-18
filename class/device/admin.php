@@ -49,16 +49,7 @@ trait admin {
 			/**
 			 * Domain that registered as post_type
 			 */
-			if ( $statusInstance = \WPDW\_status_object( $this->domain ) )
-				/**
-				 * Post statuses
-				 * @uses WP_Domain\{$domain}\status::init()
-				 * @see  WPDW\Device\status::init()
-				 */
-				$statusInstance->init();
-
 			$this->init_post_type( $pagenow );
-
 		} else if ( $pagenow === 'edit-tags.php' ) {
 			/**
 			 * Domain that registered as taxonomy
