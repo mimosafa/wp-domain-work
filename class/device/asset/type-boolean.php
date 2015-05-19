@@ -23,7 +23,7 @@ class type_boolean extends asset_simple {
 		endif;
 	}
 
-	protected function filter_callback( $value, $post = null ) {
+	protected function filter_value( $value, $post = null ) {
 		return filter_var( $value, \FILTER_VALIDATE_BOOLEAN, \FILTER_NULL_ON_FAILURE );
 	}
 

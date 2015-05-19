@@ -64,3 +64,7 @@
   padding: 0;
   margin: 1em 0 .25em;
 }
+
+fieldset > input + label[for^="wp-domain-work-form-"] {
+  padding-left: .5em;
+}

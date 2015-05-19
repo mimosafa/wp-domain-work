@@ -1,7 +1,7 @@
 <?php
-namespace WPDW\Device\Asset;
+namespace WPDW\Device\Asset\Model;
 
-trait asset_models {
+trait post_meta {
 
 	/**
 	 * Model: post_meta - get
@@ -64,46 +64,6 @@ trait asset_models {
 	 */
 	protected function delete_post_meta( \WP_Post $post, $value ) {
 		return \delete_post_meta( $post->ID, $this->name, $value );
-	}
-
-	/**
-	 * Model: post_attribute - get
-	 *
-	 * @access protected
-	 *
-	 * @param  WP_Post $post
-	 * @param  mixed $value
-	 */
-	protected function get_post_attribute( \WP_Post $post ) {
-		return property_exists( $post, $this->name ) ? $post->{$this->name} : null;
-	}
-
-	/**
-	 * Model: post_attribute - update
-	 *
-	 * @access protected
-	 *
-	 * @param  WP_Post $post
-	 * @param  mixed $value
-	 */
-	protected function update_post_attribute( \WP_Post $post, $value ) {
-		// ..yet
-	}
-
-	/**
-	 * Model: post_children - get
-	 *
-	 * @access protected
-	 *
-	 * @param  WP_Post $post
-	 * @param  mixed $value
-	 */
-	protected function get_post_children( \WP_Post $post ) {
-		$args = $this->query_args;
-		if ( $this->post_type )
-			$args['post_type'] = $this->post_type;
-		$args['post_parent'] = $post->ID;
-		return get_posts( $args );
 	}
 
 }

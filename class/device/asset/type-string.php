@@ -28,10 +28,8 @@ class type_string extends asset_simple {
 	}
 
 	protected static function arguments_walker( &$arg, $key, $asset ) {
-		if ( in_array( $key, [ 'multibyte' ] ) ) :
-			$arg = self::validate_boolean( $arg, true );
-		elseif ( in_array( $key, [ 'paragraph' ] ) ) :
-			$arg = self::validate_boolean( $arg, false );
+		if ( in_array( $key, [ 'multibyte', 'paragraph' ], true ) ) :
+			$arg = filter_var( $arg, \FILTER_VALIDATE_BOOLEAN );
 		elseif ( in_array( $key, [ 'min', 'max' ], true ) ) :
 			$arg = self::validate_integer( $arg, 0, 1 );
 		elseif ( $key === 'regexp' && $arg ) :
@@ -41,12 +39,14 @@ class type_string extends asset_simple {
 		endif;
 	}
 
-	protected function filter_callback( $value, $post = null ) {
+	protected function filter_value( $value, $post = null ) {
 		if ( $this->regexp ) {
 			if ( ! preg_match( $this->regexp, $value ) )
 				return null;
 		}
-		if ( $this->min < $this->max ) {
+		if ( ! $this->multibyte && strlen( $value ) !== mb_strlen( $value ) )
+			return null;
+		if ( $this->min || $this->max ) {
 			$strlen = $this->multibyte ? 'mb_strlen' : 'strlen';
 			$len = $strlen( $value );
 			if ( $this->min && $len < $this->min )

@@ -10,6 +10,11 @@ class type_integer extends asset_simple {
 	protected $min = null;
 	protected $max = null;
 
+	/**
+	 * @var int
+	 */
+	protected $step; // @todo
+
 	public function __construct( Array $args ) {
 		parent::__construct( $args );
 		if ( is_int( $this->min ) && is_int( $this->max) && $this->min > $this->max )
@@ -19,12 +24,14 @@ class type_integer extends asset_simple {
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( in_array( $key, [ 'min', 'max' ], true ) ) :
 			$arg = self::validate_integer( $arg );
+		elseif ( $key === 'step' ) :
+			// @todo
 		else :
 			parent::arguments_walker( $arg, $key, $asset );
 		endif;
 	}
 
-	protected function filter_callback( $value, $post = null ) {
+	protected function filter_value( $value, $post = null ) {
 		$options = [ 'default' => null ];
 		if ( $this->min !== null )
 			$options['min_range'] = $this->min;

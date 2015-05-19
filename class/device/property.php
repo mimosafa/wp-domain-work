@@ -118,12 +118,12 @@ trait property {
 				'default'  => [ 'model' => 'post_meta', 'input_format' => 'H:i', 'output_format' => 'H:i', ]
 			],
 			'post_children' => [
-				'required' => [ 'type' => 'post', 'model' => 'post_children' ],
+				'required' => [ 'type' => 'post', 'model' => 'post', 'context' => 'post_children', ],
 				'default'  => [ 'multiple' => true, 'query_args' => [ 'orderby' => 'menu_order', 'order' => 'ASC' ] ]
 			],
 
 			'sentence' => [
-				'required' => [ 'model' => 'assets' ],
+				#'required' => [ 'model' => 'assets' ],
 			],
 		];
 

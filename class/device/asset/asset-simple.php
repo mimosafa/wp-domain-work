@@ -2,7 +2,7 @@
 namespace WPDW\Device\Asset;
 
 abstract class asset_simple extends asset_abstract {
-	use asset_models;
+	use Model\post_meta, Model\post_attribute, Model\post;
 
 	/**
 	 * @var string
@@ -10,24 +10,29 @@ abstract class asset_simple extends asset_abstract {
 	protected $model;
 
 	/**
+	 * Abstract method: Filter values
+	 *
 	 * @access protected
 	 *
 	 * @param  mixed $value
 	 * @param  null|WP_Post Optional
 	 * @return mixed|null
 	 */
-	abstract protected function filter_callback( $value, $post = null );
+	abstract protected function filter_value( $value, $post = null );
 
 	/**
-	 * Optional Method if required
+	 * Input value filter. default is same as filter_value method.
+	 * If necessary, overwrite in class.
 	 *
-	 * @see filter()
+	 * @access protected
 	 *
 	 * @param  mixed $value
 	 * @param  WP_Post $post
 	 * @return mixed|null
 	 */
-	# protected function filter_validate( $value, \WP_Post $post );
+	protected function filter_input( $value, \WP_Post $post ) {
+		return $this->filter_value( $value, $post );
+	}
 
 	/**
 	 * Get value
@@ -41,7 +46,7 @@ abstract class asset_simple extends asset_abstract {
 		if ( ! $this->model || ! $post = get_post( $post ) )
 			return;
 		$get = 'get_' . $this->model;
-		return $this->filter( $this->$get( $post ) );
+		return $this->filter( $this->$get( $post ), $post );
 	}
 
 	/**
@@ -58,7 +63,7 @@ abstract class asset_simple extends asset_abstract {
 		if ( ! $this->model || ! $post = get_post( $post ) )
 			return;
 		$update = 'update_' . $this->model;
-		return $this->$update( $post, $this->filter( $value, $post ) );
+		return $this->$update( $post, $this->filter_input( $value, $post ) );
 	}
 
 	/**
@@ -70,14 +75,14 @@ abstract class asset_simple extends asset_abstract {
 	 * @param  null|WP_Post $post (Optional) 
 	 */
 	protected function filter( $value, $post = null ) {
+		if ( ! $value = parent::filter( $value, $post ) )
+			return null;
+
 		/**
-		 * Define filter callback function.
+		 * Define filter callback method.
 		 * If $post is set input validation.
-		 * And if defined specific method for input value 'filter_validate', use that.
 		 */
-		$callback = 'filter_callback';
-		if ( isset( $post ) && method_exists( __NAMESPACE__ . '\\type_' . $this->type, 'filter_validate' ) )
-			$callback = 'filter_validate';
+		$callback = isset( $post ) ? 'filter_input' : 'filter_value';
 
 		if ( $this->multiple ) {
 			$filtered = [];
@@ -117,8 +122,7 @@ abstract class asset_simple extends asset_abstract {
 	 */
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'model' ) :
-			$method = 'get_' . $arg;
-			$arg = method_exists( __CLASS__, $method ) ? $arg : null;
+			$arg = trait_exists( __NAMESPACE__ . '\\Model\\' . $arg ) ? $arg : null;
 		else :
 			parent::arguments_walker( $arg, $key, $asset );
 		endif;

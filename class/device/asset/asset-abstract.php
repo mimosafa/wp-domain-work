@@ -4,6 +4,13 @@ namespace WPDW\Device\Asset;
 abstract class asset_abstract implements asset {
 
 	/**
+	 * @var array {
+	 *     @type WP_Domain\{$domain}\property $domain
+	 * }
+	 */
+	protected static $_properties = [];
+
+	/**
 	 * Constructor
 	 *
 	 * @param  array $args
@@ -19,6 +26,30 @@ abstract class asset_abstract implements asset {
 	}
 
 	/**
+	 *
+	 */
+	protected function filter( $value, $post = null ) {
+		if ( $this->deps && ! $this->check_dependency( $post ) )
+			return null;
+		return $value;
+	}
+
+	protected function check_dependency( $post ) {
+		$property =& $this->_property();
+		foreach ( $this->deps as $asset => $arg ) {
+			if ( ! is_array( $arg ) ) {
+				if ( filter_var( $arg, \FILTER_VALIDATE_BOOLEAN ) && ! $property->$asset->get( $post ) ) {
+					return false;
+					break;
+				}
+			} else {
+				//
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * @access protected
 	 *
 	 * @see    WPDW\Device\asset_vars::prepare_arguments()
@@ -29,15 +60,19 @@ abstract class asset_abstract implements asset {
 		elseif ( in_array( $key, [ 'label', 'description', 'delimiter' ], true ) ) :
 			$arg = self::sanitize_string( $arg );
 		elseif ( in_array( $key, [ 'multiple', 'required', 'readonly' ], true ) ) :
-			$arg = self::validate_boolean( $arg, false );
+			$arg = filter_var( $arg, \FILTER_VALIDATE_BOOLEAN );
 		elseif ( in_array( $key, [ 'deps' ], true ) ) :
 			$arg = filter_var( $arg, \FILTER_DEFAULT, \FILTER_REQUIRE_ARRAY );
-		elseif ( $key === 'model' ) :
-			$method = 'get_' . $arg;
-			$arg = method_exists( __NAMESPACE__ . '\\asset_models', $method ) ? $arg : null;
 		elseif ( ! in_array( $key, [ 'domain', 'type', ], true ) ) :
 			$arg = null;
 		endif;
+	}
+
+	protected function &_property( $domain = null ) {
+		$domain = $domain ?: $this->domain;
+		if ( ! isset( self::$_properties[$domain] ) )
+			self::$_properties[$domain] = \WPDW\_property_object( $domain );
+		return self::$_properties[$domain];
 	}
 
 	/**

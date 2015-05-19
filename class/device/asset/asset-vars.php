@@ -2,7 +2,7 @@
 namespace WPDW\Device\Asset;
 
 /**
- * Common vars of asset
+ * Common vars of asset, and common static method
  */
 trait asset_vars {
 
@@ -47,17 +47,20 @@ trait asset_vars {
 	 */
 	public static function prepare_arguments( Array &$args, $asset ) {
 		static $defaults;
-		if ( ! $defaults )
+		if ( ! $defaults ) {
 			$defaults = get_class_vars( __CLASS__ );
+			unset( $defaults['_properties'] ); // unset static vars
+		}
 		$args = array_merge( $defaults, $args );
 		array_walk( $args, __CLASS__ . '::arguments_walker', $asset );
 
-		if ( self::is_met_requirements( $args ) ) {
-			if ( ! $args['label'] )
-				$args['label'] = ucwords( str_replace( '_', ' ', $args['name'] ) );
-		} else {
+		if ( ! self::is_met_requirements( $args ) ) {
 			$args = null;
+			return;
 		}
+		
+		if ( ! $args['label'] )
+			$args['label'] = ucwords( str_replace( '_', ' ', $args['name'] ) );
 	}
 
 }

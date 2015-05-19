@@ -29,7 +29,7 @@ class type_datetime extends asset_simple {
 		endif;
 	}
 
-	protected function filter_callback( $value, $post = null ) {
+	protected function filter_value( $value, $post = null ) {
 		// @todo
 		return filter_var( $value );
 	}

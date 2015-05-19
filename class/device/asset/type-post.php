@@ -5,6 +5,11 @@ class type_post extends asset_simple {
 	use asset_vars;
 
 	/**
+	 * @var string
+	 */
+	protected $context;
+
+	/**
 	 * @var array
 	 */
 	protected $post_type   = [];
@@ -20,7 +25,9 @@ class type_post extends asset_simple {
 	}
 
 	protected static function arguments_walker( &$arg, $key, $asset ) {
-		if ( $key === 'post_type' && isset( $arg ) ) :
+		if ( $key === 'context' ) :
+			$arg = in_array( $arg, [ 'post_children', ], true ) ? $arg : null;
+		elseif ( $key === 'post_type' && isset( $arg ) ) :
 			$arg = array_filter( (array) $arg, function( $pt ) {
 				return post_type_exists( $pt );
 			} );
@@ -36,7 +43,7 @@ class type_post extends asset_simple {
 		endif;
 	}
 
-	protected function filter_callback( $value, $post = null ) {
+	protected function filter_value( $value, $post = null ) {
 		if ( is_object( $value ) && get_class( $value ) === 'WP_Post' )
 			return $value;
 		if ( $value === absint( $value ) )

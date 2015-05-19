@@ -4,13 +4,6 @@ namespace WPDW\Device\Asset;
 abstract class asset_complex extends asset_abstract {
 
 	/**
-	 * @var array {
-	 *     @type WP_Domain\{$domain}\property $domain
-	 * }
-	 */
-	protected static $_properties = [];
-
-	/**
 	 * Constructor
 	 *
 	 * @uses   WPDW\Device\Asset\asset_abstract::__construct()
@@ -20,8 +13,7 @@ abstract class asset_complex extends asset_abstract {
 	 */
 	public function __construct( Array $args ) {
 		parent::__construct( $args );
-		if ( ! isset( self::$_properties[$this->domain] ) )
-			self::$_properties[$this->domain] = \WPDW\_property_object( $this->domain );
+		// ~
 	}
 
 	public function get( $post ) {}
@@ -36,7 +28,13 @@ abstract class asset_complex extends asset_abstract {
 	 * @return array
 	 */
 	public function get_recipe( $post ) {
-		//
+		$recipe = get_object_vars( $this );
+		if ( isset( $recipe['assets'] ) ) {
+			array_walk( $recipe['assets'], function( &$asset, $i, $post ) {
+				$asset = $this->_property()->$asset->get_recipe( $post );
+			}, $post );
+		}
+		return $recipe;
 	}
 
 	/**
@@ -56,9 +54,6 @@ abstract class asset_complex extends asset_abstract {
 			$arg = self::sanitize_string( $arg );
 		elseif ( $key === 'assets' ) :
 			$arg = filter_var( $arg, \FILTER_DEFAULT, \FILTER_REQUIRE_ARRAY );
-		elseif ( $key === 'model' ) :
-			$method = 'get_' . $arg;
-			$arg = method_exists( __CLASS__, $method ) ? $arg : null;
 		else :
 			parent::arguments_walker( $arg, $key, $asset );
 		endif;
@@ -66,23 +61,6 @@ abstract class asset_complex extends asset_abstract {
 
 	protected static function is_met_requirements( Array $args ) {
 		return true; // @todo
-	}
-
-	/**
-	 * @access protected
-	 */
-	protected function get_assets( \WP_Post $post ) {
-		if ( ! array_key_exists( $this->domain, self::$_properties ) ) {
-			self::$_properties[$this->domain] = \WPDW\_property_object( $this->domain );
-		}
-		$property =& $this->_get_property();
-		/*
-		$return = [];
-		foreach ( $this->assets as $asset ) {
-			$return[] = (object) $property->$asset->get_recipe( $post );
-		}
-		return $return;
-		*/
 	}
 
 }

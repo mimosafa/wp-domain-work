@@ -81,7 +81,8 @@ class template {
 
 		static $name = '';
 		static $id   = '';
-		static $table  = [];
+		static $table = [];
+		static $fieldset = [];
 
 		/**
 		 * @var string
@@ -96,7 +97,34 @@ class template {
 
 		if ( array_key_exists( 'assets', $args ) ) {
 
-			if ( $type === '_plural_assets' && empty( $table ) ) {
+			if ( isset( $args['inline'] ) && $args['inline'] ) {
+
+				$fieldset = [
+					'element' => 'fieldset',
+					'children' => [],
+				];
+
+				foreach ( $args['assets'] as $sentence_child ) {
+					$name = $args['name'] . sprintf( '[%s]', $sentence_child['name'] );
+					$id = $this->form_id_prefix . $sentence_child['name'];
+					$_id = $id;
+					$label = $sentence_child['label'] ?: ucwords( str_replace( '_', ' ', $sentence_child['name'] ) );
+
+					$sentence_child['member_of'] = 'inline';
+
+					if ( $sentence_child_dom = $this->generate_dom_array( $sentence_child ) ) {
+						$fieldset['children'][] = $sentence_child_dom;
+					}
+				}
+				if ( ! empty( $fieldset['children'] ) ) {
+					$return[] = $fieldset;
+					$this->nonce_dom_array( $return, $args['name'] );
+				}
+
+				$fieldset = [];
+
+			} else if ( empty( $table ) ) {
+
 				$table = [
 					'element' => 'table',
 					'attribute' => [ 'class' => 'form-table' ],
@@ -106,17 +134,11 @@ class template {
 				];
 				$tr_wrapper =& $table['children'][0]['children'];
 
-				foreach ( $args['assets'] as $child_args ) {
-					$id = $this->form_id_prefix . $child_args['name'];
+				foreach ( $args['assets'] as $child ) {
+					$id = $this->form_id_prefix . $child['name'];
 					$_id = $id;
-					$label = $child_args['label'] ?: ucwords( str_replace( '_', ' ', $child_args['name'] ) );
 
-					/**
-					 * Add argument for group member
-					 */
-					$child_args['member_of'] = '_plural_assets';
-
-					if ( $child_dom = $this->generate_dom_array( $child_args ) ) {
+					if ( $child_dom = $this->generate_dom_array( $child ) ) {
 						$tr_wrapper[] = [
 							'element'  => 'tr',
 							'children' => [
@@ -126,7 +148,7 @@ class template {
 										[
 											'element'   => 'label',
 											'attribute' => [ 'for' => esc_attr( $_id ) ],
-											'text'      => esc_html( $label )
+											'text'      => esc_html( $child['label'] )
 										]
 									]
 								], [
@@ -143,6 +165,19 @@ class template {
 					$return[] = $table;
 				}
 				$table = [];
+			
+			} else {
+
+				return [
+					[
+						'element' => 'strong',
+						'text' => 'ERROR: '
+					], [
+						'element' => 'span',
+						'text' => __( 'Not allowed table in table.' )
+					]
+				];
+
 			}
 
 		} else {
@@ -153,8 +188,12 @@ class template {
 			$method = $type . '_dom_array';
 			$dom = method_exists( __CLASS__, $method ) ? $this->$method( $id, $name, $args ) : [];
 
-			$return[] = $dom;
-			$this->nonce_dom_array( $return, $args['name'] );
+			if ( isset( $args['member_of'] ) && $args['member_of'] === 'inline' ) {
+				$return = $dom;
+			} else {
+				$return[] = $dom;
+				$this->nonce_dom_array( $return, $args['name'] );
+			}
 
 			$id = $name = '';
 
@@ -203,7 +242,12 @@ class template {
 		if ( $args['readonly'] )
 			$attr['readonly'] = 'readonly';
 
-		$attr['class'] = 'regular-text';
+		if ( isset( $args['member_of'] ) && $args['member_of'] === 'inline' ) {
+			$attr['placeholder'] = esc_attr( $args['label'] );
+			$attr['title'] = isset( $args['description'] ) ? esc_attr( $args['description'] ) : esc_attr( $args['label'] );
+		} else {
+			$attr['class'] = 'regular-text';
+		}
 
 		return [ 'element' => 'input', 'attribute' => $attr ];
 	}
@@ -295,16 +339,16 @@ class template {
 		if ( $args['readonly'] )
 			$el['attribute']['class'] = 'wpdw-checkbox-readonly';
 
-		if ( isset( $args['member_of'] ) && $args['member_of'] === '_plural_assets' ) {
-			return $el;
+		if ( isset( $args['member_of'] ) && $args['member_of'] === 'inline' ) {
+			$label = $args['display'] ?: $args['label'];
+			$return = [
+				'element'   => 'label',
+				'attribute' => [ 'for' => esc_attr( $id ), /*'class' => \WPDW_FORM_PREFIX . 'checkbox'*/ ],
+				'children'  => [ $el, [ 'element' => 'span', 'text' => esc_html( $label ) ] ],
+			];
+		} else {
+			$return = $el;
 		}
-
-		$return = [
-			'element'   => 'label',
-			'attribute' => [ 'for' => esc_attr( $id ), /*'class' => \WPDW_FORM_PREFIX . 'checkbox'*/ ],
-			'children'  => [ $el ],
-			'text'      => esc_html( $args['label'] ),
-		];
 		return $return;
 	}
 
