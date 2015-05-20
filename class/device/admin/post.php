@@ -61,16 +61,14 @@ abstract class post {
 	 */
 	protected function prepare_arguments( $context, Array $args ) {
 		$args = filter_var_array( $args, $this->get_filter_definition( $context ) );
-		if ( $args['asset'] ) {
+		if ( $args['asset'] && ! $args['title'] ) {
 			$assets = is_array( $args['asset'] ) ? array_filter( self::flatten( $args['asset'], true ) ) : (array) $args['asset'];
-			if ( ! $args['title'] ) {
-				$args['title'] = implode(
-					' / ',
-					array_map( function( $asset ) {
-						return $this->property->get_setting( $asset )['label'];
-					}, $assets )
-				);
-			}
+			$args['title'] = implode(
+				' / ',
+				array_map( function( $asset ) {
+					return $this->property->get_setting( $asset )['label'];
+				}, $assets )
+			);
 			$args['asset'] = count( $assets ) > 1 ? $assets : array_shift( $assets );
 		}
 		$args = array_filter( $args );
@@ -82,22 +80,16 @@ abstract class post {
 			return null;
 	}
 
-
 	/**
+	 * Common arguments filter definition
+	 *
 	 * @access protected
 	 *
-	 * @param  string $context (Optional)
 	 * @return array
 	 */
-	protected function get_filter_definition( $context = null ) {
-		if ( ! $context ) :
-
-			/**
-			 * Common filter definition
-			 * @var array
-			 */
-			static $common;
-			if ( ! $common ) {
+	protected function get_filter_definition() {
+			static $def;
+			if ( ! $def ) {
 				// asset
 				$assetVar = function( $var ) {
 					if ( ! $this->property || in_array( $var, self::$done_assets, true ) )
@@ -111,7 +103,7 @@ abstract class post {
 				$callbackVar = function( $var ) {
 					return is_callable( $var ) ? $var : null;
 				};
-				$common = [
+				$def = [
 					'id'    => [ 'filter' => \FILTER_VALIDATE_REGEXP, 'options' => [ 'regexp' => '/\A[a-z][a-z0-9_\-]+\z/', 'default' => null ] ],
 					'title' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
 					'callback' => [ 'filter' => \FILTER_CALLBACK, 'options' => $callbackVar ],
@@ -119,48 +111,7 @@ abstract class post {
 					'description' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
 				];
 			}
-			return $common;
-		
-		elseif ( $context === 'meta_box' ) :
-
-			/**
-			 * Filter definition for meta box arguments
-			 * @var array
-			 */
-			static $metabox;
-			if ( ! $metabox ) {
-				$metabox = $this->get_filter_definition();
-				// context
-				$contextVar = function( $var ) {
-					return in_array( $var, [ 'normal', 'advanced', 'side' ], true ) ? $var : null;
-				};
-				// priority
-				$priorityVar = function( $var ) {
-					return in_array( $var, [ 'high', 'core', 'default', 'low' ], true ) ? $var : null;
-				};
-				$metabox['context']  = [ 'filter' => \FILTER_CALLBACK, 'options' => $contextVar ];
-				$metabox['priority'] = [ 'filter' => \FILTER_CALLBACK, 'options' => $priorityVar ];
-			}
-			return $metabox;
-
-		elseif ( $context === 'edit_form' ) :
-
-			/**
-			 * Filter definition for (direct) edit form arguments
-			 * @var array
-			 */
-			static $editForm;
-			if ( ! $editForm ) {
-				$editForm = $this->get_filter_definition();
-				// context
-				$contextVar = function( $var ) {
-					return in_array( $var, [ 'top', 'before_permalink', 'after_title', 'after_editor' ], true ) ? $var : null;
-				};
-				$editForm['context'] = [ 'filter' => \FILTER_CALLBACK, 'options' => $contextVar ];
-			}
-			return $editForm;
-		
-		endif;
+			return $def;
 	}
 
 	/**

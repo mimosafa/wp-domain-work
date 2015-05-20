@@ -50,11 +50,11 @@ class save_post {
 	 */
 	public function save_post( $post_id ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && \DOING_AUTOSAVE )
-			return $post_id;
+			return;
 		if ( ! $_POST )
-			return $post_id;
+			return;
 		if ( ! $settings = $this->property->get_setting() )
-			return $post_id;
+			return;
 
 		foreach ( $settings as $key => $setting ) {
 			
@@ -87,7 +87,6 @@ class save_post {
 
 			$assetInstance->update( $post_id, $value );
 		}
-		return $post_id;
 	}
 
 }

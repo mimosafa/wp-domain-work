@@ -62,6 +62,28 @@ class edit_form_advanced extends post {
 	}
 
 	/**
+	 * Edit form arguments filter definition
+	 *
+	 * @access protected
+	 *
+	 * @uses   WPDW\Device\Admin\post::get_filter_definition()
+	 *
+	 * @return array
+	 */
+	protected function get_filter_definition() {
+		static $def;
+		if ( ! $def ) {
+			$def = parent::get_filter_definition();
+			// context
+			$contextVar = function( $var ) {
+				return in_array( $var, [ 'top', 'before_permalink', 'after_title', 'after_editor' ], true ) ? $var : null;
+			};
+			$def['context'] = [ 'filter' => \FILTER_CALLBACK, 'options' => $contextVar ];
+		}
+		return $def;
+	}
+
+	/**
 	 * @access public
 	 */
 	public function add_edit_forms() {

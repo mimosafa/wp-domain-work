@@ -31,7 +31,8 @@ class template {
 	public function __construct( $domain ) {
 		if ( ! $domain = filter_var( $domain ) )
 			return;
-		$this->form_id_prefix .= $domain . '-';
+		$this->form_id_prefix .= "{$domain}-";
+
 		/**
 		 * Nonce gen
 		 * - $domain must be the same as when saving
@@ -43,28 +44,14 @@ class template {
 	/**
 	 * @access public
 	 *
-	 * @param  array $args
-	 * @return (void)
-	 */
-	public function output( Array $args ) {
-		if ( $args['type'] === 'posts' ) {
-			//
-		} else {
-			$this->output_form( $args );
-		}
-	}
-
-	/**
-	 * @access private
-	 *
 	 * @uses   mimosafa\Decoder::getArrayToHtmlString()
 	 *
 	 * @param  array $args
 	 * @return (void)
 	 */
-	private function output_form( Array $args ) {
+	public function output( Array $args ) {
 		if ( $dom_array = $this->generate_dom_array( $args ) )
-			echo $this->getArrayToHtmlString( $dom_array );
+			echo html_entity_decode( $this->getArrayToHtmlString( $dom_array ) );
 	}
 
 	/**

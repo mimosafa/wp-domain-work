@@ -72,6 +72,33 @@ class meta_boxes extends post {
 	}
 
 	/**
+	 * Meta box arguments filter definition
+	 *
+	 * @access protected
+	 *
+	 * @uses   WPDW\Device\Admin\post::get_filter_definition()
+	 *
+	 * @return array
+	 */
+	protected function get_filter_definition() {
+		static $def;
+		if ( ! $def ) {
+			$def = parent::get_filter_definition();
+			// context
+			$contextVar = function( $var ) {
+				return in_array( $var, [ 'normal', 'advanced', 'side' ], true ) ? $var : null;
+			};
+			// priority
+			$priorityVar = function( $var ) {
+				return in_array( $var, [ 'high', 'core', 'default', 'low' ], true ) ? $var : null;
+			};
+			$def['context']  = [ 'filter' => \FILTER_CALLBACK, 'options' => $contextVar ];
+			$def['priority'] = [ 'filter' => \FILTER_CALLBACK, 'options' => $priorityVar ];
+		}
+		return $def;
+	}
+
+	/**
 	 * @access public
 	 */
 	public function add_meta_boxes() {

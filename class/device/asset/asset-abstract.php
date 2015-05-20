@@ -28,7 +28,7 @@ abstract class asset_abstract implements asset {
 	/**
 	 *
 	 */
-	protected function filter( $value, $post = null ) {
+	protected function filter( $value, \WP_Post $post, $for ) {
 		if ( $this->deps && ! $this->check_dependency( $post ) )
 			return null;
 		return $value;
