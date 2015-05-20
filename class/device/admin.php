@@ -56,7 +56,7 @@ trait admin {
 			 */
 			$this->init_taxonomy( $pagenow );
 		}
-		add_action( 'admin_enqueue_scripts', [ $this, 'scripts_handler' ] );
+		add_action( 'admin_enqueue_scripts', [ &$this, 'scripts_handler' ] );
 	}
 
 	/**
@@ -124,7 +124,8 @@ trait admin {
 	public function scripts_handler( $pagenow ) {
 		global $pagenow;
 		if ( in_array( $pagenow, [ 'post.php', 'post-new.php'], true ) ) {
-			wp_enqueue_style( 'wpdw-post', \WPDW_PLUGIN_URL . '/css/post.css', [], '', 'screen' );
+			wp_enqueue_style( 'wpdw-post', \WPDW_PLUGIN_URL . '/css/admin-post.css', [], '', 'screen' );
+			wp_enqueue_script( 'wpdw-post', \WPDW_PLUGIN_URL . '/js/admin-post.js', [ 'wpdw' ], '', true );
 		}
 	}
 

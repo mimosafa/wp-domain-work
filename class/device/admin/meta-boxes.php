@@ -100,6 +100,7 @@ class meta_boxes extends post {
 				 */
 				call_user_func_array( 'add_meta_box', $args );
 			}
+			\WPDW\Scripts::add_data( 'metaboxes', 1 );
 		}
 	}
 

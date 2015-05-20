@@ -63,6 +63,7 @@ class WP_Domain_Work {
 		}
 		if ( is_admin() )
 			add_action( 'init', 'WPDW\Settings::init' );
+		WPDW\Scripts::init();
 	}
 
 	/**

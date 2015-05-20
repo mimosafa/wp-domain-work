@@ -136,6 +136,9 @@ class Router {
 	public function init_service() {
 		if ( ! $this->ns )
 			return;
+
+		Scripts::add_data( 'domain', $this->ns );
+
 		$ns = 'WP_Domain\\' . $this->ns . '\\';
 		foreach ( $this->services as $service ) {
 			$class = $ns . $service;

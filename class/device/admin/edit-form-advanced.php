@@ -68,6 +68,7 @@ class edit_form_advanced extends post {
 		if ( $this->edit_forms = array_filter( $this->edit_forms ) ) {
 			foreach ( array_keys( $this->edit_forms ) as $hook )
 				add_action( $hook, [ &$this, 'edit_forms' ] );
+			\WPDW\Scripts::add_data( 'editforms', 1 );
 		}
 	}
 
