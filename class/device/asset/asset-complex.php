@@ -54,6 +54,8 @@ abstract class asset_complex extends asset_abstract {
 			$arg = self::sanitize_string( $arg );
 		elseif ( $key === 'assets' ) :
 			$arg = filter_var( $arg, \FILTER_DEFAULT, \FILTER_REQUIRE_ARRAY );
+		elseif ( $key === 'admin_form_style' ) :
+			$arg = in_array( $arg, [ 'inline', 'block', 'hide' ], true ) ? $arg : 'block';
 		else :
 			parent::arguments_walker( $arg, $key, $asset );
 		endif;

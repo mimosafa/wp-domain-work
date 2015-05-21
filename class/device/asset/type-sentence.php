@@ -22,7 +22,7 @@ class type_sentence extends asset_complex {
 	/**
 	 * @var string
 	 */
-	protected $admin_form_display = 'block';
+	protected $admin_form_style = 'block';
 
 	/**
 	 * @var boolean
