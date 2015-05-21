@@ -38,13 +38,6 @@
 }
 
 /**
- * Form parts
- * @see Class: WPDW\Device\Admin\template::$form_id_prefix
- */
-[id^="wp-domain-work-form-"] {
-  max-width: 100%;
-}
-/**
  * @see Class: WPDW\Device\Admin\edit-form-advanced
  */
 [id^="wpdw-div-"] {
@@ -65,6 +58,13 @@
   margin: 1em 0 .25em;
 }
 
+/**
+ * Form parts
+ * @see Class: WPDW\Device\Admin\template::$form_id_prefix
+ */
+[id^="wp-domain-work-form-"] {
+  max-width: 100%;
+}
 fieldset > input + label[for^="wp-domain-work-form-"] {
   padding-left: .5em;
 }

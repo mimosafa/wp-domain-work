@@ -60,7 +60,7 @@ abstract class post {
 	 * @return array
 	 */
 	protected function prepare_arguments( $context, Array $args ) {
-		$args = filter_var_array( $args, $this->get_filter_definition( $context ) );
+		$args = filter_var_array( $args, $this->get_filter_definition() );
 		if ( $args['asset'] && ! $args['title'] ) {
 			$assets = is_array( $args['asset'] ) ? array_filter( self::flatten( $args['asset'], true ) ) : (array) $args['asset'];
 			$args['title'] = implode(
@@ -88,30 +88,30 @@ abstract class post {
 	 * @return array
 	 */
 	protected function get_filter_definition() {
-			static $def;
-			if ( ! $def ) {
-				// asset
-				$assetVar = function( $var ) {
-					if ( ! $this->property || in_array( $var, self::$done_assets, true ) )
-						return null;
-					if ( ! $this->property->get_setting( $var ) )
-						return null;
-					self::$done_assets[] = $var;
-					return $var;
-				};
-				// callback
-				$callbackVar = function( $var ) {
-					return is_callable( $var ) ? $var : null;
-				};
-				$def = [
-					'id'    => [ 'filter' => \FILTER_VALIDATE_REGEXP, 'options' => [ 'regexp' => '/\A[a-z][a-z0-9_\-]+\z/', 'default' => null ] ],
-					'title' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
-					'callback' => [ 'filter' => \FILTER_CALLBACK, 'options' => $callbackVar ],
-					'asset'    => [ 'filter' => \FILTER_CALLBACK, 'options' => $assetVar ],
-					'description' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
-				];
-			}
-			return $def;
+		static $def;
+		if ( ! $def ) {
+			// asset
+			$assetVar = function( $var ) {
+				if ( ! $this->property || in_array( $var, self::$done_assets, true ) )
+					return null;
+				if ( ! $this->property->get_setting( $var ) )
+					return null;
+				self::$done_assets[] = $var;
+				return $var;
+			};
+			// callback
+			$callbackVar = function( $var ) {
+				return is_callable( $var ) ? $var : null;
+			};
+			$def = [
+				'id'    => [ 'filter' => \FILTER_VALIDATE_REGEXP, 'options' => [ 'regexp' => '/\A[a-z][a-z0-9_\-]+\z/', 'default' => null ] ],
+				'title' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+				'callback' => [ 'filter' => \FILTER_CALLBACK, 'options' => $callbackVar ],
+				'asset'    => [ 'filter' => \FILTER_CALLBACK, 'options' => $assetVar ],
+				'description' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+			];
+		}
+		return $def;
 	}
 
 	/**

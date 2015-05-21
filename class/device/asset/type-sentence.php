@@ -2,7 +2,7 @@
 namespace WPDW\Device\Asset;
 
 class type_sentence extends asset_complex {
-	use asset_vars;
+	use asset_vars, \WPDW\Util\Array_Function;
 
 	/**
 	 * @var array
@@ -10,14 +10,24 @@ class type_sentence extends asset_complex {
 	protected $assets;
 
 	/**
-	 * @var boolean
+	 * @var string
 	 */
-	protected $inline;
+	protected $glue = ' ';
 
 	/**
 	 * @var string
 	 */
-	protected $glue = ' ';
+	protected $format;
+
+	/**
+	 * @var string
+	 */
+	protected $admin_form_display = 'block';
+
+	/**
+	 * @var boolean
+	 */
+	protected $inline;
 
 	public function update( $post, $value ) {
 		$def = array_map( function() {
@@ -35,7 +45,7 @@ class type_sentence extends asset_complex {
 
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'assets' ) :
-			$arg = filter_var( $arg, \FILTER_DEFAULT, \FILTER_REQUIRE_ARRAY );
+			$arg = self::flatten( filter_var( $arg, \FILTER_DEFAULT, \FILTER_REQUIRE_ARRAY ), true );
 		elseif ( in_array( $key, [ 'glue' ], true ) ) :
 			$arg = self::sanitize_string( $arg );
 		elseif ( $key ==='inline' ) :

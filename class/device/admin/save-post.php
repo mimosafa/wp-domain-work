@@ -37,11 +37,14 @@ class save_post {
 			return;
 		if ( ! $this->property = \WPDW\_property_object( $domain ) )
 			return;
-		$this->nonce = new \WPDW\WP\nonce( $domain );
-		$this->init();
-	}
 
-	public function init() {
+		/**
+		 * Nonce gen
+		 * - $domain must be the same as when rendering forms
+		 * @see WPDW\Device\Admin\template::__construct()
+		 */
+		$this->nonce = \WPDW\WP\nonce::getInstance( $domain );
+
 		add_action( 'save_post', [ &$this, 'save_post' ] );
 	}
 

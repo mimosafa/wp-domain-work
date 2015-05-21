@@ -6,8 +6,11 @@ namespace WPDW\WP;
  */
 class nonce {
 
-	const NONCE_FORMAT  = '_wp_domain_work_nonce_%s_%s';
-	const ACTION_FORMAT = 'wp-domain-work-%s-%s';
+	/**
+	 * String formats
+	 */
+	const NONCE_FORMAT  = '_wpdw_wp_nonce_%s_%s';
+	const ACTION_FORMAT = 'wpdw-wp-nonce-%s-%s';
 
 	/**
 	 * @var string e.g. post's post_type
@@ -15,49 +18,78 @@ class nonce {
 	private $context;
 
 	/**
+	 * WPDW\WP\nonce instances
+	 * @var array
+	 */
+	private static $instances = [];
+
+	/**
+	 * Singleton pattern
+	 *
+	 * @access public
+	 *
+	 * @param  string $context
+	 * @return WPDW\WP\nonce
+	 */
+	public static function getInstance( $context ) {
+		if ( ! $context = filter_var( $context ) )
+			return;
+		if ( ! isset( self::$instances[$context] ) )
+			self::$instances[$context] = new self( $context );
+		return self::$instances[$context];
+	}
+
+	/**
+	 * @access private
+	 *
 	 * @param  string $context
 	 * @return void
 	 */
-	public function __construct( $context ) {
+	private function __construct( $context ) {
 		if ( ! is_string( $context ) || ! $context )
 			return false;
 		$this->context = $context;
 	}
 
 	/**
+	 * @access public
+	 *
 	 * @param  string $field
 	 * @return string wp_nonce_field
 	 */
 	public function nonce_field( $field ) {
-		$nonce = $this->get_nonce( $field );
-		$action = $this->get_action( $field );
-		return wp_nonce_field( $action, $nonce, true, false );
+		if ( ! $field = filter_var( $field ) )
+			return;
+		return wp_nonce_field( $this->get_action( $field ), $this->get_action( $field ), true, false );
 	}
 
 	public function create_nonce( $field ) {
-		$action = $this->get_action( $field );
-		return wp_create_nonce( $action );
+		if ( ! $field = filter_var( $field ) )
+			return;
+		return wp_create_nonce( $this->get_action( $field ) );
 	}
 
 	/**
+	 * @access public
+	 *
 	 * @param  string $field
 	 * @return bool
 	 */
 	public function check_admin_referer( $field ) {
-		$nonce = $this->get_nonce( $field );
-		$action = $this->get_action( $field );
-		return check_admin_referer( $action, $nonce );
+		if ( ! $field = filter_var( $field ) )
+			return;
+		return check_admin_referer( $this->get_action( $field ), $this->get_nonce( $field ) );
 	}
 
 	public function get_nonce( $field ) {
-		if ( ! is_string( $field ) )
-			return false; // throw error
+		if ( ! $field = filter_var( $field ) )
+			return;
 		return esc_attr( sprintf( self::NONCE_FORMAT, $this->context, $field ) );
 	}
 
 	public function get_action( $field ) {
-		if ( ! is_string( $field ) )
-			return false; // throw error
+		if ( ! $field = filter_var( $field ) )
+			return;
 		return esc_attr( sprintf( self::ACTION_FORMAT, $this->context, $field ) );
 	}
 

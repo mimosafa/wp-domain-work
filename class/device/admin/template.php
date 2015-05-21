@@ -13,6 +13,7 @@ class template {
 
 	/**
 	 * Form elements id prefix
+	 *
 	 * @var string
 	 */
 	private $form_id_prefix = 'wp-domain-work-form-';
@@ -38,7 +39,7 @@ class template {
 		 * - $domain must be the same as when saving
 		 * @see WPDW\Device\Admin\save_post::__construct()
 		 */
-		$this->nonce = new \WPDW\WP\nonce( $domain );
+		$this->nonce = \WPDW\WP\nonce::getInstance( $domain );
 	}
 
 	/**
