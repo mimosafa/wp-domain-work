@@ -34,10 +34,10 @@ class edit_form_advanced extends post {
 	 *
 	 * @access public
 	 *
-	 * @uses   WPDW\_property_object()
-	 * @see    wp-domain-work/inc/functions.php
+	 * @uses   WPDW\Device\Admin\post::__construct
 	 *
 	 * @param  string $domain
+	 * @return (void)
 	 */
 	public function __construct( $domain ) {
 		parent::__construct( $domain );

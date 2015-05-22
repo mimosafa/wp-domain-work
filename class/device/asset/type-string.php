@@ -8,7 +8,12 @@ class type_string extends asset_simple {
 	 * @var boolean
 	 */
 	protected $multibyte;
-	protected $paragraph; // @todo
+	protected $paragraph = false; // @todo
+
+	/**
+	 * @var boolean|array
+	 */
+	protected $trim = true; // @todo
 
 	/**
 	 * @var int
@@ -27,6 +32,16 @@ class type_string extends asset_simple {
 			$this->min = $this->max = 0;
 	}
 
+	/**
+	 * @access protected
+	 *
+	 * @uses   WPDW\Device\Asset\asset_simple::arguments_walker()
+	 *
+	 * @param  mixed &$arg
+	 * @param  string $key
+	 * @param  string $asset
+	 * @return (void)
+	 */
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( in_array( $key, [ 'multibyte', 'paragraph' ], true ) ) :
 			$arg = filter_var( $arg, \FILTER_VALIDATE_BOOLEAN );

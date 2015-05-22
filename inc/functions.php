@@ -69,7 +69,7 @@ function _domain( $alias ) {
  * @param  string $domain
  * @return WP_Domain\{$domain}\property
  */
-function _property_object( $domain ) {
+function _property( $domain ) {
 	if ( ! $domain = filter_var( $domain ) )
 		return null;
 	$class = 'WP_Domain\\' . $domain . '\\property';

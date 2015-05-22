@@ -24,6 +24,8 @@ abstract class asset_complex extends asset_abstract {
 	 *
 	 * @access public
 	 *
+	 * @uses   WPDW\_property()
+	 *
 	 * @param  int|WP_Post $post
 	 * @return array
 	 */
@@ -31,7 +33,7 @@ abstract class asset_complex extends asset_abstract {
 		$recipe = get_object_vars( $this );
 		if ( isset( $recipe['assets'] ) ) {
 			array_walk( $recipe['assets'], function( &$asset, $i, $post ) {
-				$asset = $this->_property()->$asset->get_recipe( $post );
+				$asset = \WPDW\_property( $this->domain )->$asset->get_recipe( $post );
 			}, $post );
 		}
 		return $recipe;

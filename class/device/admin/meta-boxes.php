@@ -31,10 +31,10 @@ class meta_boxes extends post {
 	 *
 	 * @access public
 	 *
-	 * @uses   WPDW\_property_object()
-	 * @see    wp-domain-work/inc/functions.php
+	 * @uses   WPDW\Device\Admin\post::__construct
 	 *
 	 * @param  string $domain
+	 * @return (void)
 	 */
 	public function __construct( $domain ) {
 		parent::__construct( $domain );
@@ -103,6 +103,7 @@ class meta_boxes extends post {
 	 */
 	public function add_meta_boxes() {
 		if ( $this->meta_boxes ) {
+			$data = [];
 			foreach ( $this->meta_boxes as $args ) {
 				/**
 				 * @var array $args {
@@ -126,8 +127,10 @@ class meta_boxes extends post {
 				 * }
 				 */
 				call_user_func_array( 'add_meta_box', $args );
+
+				$data[] = $args[0];
 			}
-			\WPDW\Scripts::add_data( 'metaboxes', 1 );
+			\WPDW\Scripts::add_data( 'metaboxes', $data );
 		}
 	}
 

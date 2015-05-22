@@ -29,7 +29,7 @@ abstract class post {
 	 *
 	 * @access public
 	 *
-	 * @uses   WPDW\_property_object()
+	 * @uses   WPDW\_property()
 	 * @see    wp-domain-work/inc/functions.php
 	 *
 	 * @param  string $domain
@@ -37,7 +37,7 @@ abstract class post {
 	public function __construct( $domain ) {
 		if ( ! $domain = filter_var( $domain ) )
 			return;
-		$this->property = \WPDW\_property_object( $domain );
+		$this->property = \WPDW\_property( $domain );
 		if ( ! self::$template )
 			self::$template = new template( $domain );
 

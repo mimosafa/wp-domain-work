@@ -27,7 +27,7 @@ class save_post {
 	 *
 	 * @access protected
 	 *
-	 * @uses   WPDW\_property_object()
+	 * @uses   WPDW\_property()
 	 * @see    wp-domain-work/inc/functions.php
 	 *
 	 * @param  string $domain
@@ -35,7 +35,7 @@ class save_post {
 	public function __construct( $domain ) {
 		if ( ! $domain = filter_var( $domain ) )
 			return;
-		if ( ! $this->property = \WPDW\_property_object( $domain ) )
+		if ( ! $this->property = \WPDW\_property( $domain ) )
 			return;
 
 		/**

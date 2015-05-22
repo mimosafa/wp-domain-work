@@ -4,13 +4,6 @@ namespace WPDW\Device\Asset;
 abstract class asset_abstract implements asset {
 
 	/**
-	 * @var array {
-	 *     @type WP_Domain\{$domain}\property $domain
-	 * }
-	 */
-	protected static $_properties = [];
-
-	/**
 	 * Constructor
 	 *
 	 * @param  array $args
@@ -34,8 +27,14 @@ abstract class asset_abstract implements asset {
 		return $value;
 	}
 
-	protected function check_dependency( $post ) {
-		$property =& $this->_property();
+	/**
+	 * @access protected
+	 *
+	 * @param  WP_Post $post
+	 * @return boolean
+	 */
+	protected function check_dependency( \WP_Post $post ) {
+		$property = \WPDW\_property( $this->domain );
 		foreach ( $this->deps as $asset => $arg ) {
 			if ( ! is_array( $arg ) ) {
 				if ( filter_var( $arg, \FILTER_VALIDATE_BOOLEAN ) && ! $property->$asset->get( $post ) ) {
@@ -66,13 +65,6 @@ abstract class asset_abstract implements asset {
 		elseif ( ! in_array( $key, [ 'domain', 'type', ], true ) ) :
 			$arg = null;
 		endif;
-	}
-
-	protected function &_property( $domain = null ) {
-		$domain = $domain ?: $this->domain;
-		if ( ! isset( self::$_properties[$domain] ) )
-			self::$_properties[$domain] = \WPDW\_property_object( $domain );
-		return self::$_properties[$domain];
 	}
 
 	/**

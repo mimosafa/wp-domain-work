@@ -38,7 +38,7 @@ class attribute_meta_box extends post {
 	 * @access public
 	 *
 	 * @uses   WPDW\_alias()
-	 * @uses   WPDW\_property_object()
+	 * @uses   WPDW\_property()
 	 * @see    wp-domain-work/inc/functions.php
 	 *
 	 * @param  string $domain
@@ -48,7 +48,7 @@ class attribute_meta_box extends post {
 	public function __construct( $domain, Array $args ) {
 		if ( ! $this->post_type = \WPDW\_alias( $domain ) )
 			return;
-		$this->property = \WPDW\_property_object( $domain );
+		$this->property = \WPDW\_property( $domain );
 		$args = filter_var_array( $args, self::$def );
 		if ( $this->attributes = array_filter( $args['attributes'], [ $this, 'attributes_filter' ] ) ) {
 			$this->title = $args['title'] ?: get_post_type_object( $this->post_type )->labels->name . __( 'Attributes' );

@@ -39,7 +39,7 @@ class posts_columns {
 		if ( ! $this->post_type = \WPDW\_alias( $domain ) )
 			return;
 		// property instance
-		$this->property = \WPDW\_property_object( $domain );
+		$this->property = \WPDW\_property( $domain );
 		$this->init();
 	}
 

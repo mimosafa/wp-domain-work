@@ -1,13 +1,19 @@
 /* global wpdw */
-var wpdw = {};
+var wpdw = {
+
+	init: function() {
+		console.log( this );
+	}
+
+};
 
 ( function( $ ) {
 
 	if ( typeof wpdwData === 'undefined' )
 		return;
 
-	wpdw.data = wpdwData;
+	wpdw = $.extend( wpdw, wpdwData );
 
-	console.log(wpdw);
+	//wpdw.init();
 
 } )( jQuery );

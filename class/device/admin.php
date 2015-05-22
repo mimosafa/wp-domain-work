@@ -24,14 +24,14 @@ trait admin {
 	 *
 	 * @access private
 	 *
-	 * @uses   WPDW\_property_object()
+	 * @uses   WPDW\_property()
 	 * @see    wp-domain-work/inc/functions.php
 	 *
 	 * @return  (void)
 	 */
 	private function __construct() {
 		$this->domain = explode( '\\', __CLASS__ )[1];
-		$this->property = \WPDW\_property_object( $this->domain );
+		$this->property = \WPDW\_property( $this->domain );
 
 		$this->init();
 	}
