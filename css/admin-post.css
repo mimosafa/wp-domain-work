@@ -65,6 +65,6 @@
 [id^="wp-domain-work-form-"] {
   max-width: 100%;
 }
-fieldset > input + label[for^="wp-domain-work-form-"] {
+.wpdw-checkbox {
   padding-left: .5em;
 }
