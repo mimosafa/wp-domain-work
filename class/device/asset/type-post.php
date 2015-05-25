@@ -18,21 +18,54 @@ class type_post extends asset_simple {
 
 	protected $field = 'ID'; // @todo Which field stored
 
+	/**
+	 * Constructor
+	 *
+	 * @access public
+	 *
+	 * @uses   WPDW\Device\Asset\asset_simple::__construct()
+	 *
+	 * @param  array $args
+	 * @return (void)
+	 */
 	public function __construct( Array $args ) {
 		parent::__construct( $args );
 		if ( $this->field !== 'ID' && ( ! $this->post_type || count( $this->post_type ) > 1 ) )
 			$this->field = 'ID';
+		if ( $this->post_type )
+			$this->query_args = array_merge( $this->query_args, [ 'post_type' => $this->post_type ] );
+		if ( $this->post_status )
+			$this->query_args = array_merge( $this->query_args, [ 'post_status' => $this->post_status ] );
 	}
 
+	/**
+	 * @access protected
+	 *
+	 * @uses   WPDW\Device\Asset\asset_simple::arguments_walker()
+	 *
+	 * @param  mixed &$arg
+	 * @param  string $key
+	 * @param  string $asset
+	 * @return (void)
+	 */
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'context' ) :
+			/**
+			 * @var string $context
+			 */
 			$arg = in_array( $arg, [ 'post_children', ], true ) ? $arg : null;
 		elseif ( $key === 'post_type' && isset( $arg ) ) :
+			/**
+			 * @var array $post_type
+			 */
 			$arg = array_filter( (array) $arg, function( $pt ) {
 				return post_type_exists( $pt );
 			} );
 			$arg = $arg ?: null;
 		elseif ( $key === 'field' ) :
+			/**
+			 * @var string $field
+			 */
 			$arg = in_array( $arg, [ 'ID', 'post_name' ], true ) ? $arg : 'ID';
 		elseif ( $key === 'post_status' && isset( $arg ) ) :
 			// ...yet
@@ -43,12 +76,64 @@ class type_post extends asset_simple {
 		endif;
 	}
 
-	protected function filter_value( $value, $post = null ) {
-		if ( is_object( $value ) && get_class( $value ) === 'WP_Post' )
-			return $value;
-		if ( $value === absint( $value ) )
-			return get_post( $value );
-		return null;
+	/**
+	 * @access public
+	 *
+	 * @param  mixed $value
+	 * @return mixed
+	 */
+	public function filter( $value ) {
+		static $_filter_multiple = false;
+		if ( $this->multiple && is_array( $value ) ) {
+
+			if ( $_filter_multiple )
+				return null;
+			$filter_multiple = true;
+			$filtered = [];
+			foreach ( $value as $val )
+				$filtered[] = $this->filter( $val );
+			return array_filter( $filtered );
+
+		} else {
+
+			if ( is_object( $value ) && get_class( $value ) === 'WP_Post' ) :
+				$post = $value;
+			else :
+				if ( $this->field === 'ID' && $value = absint( $value ) )
+					$q = array_merge( $this->query_args, [ 'p' => $value, 'posts_per_page' => 1 ] );
+				else if ( $this->field === 'post_name' && filter_var( $value ) )
+					$q = array_merge( $this->query_args, [ 'name' => $value, 'posts_per_page' => 1 ] );
+				else
+					return null;
+				$value = get_posts( $q );
+				$post = $value ? array_shift( $value ) : null;
+			endif;
+
+			return $post;
+
+		}
+	}
+
+	/**
+	 * Overwrite WPDW\Device\Asset\asset_simple::filter_input()
+	 *
+	 * @access public
+	 *
+	 * @param  mixed $value
+	 * @return int|string|null
+	 */
+	public function filter_input( $value ) {
+		$value = $this->filter( $value );
+		if ( ! isset( $value ) )
+			return null;
+		if ( $this->multiple && is_array( $value ) ) :
+			$return = [];
+			foreach ( $value as $post )
+				$return[] = $this->filter_input( $post );
+			return $return;
+		else :
+			return $value->{$this->field};
+		endif;
 	}
 
 	/**

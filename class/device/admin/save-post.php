@@ -70,23 +70,19 @@ class save_post {
 
 			$this->nonce->check_admin_referer( $key );
 
-			if ( ! array_key_exists( $key, $_POST ) ) {
-				if ( $setting['type'] !== 'boolean' )
-					continue;
-				else
-					/**
-					 * For unchecked boolean
-					 */
-					$_POST[$key] = '';
+			/**
+			 * Asset instance
+			 */
+			$assetInstance = $this->property->$key;
+
+			/**
+			 * Prepare input value
+			 */
+			if ( isset( $setting['assets'] ) ) {
+				$value = filter_input( \INPUT_POST, $key, \FILTER_DEFAULT, \FILTER_REQUIRE_ARRAY );
+			} else {
+				$value = filter_input( \INPUT_POST, $key, \FILTER_CALLBACK, [ 'options' => [ $assetInstance, 'filter_input' ] ] );
 			}
-
-			if ( ! $assetInstance = $this->property->$key )
-				continue;
-
-			if ( is_array( $_POST[$key] ) )
-				$value = filter_input( \INPUT_POST, $key, \FILTER_DEFAULT, \FILTER_FORCE_ARRAY );
-			else
-				$value = filter_input( \INPUT_POST, $key );
 
 			$assetInstance->update( $post_id, $value );
 		}

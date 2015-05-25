@@ -319,7 +319,7 @@ class template {
 		$dom = [];
 		foreach ( (array) $value as $val ) {
 			$attr = [
-				'type' => esc_attr( $input_type ),
+				'type' => esc_attr( $unit ),
 				'name' => esc_attr( $nameAttr ),
 				'value' => esc_attr( $val )
 			];

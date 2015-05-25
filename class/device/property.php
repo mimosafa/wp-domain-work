@@ -106,15 +106,15 @@ trait property {
 				'default'  => [ 'model' => 'post_meta', ]
 			],
 			'datetime' => [
-				'required' => [ 'type' => 'datetime', 'input_type' => 'datetime_local', ],
+				'required' => [ 'type' => 'datetime', 'unit' => 'datetime_local', ],
 				'default'  => [ 'model' => 'post_meta', 'input_format' => 'Y-m-d H:i:s', 'output_format' => 'Y-m-d H:i', ]
 			],
 			'date' => [
-				'required' => [ 'type' => 'datetime', 'input_type' => 'date', ],
+				'required' => [ 'type' => 'datetime', 'unit' => 'date', ],
 				'default'  => [ 'model' => 'post_meta', 'input_format' => 'Y-m-d', 'output_format' => 'Y-m-d', ]
 			],
 			'time' => [
-				'required' => [ 'type' => 'datetime', 'input_type' => 'time', ],
+				'required' => [ 'type' => 'datetime', 'unit' => 'time', ],
 				'default'  => [ 'model' => 'post_meta', 'input_format' => 'H:i', 'output_format' => 'H:i', ]
 			],
 			'post_children' => [

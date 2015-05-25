@@ -23,16 +23,6 @@ trait asset_vars {
 	protected $readonly = false;
 
 	/**
-	 * @var array
-	 */
-	protected $deps;
-
-	/**
-	 * @var string
-	 */
-	protected $delimiter = ', ';
-
-	/**
 	 * Arguments (WP_Domain\{$domain}\property::$assets) provisioner
 	 *
 	 * @access public

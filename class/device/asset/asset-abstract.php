@@ -4,6 +4,16 @@ namespace WPDW\Device\Asset;
 abstract class asset_abstract implements asset {
 
 	/**
+	 * @var array
+	 */
+	protected $deps;
+
+	/**
+	 * @var string
+	 */
+	protected $delimiter = ', ';
+
+	/**
 	 * Constructor
 	 *
 	 * @param  array $args
@@ -19,21 +29,14 @@ abstract class asset_abstract implements asset {
 	}
 
 	/**
-	 *
-	 */
-	protected function filter( $value, \WP_Post $post, $for ) {
-		if ( $this->deps && ! $this->check_dependency( $post ) )
-			return null;
-		return $value;
-	}
-
-	/**
 	 * @access protected
 	 *
 	 * @param  WP_Post $post
 	 * @return boolean
 	 */
 	protected function check_dependency( \WP_Post $post ) {
+		if ( ! $this->deps )
+			return true;
 		$property = \WPDW\_property( $this->domain );
 		foreach ( $this->deps as $asset => $arg ) {
 			if ( ! is_array( $arg ) ) {
@@ -55,63 +58,34 @@ abstract class asset_abstract implements asset {
 	 */
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'name' ) :
+			/**
+			 * Asset name
+			 * @var string $name
+			 */
 			$arg = $asset;
 		elseif ( in_array( $key, [ 'label', 'description', 'delimiter' ], true ) ) :
-			$arg = self::sanitize_string( $arg );
+			/**
+			 * @var string $label|$description|$delimiter
+			 */
+			$arg = filter_var( $arg, \FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		elseif ( in_array( $key, [ 'multiple', 'required', 'readonly' ], true ) ) :
+			/**
+			 * @var boolean $multiple|$required|$readonly
+			 */
 			$arg = filter_var( $arg, \FILTER_VALIDATE_BOOLEAN );
 		elseif ( in_array( $key, [ 'deps' ], true ) ) :
+			/**
+			 * @var array $deps
+			 */
 			$arg = filter_var( $arg, \FILTER_DEFAULT, \FILTER_REQUIRE_ARRAY );
-		elseif ( ! in_array( $key, [ 'domain', 'type', ], true ) ) :
+		elseif ( in_array( $key, [ 'domain', 'type', ], true ) ) :
+			/**
+			 * @var string $domain|$type
+			 */
+			$arg = filter_var( $arg );
+		else :
 			$arg = null;
 		endif;
-	}
-
-	/**
-	 * Sanitize string
-	 *
-	 * @access protected
-	 *
-	 * @param  string $string
-	 * @return string
-	 */
-	protected static function sanitize_string( $string ) {
-		return (string) filter_var( $string, \FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-	}
-
-	/**
-	 * Validate integer
-	 *
-	 * @access protected
-	 *
-	 * @param  integer $int
-	 * @param  integer $default Optional
-	 * @param  integer $min     Optional
-	 * @param  integer $max     Optional
-	 * @return integer
-	 */
-	protected static function validate_integer( $int, $default = null, $min = null, $max = null ) {
-		$options = [ 'options' => [ 'default' => null ] ];
-		if ( isset( $default ) && is_int( $default ) )
-			$options['options']['default'] = (int) $default;
-		if ( isset( $min ) )
-			$options['options']['min_range'] = (int) $min;
-		if ( isset( $max ) && (int) $max > $options['options']['min_range'] )
-			$options['options']['max_range'] = (int) $max;
-		return filter_var( $int, \FILTER_VALIDATE_INT, $options );
-	}
-
-	/**
-	 * Validate boolean
-	 *
-	 * @access protected
-	 *
-	 * @param  boolean $bool
-	 * @param  boolean $default
-	 * @return boolean
-	 */
-	protected static function validate_boolean( $bool, $default = false ) {
-		return filter_var( $bool, \FILTER_VALIDATE_BOOLEAN, [ 'options' => [ 'default' => $default ] ] );
 	}
 
 }

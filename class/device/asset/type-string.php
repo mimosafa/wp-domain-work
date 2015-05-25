@@ -8,7 +8,7 @@ class type_string extends asset_simple {
 	 * @var boolean
 	 */
 	protected $multibyte;
-	protected $paragraph = false; // @todo
+	protected $paragraph; // @todo
 
 	/**
 	 * @var boolean|array
@@ -26,6 +26,16 @@ class type_string extends asset_simple {
 	 */
 	protected $regexp = '';
 
+	/**
+	 * Constructor
+	 *
+	 * @access public
+	 *
+	 * @uses   WPDW\Device\Asset\asset_simple::__construct()
+	 *
+	 * @param  array $args
+	 * @return (void)
+	 */
 	public function __construct( Array $args ) {
 		parent::__construct( $args );
 		if ( $this->min > $this->max )
@@ -44,32 +54,80 @@ class type_string extends asset_simple {
 	 */
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( in_array( $key, [ 'multibyte', 'paragraph' ], true ) ) :
+			/**
+			 * @var boolean $multibyte|$paragraph
+			 */
 			$arg = filter_var( $arg, \FILTER_VALIDATE_BOOLEAN );
 		elseif ( in_array( $key, [ 'min', 'max' ], true ) ) :
-			$arg = self::validate_integer( $arg, 0, 1 );
+			/**
+			 * @var int $min|$max
+			 */
+			$options = [
+				'options' => [
+					'default' => 0,
+					'min_range' => 1
+				]
+			];
+			$arg = filter_var( $arg, \FILTER_VALIDATE_INT, $options );
 		elseif ( $key === 'regexp' && $arg ) :
+			/**
+			 * @var string $regexp Regexp
+			 */
 			$arg = @preg_match( $pattern, '' ) !== false ? $arg : '';
 		else :
 			parent::arguments_walker( $arg, $key, $asset );
 		endif;
 	}
 
-	protected function filter_value( $value, $post = null ) {
-		if ( $this->regexp ) {
-			if ( ! preg_match( $this->regexp, $value ) )
+	/**
+	 * @access public
+	 *
+	 * @param  mixed $value
+	 * @return string|array|null
+	 */
+	public function filter( $value ) {
+		static $_filter_multiple = false;
+		if ( $this->multiple && is_array( $value ) ) {
+
+			if ( $_filter_multiple )
 				return null;
+			$filter_multiple = true;
+			$filtered = [];
+			foreach ( $value as $val )
+				$filtered[] = $this->filter( $val );
+			return array_filter( $filtered );
+
+		} else {
+
+			/**
+			 * Regexp
+			 */
+			if ( $this->regexp ) {
+				if ( ! preg_match( $this->regexp, $value ) )
+					return null;
+			}
+			/**
+			 * Multi-Byte
+			 */
+			if ( ! $this->multibyte && strlen( $value ) !== mb_strlen( $value ) )
+				return null;
+			/**
+			 * String length
+			 */
+			if ( $this->min || $this->max ) {
+				$strlen = $this->multibyte ? 'mb_strlen' : 'strlen';
+				$len = $strlen( $value );
+				if ( $this->min && $len < $this->min )
+					return null;
+				if ( $this->max && $len > $this->max )
+					return null;
+			}
+			/**
+			 * Return validated value
+			 */
+			return $value;
+
 		}
-		if ( ! $this->multibyte && strlen( $value ) !== mb_strlen( $value ) )
-			return null;
-		if ( $this->min || $this->max ) {
-			$strlen = $this->multibyte ? 'mb_strlen' : 'strlen';
-			$len = $strlen( $value );
-			if ( $this->min && $len < $this->min )
-				return null;
-			if ( $this->max && $len > $this->max )
-				return null;
-		}
-		return $value;
 	}
 
 	/**

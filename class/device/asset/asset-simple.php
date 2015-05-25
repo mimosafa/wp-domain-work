@@ -18,20 +18,20 @@ abstract class asset_simple extends asset_abstract {
 	 * @param  null|WP_Post Optional
 	 * @return mixed|null
 	 */
-	abstract protected function filter_value( $value, $post = null );
+	abstract public function filter( $value );
 
 	/**
-	 * Input value filter. default is same as filter_value method.
+	 * Input value filter. Default is same as filter() method.
 	 * If necessary, overwrite in class.
 	 *
-	 * @access protected
+	 * @access public
 	 *
 	 * @param  mixed $value
 	 * @param  WP_Post $post
 	 * @return mixed|null
 	 */
-	protected function filter_input( $value, \WP_Post $post ) {
-		return $this->filter_value( $value, $post );
+	public function filter_input( $value ) {
+		return $this->filter( $value );
 	}
 
 	/**
@@ -39,14 +39,20 @@ abstract class asset_simple extends asset_abstract {
 	 *
 	 * @access public
 	 *
+	 * @uses   WPDW\Device\Asset\asset_abstract::check_dependency()
+	 *
 	 * @param  int|WP_Post $post
 	 * @return mixed
 	 */
 	public function get( $post ) {
 		if ( ! $this->model || ! $post = get_post( $post ) )
-			return;
+			return null;
+		if ( ! $this->check_dependency( $post ) )
+			return null;
 		$get = 'get_' . $this->model;
-		return $this->filter( $this->$get( $post ), $post, 'get' );
+		$value = $this->$get( $post );
+
+		return $this->filter( $value );
 	}
 
 	/**
@@ -54,48 +60,20 @@ abstract class asset_simple extends asset_abstract {
 	 *
 	 * @access public
 	 *
-	 * @uses   WPDW\Device\type_{$type}::input_filter()
+	 * @uses   WPDW\Device\Asset\asset_abstract::check_dependency()
 	 *
 	 * @param  int|WP_Post $post
 	 * @param  mixed $value
 	 */
 	public function update( $post, $value ) {
 		if ( ! $this->model || ! $post = get_post( $post ) )
-			return;
-		$update = 'update_' . $this->model;
-		return $this->$update( $post, $this->filter_input( $value, $post, 'put' ) );
-	}
-
-	/**
-	 * Filter values
-	 *
-	 * @access protected
-	 *
-	 * @param  mixed $value
-	 * @param  WP_Post $post
-	 * @param  string $for get|put
-	 */
-	protected function filter( $value, \WP_Post $post, $for ) {
-		$value = parent::filter( $value, $post, $for );
-		if ( ! isset( $value ) )
 			return null;
-
-		/**
-		 * Define filter callback method.
-		 * If $post is set input validation.
-		 */
-		$callback = $for === 'get' ? 'filter_value' : 'filter_input';
-
-		if ( $this->multiple ) {
-			$filtered = [];
-			foreach ( $value as $val ) {
-				$val = $this->$callback( $val, $post );
-				if ( isset( $val ) )
-					$filtered[] = $val;
-			}
-			return $filtered;
-		}
-		return $this->$callback( $value, $post );
+		if ( ! $this->check_dependency( $post ) )
+			return null;
+		$update = 'update_' . $this->model;
+		$value = $this->filter_input( $value, $post );
+		if ( isset( $value ) )
+			return $this->$update( $post, $value );
 	}
 
 	/**
@@ -124,12 +102,21 @@ abstract class asset_simple extends asset_abstract {
 	 */
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'model' ) :
+			/**
+			 * @var string $model
+			 */
 			$arg = trait_exists( __NAMESPACE__ . '\\Model\\' . $arg ) ? $arg : null;
 		else :
 			parent::arguments_walker( $arg, $key, $asset );
 		endif;
 	}
 
+	/**
+	 * @access protected
+	 *
+	 * @param  array $args
+	 * @return boolean
+	 */
 	protected static function is_met_requirements( Array $args ) {
 		return $args['model'] ? true : false;
 	}

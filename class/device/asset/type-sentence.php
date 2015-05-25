@@ -29,13 +29,20 @@ class type_sentence extends asset_complex {
 	 */
 	protected $inline;
 
+	/**
+	 * @access public
+	 *
+	 * @uses   WPDW\_property()
+	 *
+	 * @param  int|WP_Post $post
+	 * @param  array $value
+	 * @return (void)
+	 */
 	public function update( $post, $value ) {
-		$def = array_map( function() {
-			return \FILTER_DEFAULT;
-		}, array_flip( $this->assets ) );
-		$value = filter_var_array( $value, $def );
+		$value = $this->filter_input( $value );
+		$property = \WPDW\_property( $this->domain );
 		foreach ( $value as $asset => $val ) {
-			$this->_property()->$asset->update( $post, $val );
+			$property->$asset->update( $post, $val );
 		}
 	}
 
@@ -47,7 +54,7 @@ class type_sentence extends asset_complex {
 		if ( $key === 'assets' ) :
 			$arg = self::flatten( filter_var( $arg, \FILTER_DEFAULT, \FILTER_REQUIRE_ARRAY ), true );
 		elseif ( in_array( $key, [ 'glue' ], true ) ) :
-			$arg = self::sanitize_string( $arg );
+			$arg = filter_var( $arg, \FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		elseif ( $key ==='inline' ) :
 			$arg = filter_var( $arg, \FILTER_VALIDATE_BOOLEAN );
 		else :

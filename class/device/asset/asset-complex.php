@@ -53,14 +53,34 @@ abstract class asset_complex extends asset_abstract {
 	 */
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( in_array( $key, [ 'glue' ], true ) ) :
-			$arg = self::sanitize_string( $arg );
+			/**
+			 * @var string $glue
+			 */
+			$arg = filter_var( $arg, \FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		elseif ( $key === 'assets' ) :
+			/**
+			 * @var array $assets
+			 */
 			$arg = filter_var( $arg, \FILTER_DEFAULT, \FILTER_REQUIRE_ARRAY );
 		elseif ( $key === 'admin_form_style' ) :
+			/**
+			 * @var string $admin_form_style [inline|block|hide] Default: block
+			 */
 			$arg = in_array( $arg, [ 'inline', 'block', 'hide' ], true ) ? $arg : 'block';
 		else :
 			parent::arguments_walker( $arg, $key, $asset );
 		endif;
+	}
+
+	public function filter_input( Array $array ) {
+		$property = \WPDW\_property( $this->domain );
+		$return = [];
+		foreach ( $this->assets as $asset ) {
+			$val = isset( $array[$asset] ) ? $array[$asset] : '';
+			$assetObj = $property->$asset;
+			$return[$asset] = $assetObj->filter_input( $val );
+		}
+		return $return;
 	}
 
 	protected static function is_met_requirements( Array $args ) {

@@ -68,3 +68,6 @@
 .wpdw-checkbox {
   padding-left: .5em;
 }
+.wpdw-checkbox:first-child {
+  padding-left: 0;
+}
