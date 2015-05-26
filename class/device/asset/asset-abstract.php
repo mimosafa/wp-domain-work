@@ -4,6 +4,22 @@ namespace WPDW\Device\Asset;
 abstract class asset_abstract implements asset {
 
 	/**
+	 * @var string
+	 */
+	protected $domain;
+	protected $type;
+	protected $name;
+	protected $label;
+	protected $description;
+
+	/**
+	 * @var boolean
+	 */
+	protected $multiple = false;
+	protected $required = false;
+	protected $readonly = false;
+
+	/**
 	 * @var array
 	 */
 	protected $deps;
@@ -52,9 +68,16 @@ abstract class asset_abstract implements asset {
 	}
 
 	/**
+	 * Array_walk callback function
+	 *
 	 * @access protected
 	 *
 	 * @see    WPDW\Device\asset_vars::prepare_arguments()
+	 *
+	 * @param  mixed  &$arg
+	 * @param  string $key
+	 * @param  string $asset
+	 * @return (void)
 	 */
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'name' ) :

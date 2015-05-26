@@ -7,4 +7,5 @@ interface asset {
 	public function update( $post, $value );
 	public function print_column( $value, $post_id );
 	public function get_recipe( $post );
+	public function filter_input( $value );
 }

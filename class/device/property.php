@@ -21,10 +21,32 @@ trait property {
 	 */
 	protected function __construct() {
 		if ( $this->isDefined( 'assets' ) ) {
+			$this->sort_assets();
 			array_walk( $this->assets, [ &$this, 'prepare_assets' ] );
 			$this->assets = array_filter( $this->assets );
 		}
 		#_var_dump( $this );
+	}
+
+	/**
+	 * (Nothing but) Sort assets
+	 */
+	private function sort_assets() {
+		$sets   = [];
+		$groups = [];
+		foreach ( $this->assets as $asset => $args ) {
+			if ( ! isset( $args['type'] ) || ! in_array( $args['type'], [ 'set', 'group' ], true ) )
+				continue;
+			if ( $args['type'] === 'set' )
+				$sets[$asset] = $args;
+			if ( $args['type'] === 'group' )
+				$groups[$asset] = $args;
+			unset( $this->assets[$asset] );
+		}
+		if ( $sets )
+			$this->assets = $this->assets + $sets;
+		if ( $groups )
+			$this->assets = $this->assets + $groups;
 	}
 
 	/**
@@ -46,6 +68,8 @@ trait property {
 			// Class reserved words (existing property name )
 			'assets', '_data',
 		];
+		static $simpleAssets = [];
+		static $setAssets = [];
 
 		if ( in_array( $asset, $excluded, true ) ) :
 			$args = null;
@@ -58,8 +82,19 @@ trait property {
 		if ( $args && ! $this->get_class_name( $args['type'] ) )
 			$args = null;
 
-		if ( ! $args )
-			return;
+		if ( isset( $args['type'] ) && in_array( $args['type'], [ 'set', 'group' ], true ) && isset( $args['assets'] ) ) {
+			/**
+			 * Callback function for assets filter of set/group type
+			 */
+			$assetsFilter = function( $asset ) use( $args, $simpleAssets, $setAssets ) {
+				if ( $args['type'] === 'set' ) {
+					return in_array( $asset, $simpleAssets, true );
+				} else {
+					return in_array( $asset, $simpleAssets, true ) || in_array( $asset, $setAssets, true );
+				}
+			};
+			$args['assets'] = array_filter( $args['assets'], $assetsFilter );
+		}
 
 		/**
 		 * @uses WPDW\Device\Asset\type_{$type}::prepare_arguments()
@@ -67,6 +102,11 @@ trait property {
 		 */
 		$class = $this->get_class_name( $args['type'] );
 		$class::prepare_arguments( $args, $asset );
+
+		if ( ! in_array( $args['type'], [ 'set', 'group' ], true ) )
+			$simpleAssets[] = $asset;
+		else if ( $args['type'] === 'set' )
+			$setAssets[] = $asset;
 	}
 
 	/**
@@ -120,10 +160,6 @@ trait property {
 			'post_children' => [
 				'required' => [ 'type' => 'post', 'model' => 'post', 'context' => 'post_children', ],
 				'default'  => [ 'multiple' => true, 'query_args' => [ 'orderby' => 'menu_order', 'order' => 'ASC' ] ]
-			],
-
-			'sentence' => [
-				#'required' => [ 'model' => 'assets' ],
 			],
 		];
 
@@ -183,7 +219,7 @@ trait property {
 			return;
 		if ( ! $name )
 			return $this->assets;
-		return array_key_exists( $name, $this->assets ) ? $this->assets[$name] : null;
+		return isset( $this->assets[$name] ) ? $this->assets[$name] : null;
 	}
 
 	/**

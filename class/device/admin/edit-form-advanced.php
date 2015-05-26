@@ -48,7 +48,7 @@ class edit_form_advanced extends post {
 	 * @access public
 	 */
 	public function add( Array $args ) {
-		if ( ! $args = $this->prepare_arguments( 'edit_form', $args ) )
+		if ( ! $args = $this->prepare_arguments( $args ) )
 			return;
 		$args = array_merge( self::$_defaults, $args );
 		if ( ! $args['id'] )

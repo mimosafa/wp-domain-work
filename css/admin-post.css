@@ -71,3 +71,12 @@
 .wpdw-checkbox:first-child {
   padding-left: 0;
 }
+.wpdw-checkbox > input[disabled] + span {
+  color: #eee;
+}
+
+.form-table td > .form-table th,
+.form-table td > .form-table td {
+  padding-top: 0;
+  padding-bottom: 10px;
+}

@@ -8,7 +8,7 @@ class type_string extends asset_simple {
 	 * @var boolean
 	 */
 	protected $multibyte;
-	protected $paragraph; // @todo
+	protected $paragraph = false; // @todo
 
 	/**
 	 * @var boolean|array

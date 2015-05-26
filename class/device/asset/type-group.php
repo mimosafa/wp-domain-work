@@ -1,7 +1,7 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_set extends asset_assets {
+class type_group extends asset_assets {
 	use asset_vars;
 
 	protected static function arguments_walker( &$arg, $key, $asset ) {
@@ -9,7 +9,7 @@ class type_set extends asset_assets {
 			/**
 			 * @var string $admin_form_style (Fixed: block)
 			 */
-			$arg = in_array( $arg, [ 'block', 'inline', 'hide' ], true ) ? $arg : 'block';
+			$arg = 'block';
 		else :
 			parent::arguments_walker( $arg, $key, $asset );
 		endif;

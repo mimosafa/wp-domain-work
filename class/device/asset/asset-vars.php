@@ -1,26 +1,7 @@
 <?php
 namespace WPDW\Device\Asset;
 
-/**
- * Common vars of asset, and common static method
- */
 trait asset_vars {
-
-	/**
-	 * @var string
-	 */
-	protected $domain;
-	protected $type;
-	protected $name;
-	protected $label;
-	protected $description;
-
-	/**
-	 * @var boolean
-	 */
-	protected $multiple = false;
-	protected $required = false;
-	protected $readonly = false;
 
 	/**
 	 * Arguments (WP_Domain\{$domain}\property::$assets) provisioner
@@ -37,10 +18,8 @@ trait asset_vars {
 	 */
 	public static function prepare_arguments( Array &$args, $asset ) {
 		static $defaults;
-		if ( ! $defaults ) {
+		if ( ! $defaults )
 			$defaults = get_class_vars( __CLASS__ );
-			unset( $defaults['_properties'] ); // unset static vars
-		}
 		$args = array_merge( $defaults, $args );
 		array_walk( $args, __CLASS__ . '::arguments_walker', $asset );
 

@@ -59,17 +59,33 @@ abstract class post {
 	 * @param  array $args
 	 * @return array
 	 */
-	protected function prepare_arguments( $context, Array $args ) {
+	protected function prepare_arguments( Array $args ) {
 		$args = filter_var_array( $args, $this->get_filter_definition() );
-		if ( $args['asset'] && ! $args['title'] ) {
-			$assets = is_array( $args['asset'] ) ? array_filter( self::flatten( $args['asset'], true ) ) : (array) $args['asset'];
-			$args['title'] = implode(
-				' / ',
-				array_map( function( $asset ) {
-					return $this->property->get_setting( $asset )['label'];
-				}, $assets )
-			);
-			$args['asset'] = count( $assets ) > 1 ? $assets : array_shift( $assets );
+		if ( $args['asset'] ) {
+			if ( ! $args['title'] ) {
+				$assets = is_array( $args['asset'] ) ? array_filter( self::flatten( $args['asset'], true ) ) : (array) $args['asset'];
+				$args['title'] = implode(
+					' / ',
+					array_map( function( $asset ) {
+						return $this->property->get_setting( $asset )['label'];
+					}, $assets )
+				);
+				$args['asset'] = count( $assets ) > 1 ? $assets : array_shift( $assets );
+			}
+			$setting = $this->property->get_setting( $args['asset'] );
+			if ( isset( $setting['assets'] ) ) {
+				foreach ( $setting['assets'] as $a ) {
+					if ( ! in_array( $a, self::$done_assets, true ) ) {
+						self::$done_assets[] = $a;
+						/*
+					} else {
+						if ( ! isset( $args['disabled'] ) )
+							$args['disabled'] = [];
+						$args['disabled'][] = $a;
+						*/
+					}
+				}
+			}
 		}
 		$args = array_filter( $args );
 		if ( array_key_exists( 'asset', $args ) )

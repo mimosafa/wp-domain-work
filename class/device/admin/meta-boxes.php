@@ -59,7 +59,7 @@ class meta_boxes extends post {
 	 * @return (void)
 	 */
 	public function add( Array $args ) {
-		if ( ! $args = $this->prepare_arguments( 'meta_box', $args ) )
+		if ( ! $args = $this->prepare_arguments( $args ) )
 			return;
 		$args = array_merge( self::$_defaults, $args );
 		if ( ! $args['id'] )

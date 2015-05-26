@@ -78,7 +78,7 @@ class save_post {
 			/**
 			 * Prepare input value
 			 */
-			if ( isset( $setting['assets'] ) ) {
+			if ( isset( $setting['assets'] ) || $setting['multiple'] ) {
 				$value = filter_input( \INPUT_POST, $key, \FILTER_DEFAULT, \FILTER_REQUIRE_ARRAY );
 			} else {
 				$value = filter_input( \INPUT_POST, $key, \FILTER_CALLBACK, [ 'options' => [ $assetInstance, 'filter_input' ] ] );
