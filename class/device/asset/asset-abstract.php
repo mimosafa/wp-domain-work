@@ -42,6 +42,14 @@ abstract class asset_abstract implements asset {
 		}
 		if ( ! $this->multiple )
 			unset( $this->delimiter );
+		if ( $this->deps ) {
+			$property = \WPDW\_property( $args['domain'] );
+			foreach ( $this->deps as $asset => $param ) {
+				if ( ! isset( $property->$asset ) ) {
+					unset( $this->deps[$asset] );
+				}
+			}
+		}
 	}
 
 	/**

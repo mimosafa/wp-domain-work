@@ -47,6 +47,8 @@ abstract class post {
 			 * Exclude wrote custom fields from post custom meta box
 			 */
 			add_filter( 'is_protected_meta', [ $this, 'is_protected_meta' ], 10, 3 );
+			#$this->localize_form_data();
+			add_action( 'admin_enqueue_scripts', [ &$this, 'localize_form_data' ], 8 );
 			$done = true;
 		}
 	}
@@ -62,6 +64,9 @@ abstract class post {
 	protected function prepare_arguments( Array $args ) {
 		$args = filter_var_array( $args, $this->get_filter_definition() );
 		if ( $args['asset'] ) {
+			/**
+			 * Set title if not defined
+			 */
 			if ( ! $args['title'] ) {
 				$assets = is_array( $args['asset'] ) ? array_filter( self::flatten( $args['asset'], true ) ) : (array) $args['asset'];
 				$args['title'] = implode(
@@ -72,20 +77,8 @@ abstract class post {
 				);
 				$args['asset'] = count( $assets ) > 1 ? $assets : array_shift( $assets );
 			}
-			$setting = $this->property->get_setting( $args['asset'] );
-			if ( isset( $setting['assets'] ) ) {
-				foreach ( $setting['assets'] as $a ) {
-					if ( ! in_array( $a, self::$done_assets, true ) ) {
-						self::$done_assets[] = $a;
-						/*
-					} else {
-						if ( ! isset( $args['disabled'] ) )
-							$args['disabled'] = [];
-						$args['disabled'][] = $a;
-						*/
-					}
-				}
-			}
+
+			//$setting = $this->property->get_setting( $args['asset'] );
 		}
 		$args = array_filter( $args );
 		if ( array_key_exists( 'asset', $args ) )
@@ -106,19 +99,30 @@ abstract class post {
 	protected function get_filter_definition() {
 		static $def;
 		if ( ! $def ) {
-			// asset
-			$assetVar = function( $var ) {
+			// Asset
+			$assetVar = function( $var ) use ( &$assetVar ) {
 				if ( ! $this->property || in_array( $var, self::$done_assets, true ) )
 					return null;
-				if ( ! $this->property->get_setting( $var ) )
+				if ( ! $setting = $this->property->get_setting( $var ) )
 					return null;
 				self::$done_assets[] = $var;
+
+				/**
+				 * Find asset recursively
+				 */
+				if ( isset( $setting['assets'] ) ) {
+					foreach ( $setting['assets'] as $asset )
+						$assetVar( $asset );
+				}
+
 				return $var;
 			};
-			// callback
+
+			// Callback
 			$callbackVar = function( $var ) {
 				return is_callable( $var ) ? $var : null;
 			};
+
 			$def = [
 				'id'    => [ 'filter' => \FILTER_VALIDATE_REGEXP, 'options' => [ 'regexp' => '/\A[a-z][a-z0-9_\-]+\z/', 'default' => null ] ],
 				'title' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
@@ -172,6 +176,16 @@ abstract class post {
 				$protected = true;
 		}
 		return $protected;
+	}
+
+	public function localize_form_data() {
+		if ( self::$done_assets ) {
+			$data = [];
+			foreach ( self::$done_assets as $asset ) {
+				$data[$asset] = $this->property->get_setting( $asset );
+			}
+			\WPDW\Scripts::add_data( 'forms', $data );
+		}
 	}
 
 }

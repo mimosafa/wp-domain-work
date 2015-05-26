@@ -8,6 +8,10 @@
      -moz-box-sizing: border-box;
           box-sizing: border-box;
 }
+#side-sortables .form-table tr {
+  display: block;
+  width: auto;
+}
 #side-sortables .form-table td,
 #side-sortables .form-table th {
   display: block;

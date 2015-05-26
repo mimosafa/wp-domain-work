@@ -12,6 +12,11 @@ class template {
 	use \mimosafa\Decoder;
 
 	/**
+	 * @var string
+	 */
+	private $form_id_prefix = 'wpdw-form-';
+
+	/**
 	 * @var WPDW\WP\nonce
 	 */
 	private $nonce;
@@ -25,6 +30,8 @@ class template {
 	public function __construct( $domain ) {
 		if ( ! $domain = filter_var( $domain ) )
 			return;
+
+		$this->form_id_prefix .= $domain . '-';
 
 		/**
 		 * Nonce gen
@@ -200,6 +207,12 @@ class template {
 
 		foreach ( $assets as $asset_args ) {
 			if ( $asset_dom = $this->generate_dom_array( $asset_args ) ) {
+				$id = $this->form_id_prefix;
+				if ( in_array( $asset_args['type'], [ 'set', 'group' ], true ) )
+					$id .= $asset_args['assets'][0]['name'];
+				else
+					$id .= $asset_args['name'];
+
 				$dom[] = [
 					'element'  => 'tr',
 					'children' => [
@@ -208,7 +221,7 @@ class template {
 							'children' => [
 								[
 									'element' => 'label',
-									#'attribute' => [ 'for' => esc_attr( $_id ) ],
+									'attribute' => [ 'for' => esc_attr( $id ) ],
 									'text' => esc_html( $asset_args['label'] )
 								]
 							]
@@ -243,11 +256,16 @@ class template {
 		$value = $value ?: [ null ];
 
 		$dom = [];
+		$n = 0;
 		foreach ( (array) $value as $val ) {
+			$id = $this->form_id_prefix;
+			$id .= ! $n ? $name : $name . '-' . $n;
 			$attr = [
 				'type' => 'text',
 				'name' => esc_attr( $nameAttr ),
-				'value' => esc_attr( $val )
+				'value' => esc_attr( $val ),
+				'id' => $id,
+				'class' => 'regular-text'
 			];
 			if ( $max )
 				$attr['maxlength'] = esc_attr( $args['max'] );
@@ -255,6 +273,7 @@ class template {
 				$attr['readonly'] = 'readonly';
 
 			$dom[] = [ 'element' => 'input', 'attribute' => $attr ];
+			$n++;
 		}
 		return $dom;
 	}
@@ -279,11 +298,15 @@ class template {
 		$value = $value ?: [ null ];
 
 		$dom = [];
+		$n = 0;
 		foreach ( (array) $value as $val ) {
+			$id = $this->form_id_prefix;
+			$id .= ! $n ? $name : $name . '-' . $n;
 			$attr = [
 				'type' => 'number',
 				'name' => esc_attr( $nameAttr ),
-				'value' => esc_attr( $val )
+				'value' => esc_attr( $val ),
+				'id' => $id
 			];
 			if ( $min )
 				$attr['min'] = esc_attr( $args['min'] );
@@ -295,6 +318,7 @@ class template {
 				$attr['readonly'] = 'readonly';
 
 			$dom[] = [ 'element' => 'input', 'attribute' => $attr ];
+			$n++;
 		}
 		return $dom;
 	}
@@ -317,11 +341,15 @@ class template {
 		$value = $value ?: [ null ];
 
 		$dom = [];
+		$n = 0;
 		foreach ( (array) $value as $val ) {
+			$id = $this->form_id_prefix;
+			$id .= ! $n ? $name : $name . '-' . $n;
 			$attr = [
 				'type' => esc_attr( $unit ),
 				'name' => esc_attr( $nameAttr ),
-				'value' => esc_attr( $val )
+				'value' => esc_attr( $val ),
+				'id' => $id
 			];
 			if ( $step )
 				$attr['step'] = esc_attr( $args['step'] );
@@ -329,6 +357,7 @@ class template {
 				$attr['readonly'] = 'readonly';
 
 			$dom[] = [ 'element' => 'input', 'attribute' => $attr ];
+			$n++;
 		}
 		return $dom;
 	}
@@ -336,11 +365,13 @@ class template {
 	private function boolean_dom_array( $nameAttr, Array $args ) {
 		extract( $args );
 		$nameAttr = $nameAttr ? $nameAttr . sprintf( '[%s]', $name ) : $name;
+		$id = $this->form_id_prefix . $name;
 
 		$attr = [
 			'type' => 'checkbox',
 			'name' => esc_attr( $nameAttr ),
-			'value' => 1
+			'value' => 1,
+			'id' => $id
 		];
 		if ( $value )
 			$attr['checked'] = 'checked';
