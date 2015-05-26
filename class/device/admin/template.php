@@ -50,10 +50,8 @@ class template {
 	 * @return (void)
 	 */
 	public function output( Array $args ) {
-		if ( $dom_array = $this->generate_dom_array( $args ) ) {
+		if ( $dom_array = $this->generate_dom_array( $args ) )
 			echo html_entity_decode( $this->getArrayToHtmlString( $dom_array ) );
-			//echo '<pre>'; var_dump( $dom_array ); echo '</pre>';
-		}
 	}
 
 	/**
@@ -120,6 +118,7 @@ class template {
 			// Reset vars
 			$name = $name_cache;
 			$non_separate_nonce_for_inline = false;
+			$fieldset = [];
 
 		} else { // Block forms (Has assets)
 
@@ -142,10 +141,9 @@ class template {
 			}
 
 			// Reset vars
+			$name = '';
 			if ( $non_separate_nonce_for_block )
 				$non_separate_nonce_for_block = ! $non_separate_nonce_for_block;
-			$table = [];
-			$name = '';
 
 		}
 

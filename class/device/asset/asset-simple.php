@@ -84,8 +84,9 @@ abstract class asset_simple extends asset_abstract {
 	 * @param  int|WP_Post $post
 	 * @return array
 	 */
-	public function get_recipe( $post ) {
-		return array_merge( get_object_vars( $this ), [ 'value' => $this->get( $post ) ] );
+	public function get_recipe( $post = null ) {
+		$recipe = get_object_vars( $this );
+		return $post ? array_merge( $recipe, [ 'value' => $this->get( $post ) ] ) : $recipe;
 	}
 
 	/**

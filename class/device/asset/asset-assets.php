@@ -89,7 +89,7 @@ abstract class asset_assets extends asset_abstract {
 	 * @param  int|WP_Post $post
 	 * @return array
 	 */
-	public function get_recipe( $post ) {
+	public function get_recipe( $post = null ) {
 		$recipe = get_object_vars( $this );
 		array_walk( $recipe['assets'], function( &$asset, $i, $post ) {
 			$asset = \WPDW\_property( $this->domain )->$asset->get_recipe( $post );

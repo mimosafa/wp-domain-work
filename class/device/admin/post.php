@@ -47,7 +47,6 @@ abstract class post {
 			 * Exclude wrote custom fields from post custom meta box
 			 */
 			add_filter( 'is_protected_meta', [ $this, 'is_protected_meta' ], 10, 3 );
-			#$this->localize_form_data();
 			add_action( 'admin_enqueue_scripts', [ &$this, 'localize_form_data' ], 8 );
 			$done = true;
 		}
