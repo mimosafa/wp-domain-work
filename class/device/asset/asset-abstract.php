@@ -108,7 +108,7 @@ abstract class asset_abstract implements asset {
 			/**
 			 * @var array $deps
 			 */
-			$arg = filter_var( $arg, \FILTER_DEFAULT, \FILTER_REQUIRE_ARRAY );
+			self::deps_filter( $arg );
 		elseif ( in_array( $key, [ 'domain', 'type', ], true ) ) :
 			/**
 			 * @var string $domain|$type
@@ -117,6 +117,31 @@ abstract class asset_abstract implements asset {
 		else :
 			$arg = null;
 		endif;
+	}
+
+	/**
+	 * Asset dependency property filter
+	 *
+	 * @access private
+	 *
+	 * @param  mixed &$arg
+	 * @return array|boolean
+	 */
+	private static function deps_filter( &$arg ) {
+		if ( ! is_array( $arg ) ) {
+			$arg = false;
+			return;
+		}
+		foreach ( $arg as $asset => &$param ) {
+			$bool = filter_var( $param, \FILTER_VALIDATE_BOOLEAN, \FILTER_NULL_ON_FAILURE );
+			if ( isset( $bool ) ) {
+				$param = $bool;
+			} else {
+				unset( $arg[$asset] );
+			}
+		}
+		if ( empty( $arg ) )
+			$arg = false;
 	}
 
 }

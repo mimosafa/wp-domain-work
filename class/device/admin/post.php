@@ -9,6 +9,10 @@ namespace WPDW\Device\Admin;
 abstract class post {
 	use \WPDW\Util\Array_Function;
 
+	const FORM_ID_PREFIX = 'wpdw-form-';
+	const META_BOX_ID_PREFIX = 'wpdw-meta-box-';
+	const DIV_ID_PREFIX = 'wpdw-div-';
+
 	/**
 	 * @var  WP_Domain\{$domain}\property
 	 */
@@ -181,9 +185,10 @@ abstract class post {
 		if ( self::$done_assets ) {
 			$data = [];
 			foreach ( self::$done_assets as $asset ) {
-				$data[$asset] = $this->property->get_setting( $asset );
+				$data[$asset] = $this->property->$asset->get_recipe();
 			}
 			\WPDW\Scripts::add_data( 'forms', $data );
+			\WPDW\Scripts::add_data( 'form_id_prefix', self::FORM_ID_PREFIX );
 		}
 	}
 

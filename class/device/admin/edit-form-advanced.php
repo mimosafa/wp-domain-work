@@ -6,7 +6,7 @@ class edit_form_advanced extends post {
 	/**
 	 * ID formats
 	 */
-	const DIV_ID_PREFIX = 'wpdw-div-';
+	private $div_id_prefix;
 
 	/**
 	 * @var array
@@ -40,7 +40,10 @@ class edit_form_advanced extends post {
 	 * @return (void)
 	 */
 	public function __construct( $domain ) {
+		if ( ! $domain = filter_var( $domain ) )
+			return;
 		parent::__construct( $domain );
+		$this->div_id_prefix = parent::DIV_ID_PREFIX . $domain . '-';
 		add_action( 'dbx_post_advanced', [ &$this, 'add_edit_forms' ] );
 	}
 
@@ -79,6 +82,8 @@ class edit_form_advanced extends post {
 				return in_array( $var, [ 'top', 'before_permalink', 'after_title', 'after_editor' ], true ) ? $var : null;
 			};
 			$def['context'] = [ 'filter' => \FILTER_CALLBACK, 'options' => $contextVar ];
+
+			$def['list-table'] = [ 'filter' => \FILTER_VALIDATE_BOOLEAN ];
 		}
 		return $def;
 	}
@@ -106,7 +111,7 @@ class edit_form_advanced extends post {
 		unset( $this->edit_forms[$hook] );
 
 		foreach ( $args as $array ) {
-			$divid = self::DIV_ID_PREFIX . $array['id'];
+			$divid = $this->div_id_prefix . $array['id'];
 			echo "<div id=\"{$divid}\">\n";
 			if ( is_callable( $array['callback'] ) ) {
 				$cb = $array['callback'];
@@ -115,6 +120,11 @@ class edit_form_advanced extends post {
 				$array['post'] = $post;
 				echo "\t<h3>{$array['title']}</h3>";
 				call_user_func_array( $cb, $array );
+			} else if ( isset( $array['args']['list-table'] ) ) {
+				/**
+				 * List Table
+				 */
+				$this->print_list_table( $array, $post );
 			} else {
 				$this->print_edit_form( $array, $post );
 			}
@@ -134,6 +144,27 @@ class edit_form_advanced extends post {
 		$args  = $this->get_recipe( $asset, $array['args'], $post );
 		echo "\t<h3>{$array['title']}</h3>";
 		self::$template->output( $args );
+	}
+
+	/**
+	 * @access private
+	 *
+	 * @param  array $array
+	 * @param  WP_Post $post
+	 * @return (void)
+	 */
+	private function print_list_table( Array $array, \WP_Post $post ) {
+		$asset = $this->property->$array['args']['asset']->get_recipe( $post );
+
+		$args = array_merge( $array, $asset );
+
+		#_var_dump( $args );
+
+		$table = new WPDW_List_Table( $args );
+		$table->prepare_items();
+		if ( isset( $array['display_title'] ) && $array['display_title'] )
+			echo "\t<h3>{$array['title']}</h3>";
+		$table->display();
 	}
 
 }

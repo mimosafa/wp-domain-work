@@ -6,7 +6,6 @@ namespace WPDW\Device\Admin;
  * - Used @ WPDW\Device\Admin\meta_boxes class
  *
  * @uses mimosafa\Decoder
- * @uses WPDW\WP\nonce
  */
 class template {
 	use \mimosafa\Decoder;
@@ -14,7 +13,7 @@ class template {
 	/**
 	 * @var string
 	 */
-	private $form_id_prefix = 'wpdw-form-';
+	private $form_id_prefix;
 
 	/**
 	 * @var WPDW\WP\nonce
@@ -24,6 +23,9 @@ class template {
 	/**
 	 * Constructor
 	 *
+	 * @uses   WPDW\Device\Admin\post::FORM_ID_PREFIX
+	 * @uses   WPDW\WP\nonce
+	 *
 	 * @param  string $context
 	 * @return (void)
 	 */
@@ -31,7 +33,7 @@ class template {
 		if ( ! $domain = filter_var( $domain ) )
 			return;
 
-		$this->form_id_prefix .= $domain . '-';
+		$this->form_id_prefix = post::FORM_ID_PREFIX . $domain . '-';
 
 		/**
 		 * Nonce gen

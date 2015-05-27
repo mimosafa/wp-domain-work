@@ -6,7 +6,7 @@ class meta_boxes extends post {
 	/**
 	 * Meta box id prefix
 	 */
-	const BOX_ID_PREFIX = 'wp-domain-work-meta-box-';
+	private $box_id_prefix;
 
 	/**
 	 * @var array
@@ -37,7 +37,10 @@ class meta_boxes extends post {
 	 * @return (void)
 	 */
 	public function __construct( $domain ) {
+		if ( ! $domain = filter_var( $domain ) )
+			return;
 		parent::__construct( $domain );
+		$this->box_id_prefix = parent::META_BOX_ID_PREFIX . $domain . '-';
 		self::$_defaults['callback'] = [ &$this, 'meta_box' ];
 		add_action( 'add_meta_boxes', [ &$this, 'add_meta_boxes' ] );
 	}
@@ -68,7 +71,7 @@ class meta_boxes extends post {
 			$args['title'] = ucwords( str_replace( [ '-', '_' ], [ ' / ', ' ' ], $args['id'] ) );
 		$callback_args = array_splice( $args, 6 );
 		extract( $args );
-		$this->meta_boxes[] = [ self::BOX_ID_PREFIX . $id, $title, $callback, $screen, $context, $priority, $callback_args ];
+		$this->meta_boxes[] = [ $this->box_id_prefix . $id, $title, $callback, $screen, $context, $priority, $callback_args ];
 	}
 
 	/**
