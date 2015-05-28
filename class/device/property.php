@@ -32,17 +32,24 @@ trait property {
 	 * (Nothing but) Sort assets
 	 */
 	private function sort_assets() {
-		$sets   = [];
+		$metas = [];
+		$sets  = [];
 		$groups = [];
 		foreach ( $this->assets as $asset => $args ) {
-			if ( ! isset( $args['type'] ) || ! in_array( $args['type'], [ 'set', 'group' ], true ) )
+			if ( ! isset( $args['type'] ) )
 				continue;
+			if ( $asset[0] === '_' )
+				$metas[$asset] = $args;
 			if ( $args['type'] === 'set' )
 				$sets[$asset] = $args;
 			if ( $args['type'] === 'group' )
 				$groups[$asset] = $args;
+			else
+				continue;
 			unset( $this->assets[$asset] );
 		}
+		if ( $metas )
+			$this->assets = $metas + $this->assets;
 		if ( $sets )
 			$this->assets = $this->assets + $sets;
 		if ( $groups )
@@ -64,36 +71,65 @@ trait property {
 			// WordPress reserved words
 			'_edit_last', '_edit_lock', '_wp_old_slug', '_thumbnail_id',
 			'_wp_attached_file', '_wp_page_template', '_wp_attachment_metadata',
+
+			'edit', 'wp', 'thumbnail',
 			
 			// Class reserved words (existing property name )
 			'assets', '_data',
+
+			'data',
 		];
+		static $metaAssets   = [];
 		static $simpleAssets = [];
-		static $setAssets = [];
+		static $setAssets    = [];
 
 		if ( in_array( $asset, $excluded, true ) ) :
 			$args = null;
-		elseif ( preg_match( '/\A[^a-z]|[^a-z0-9_]/', $asset ) ) :
+			return;
+		elseif ( preg_match( '/[^a-z0-9_]/', $asset ) ) :
 			$args = null;
+			return;
 		else :
-			$this->prepare_asset_arguments( $asset, $args );
+			self::prepare_asset_arguments( $asset, $args );
+			if ( ! isset( $args['type'] ) ) {
+				$args = null;
+				return;
+			}
 		endif;
 
-		if ( $args && ! $this->get_class_name( $args['type'] ) )
-			$args = null;
+		if ( isset( $args['assets'] ) ) {
+			if ( $args['type'] === 'complex' ) {
+				/**
+				 * Callback function for assets filter of complex type
+				 */
+				$assetsFilter = function( $asset ) use ( $metaAssets ) {
+					return in_array( $asset, $metaAssets, true );
+				};
+				$args['assets'] = array_filter( $args['assets'], $assetsFilter );
+			} else if ( in_array( $args['type'], [ 'set', 'group' ], true ) ) {
+				/**
+				 * Callback function for assets filter of set/group type
+				 */
+				$assetsFilter = function( $asset ) use ( $args, $simpleAssets, $setAssets ) {
+					if ( $args['type'] === 'set' ) {
+						return in_array( $asset, $simpleAssets, true );
+					} else {
+						return in_array( $asset, $simpleAssets, true ) || in_array( $asset, $setAssets, true );
+					}
+				};
+				$args['assets'] = array_filter( $args['assets'], $assetsFilter );
+			} else {
+				unset( $args['assets'] );
+			}
+			if ( isset( $args['assets'] ) && $args['assets'] === [] ) {
+				$args = null;
+				return;
+			}
+		}
 
-		if ( isset( $args['type'] ) && in_array( $args['type'], [ 'set', 'group' ], true ) && isset( $args['assets'] ) ) {
-			/**
-			 * Callback function for assets filter of set/group type
-			 */
-			$assetsFilter = function( $asset ) use( $args, $simpleAssets, $setAssets ) {
-				if ( $args['type'] === 'set' ) {
-					return in_array( $asset, $simpleAssets, true );
-				} else {
-					return in_array( $asset, $simpleAssets, true ) || in_array( $asset, $setAssets, true );
-				}
-			};
-			$args['assets'] = array_filter( $args['assets'], $assetsFilter );
+		if ( ! $this->get_class_name( $args['type'] ) ) {
+			$args = null;
+			return;
 		}
 
 		/**
@@ -103,21 +139,23 @@ trait property {
 		$class = $this->get_class_name( $args['type'] );
 		$class::prepare_arguments( $args, $asset );
 
-		if ( ! in_array( $args['type'], [ 'set', 'group' ], true ) )
+		if ( $asset[0] === '_' )
+			$metaAssets[] = $asset;
+		else if ( ! in_array( $args['type'], [ 'set', 'group' ], true ) )
 			$simpleAssets[] = $asset;
 		else if ( $args['type'] === 'set' )
 			$setAssets[] = $asset;
 	}
 
 	/**
-	 * @access private
+	 * @access public
 	 *
 	 * @uses   WPDW\Util\Array_Function::md_merge()
 	 *
 	 * @param  string $asset
 	 * @param  array|mixed &$args
 	 */
-	private function prepare_asset_arguments( $asset, &$args ) {
+	public static function prepare_asset_arguments( $asset, &$args ) {
 		/**
 		 * Required & Default arguments on basis of asset
 		 */
@@ -161,15 +199,21 @@ trait property {
 				'required' => [ 'type' => 'post', 'model' => 'post', 'context' => 'post_children', ],
 				'default'  => [ 'multiple' => true, 'query_args' => [ 'orderby' => 'menu_order', 'order' => 'ASC' ] ]
 			],
+			'complex' => [
+				'required' => [ 'model' => 'structured_post_meta' ],
+			],
 		];
 
 		if ( array_key_exists( $asset, $_asset_args ) ) {
+
 			$args = is_array( $args ) ? $args : [];
 			if ( array_key_exists( 'default', $_asset_args[$asset] ) )
 				$args = self::md_merge( $_asset_args[$asset]['default'], $args );
 			if ( array_key_exists( 'required', $_asset_args[$asset] ) )
 				$args = self::md_merge( $args, $_asset_args[$asset]['required'] );
+
 		} else if ( is_array( $args ) && isset( $args['type'] ) ) {
+
 			$type = $args['type'];
 			if ( array_key_exists( $type, $_type_args ) ) {
 				if ( array_key_exists( 'default', $_type_args[$type] ) )
@@ -177,9 +221,15 @@ trait property {
 				if ( array_key_exists( 'required', $_type_args[$type] ) )
 					$args = self::md_merge( $args, $_type_args[$type]['required'] );
 			}
+
 		} else {
+
 			$args = null;
+
 		}
+
+		if ( $asset[0] === '_' )
+			unset( $args['model'] );
 		if ( $args )
 			$args['domain'] = explode( '\\', __CLASS__ )[1];
 	}

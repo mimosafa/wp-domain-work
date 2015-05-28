@@ -43,7 +43,7 @@ class type_string extends asset_simple {
 	}
 
 	/**
-	 * @access protected
+	 * @access public
 	 *
 	 * @uses   WPDW\Device\Asset\asset_simple::arguments_walker()
 	 *
@@ -52,7 +52,7 @@ class type_string extends asset_simple {
 	 * @param  string $asset
 	 * @return (void)
 	 */
-	protected static function arguments_walker( &$arg, $key, $asset ) {
+	public static function arguments_walker( &$arg, $key, $asset ) {
 		if ( in_array( $key, [ 'multibyte', 'paragraph' ], true ) ) :
 			/**
 			 * @var boolean $multibyte|$paragraph

@@ -29,7 +29,7 @@ trait asset_vars {
 		}
 		
 		if ( ! $args['label'] )
-			$args['label'] = ucwords( str_replace( '_', ' ', $args['name'] ) );
+			$args['label'] = ucwords( trim( str_replace( '_', ' ', $args['name'] ) ) );
 	}
 
 }

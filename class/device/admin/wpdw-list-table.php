@@ -43,12 +43,22 @@ class WPDW_List_Table extends \WP_List_Table {
 	 */
 	public function get_columns() {
 		$columns = [
+			'cb' => '<input type="checkbox" />',
 			'title'  => $this->_args['label'],
 		];
 		if ( count( $this->_args['value'] ) > 1 ) {
 			$columns = array_merge( [ 'handle' => '<span class="dashicons dashicons-editor-ol"></span>' ], $columns );
 		}
 		return $columns;
+	}
+
+	public function prepare_items() {
+		$this->_column_headers = [
+			$this->get_columns(),
+			$this->get_hidden_columns(),
+			$this->get_sortable_columns()
+		];
+		$this->items = $this->_args['value'];
 	}
 
 	/**
@@ -68,7 +78,7 @@ class WPDW_List_Table extends \WP_List_Table {
 	}
 
 	public function column_cb( $item ) {
-		return sprintf( '<input type="checkbox" name="%s[]" value="%s">', $this->_args['name'], $item->$this->_args['field'] );
+		return sprintf( '<input type="checkbox" name="%s[]" value="%s">', $this->_args['name'], $this->_args['field'] );
 	}
 
 	public function column_handle( $item ) {
@@ -82,19 +92,29 @@ class WPDW_List_Table extends \WP_List_Table {
 		return sprintf( '<strong>%s</strong>%s', get_the_title( $item ), $this->row_actions( $actions ) );
 	}
 
-	public function prepare_items() {
-		$this->_column_headers = [
-			$this->get_columns(),
-			$this->get_hidden_columns(),
-			$this->get_sortable_columns()
-		];
-		$this->items = $this->_args['value'];
-	}
-
 	/**
 	 *
 	 *
 	 *
 	 */
+
+	protected function display_tablenav( $which ) {
+?>
+	<div class="tablenav <?php echo esc_attr( $which ); ?>">
+
+		<div class="alignleft actions bulkactions">
+			<?php $this->bulk_actions( $which ); ?>
+		</div>
+<?php
+		$this->extra_tablenav( $which );
+		$this->pagination( $which );
+?>
+
+		<br class="clear" />
+	</div>
+<?php
+	}
+
+	//protected function bulk_actions( $which = '' ) {}
 
 }

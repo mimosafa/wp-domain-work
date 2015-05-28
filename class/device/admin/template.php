@@ -52,6 +52,10 @@ class template {
 	 * @return (void)
 	 */
 	public function output( Array $args ) {
+		/*
+		echo '<pre>'; var_dump( $args ); echo '<pre>';
+		return;
+		*/
 		if ( $dom_array = $this->generate_dom_array( $args ) )
 			echo html_entity_decode( $this->getArrayToHtmlString( $dom_array ) );
 	}
@@ -133,6 +137,9 @@ class template {
 			];
 			$dom =& $table['children'][0]['children'];
 
+			// Cache vars
+			$name_cache = $name;
+
 			$non_separate_nonce_for_block = $args['type'] !== '_plural_assets';
 
 			$this->form_table_dom_array( $dom, $name, $args );
@@ -143,7 +150,7 @@ class template {
 			}
 
 			// Reset vars
-			$name = '';
+			$name = $name_cache;
 			if ( $non_separate_nonce_for_block )
 				$non_separate_nonce_for_block = ! $non_separate_nonce_for_block;
 

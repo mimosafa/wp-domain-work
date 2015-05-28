@@ -119,7 +119,7 @@ abstract class asset_simple extends asset_abstract {
 	 * @return boolean
 	 */
 	protected static function is_met_requirements( Array $args ) {
-		return $args['model'] ? true : false;
+		return $args['model'] || $args['name'][0] === '_' ? true : false;
 	}
 
 }
