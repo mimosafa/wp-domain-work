@@ -25,7 +25,7 @@ trait structured_post_meta {
 		foreach ( $array as $key ) {
 			$return[$key] = [];
 			foreach ( $this->assets as $asset ) {
-				$prefix = $this->name . '_' . $key;
+				$prefix = '_' . $this->name . '_' . $key;
 				$return[$key][$asset] = $property->$asset->get_meta_post_meta( $post->ID, $prefix );
 			}
 		}
