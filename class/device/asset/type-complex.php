@@ -5,27 +5,69 @@ class type_complex extends asset_assets {
 	use asset_vars;
 
 	/**
-	 * @var array
+	 * @var string
 	 */
-	protected $assets;
+	protected $model = 'structured_post_meta';
 
-	public function filter_input( $value ) {}
-	public function get( $post ) {}
-	public function update( $post, $value ) {}
+	/**
+	 * @var boolean
+	 */
+	protected $with_key = false;
+
+	/**
+	 * @var string
+	 */
+	protected $key_asset;
+
+	/**
+	 * @access public
+	 */
+	public function filter_input( $value ) {
+		//
+	}
+
+	/**
+	 * @access protected
+	 *
+	 * @param  WP_Post $post
+	 * @param  array   $args
+	 * @return (void)
+	 */
+	protected function update_assets( \WP_Post $post, Array $values ) {
+		//
+	}
+
 	public function print_column( $value, $post_id ) {}
 
 	public function get_recipe( $post = null ) {
-		return parent::get_recipe( $post );
+		$recipe = parent::get_recipe();
+		array_walk( $recipe['assets'], function( &$assetRecipe ) {
+			$assetRecipe['value'] = ''; // @todo
+		} );
+		return $recipe;
 	}
 
-	//
-
 	protected static function arguments_walker( &$arg, $key, $asset ) {
-		if ( $key === 'assets' ) :
+		if ( $key === 'model' ) :
 			/**
-			 * @var array $structure
+			 * @var string $model
 			 */
-			self::_validate_structure_array( $arg );
+			$arg = $arg === 'structured_post_meta' ? $arg : null;
+		elseif ( $key === 'with_key' ) :
+			/**
+			 * @var boolean $with_key false
+			 */
+			$arg = filter_var( $arg, \FILTER_VALIDATE_BOOLEAN );
+		elseif ( $key === 'key_asset' ) :
+			/**
+			 * @var string $key_asset
+			 */
+			$arg = filter_var( $arg, \FILTER_VALIDATE_REGEXP, [ 'options' => [ 'regexp' => '/\A_[a-z0-9]+/', 'default' => '' ] ] );
+		elseif ( $key === 'multiple' ) :
+			/**
+			 * @var boolean $multiple false
+			 */
+			$arg = filter_var( $arg, \FILTER_VALIDATE_BOOLEAN );
 		elseif ( $key === 'admin_form_style' ) :
 			/**
 			 * @var string $admin_form_style (Fixed: block)
@@ -36,26 +78,8 @@ class type_complex extends asset_assets {
 		endif;
 	}
 
-	private static function _validate_structure_array( &$arg ) {
-		if ( is_array( $arg ) ) {
-			foreach ( $arg as $key => &$array ) {
-				if ( ! is_array( $array ) )
-					continue;
-				\WPDW\Device\property::prepare_asset_arguments( $key, $array );
-				if ( ! isset( $array['type'] ) || ! $type = filter_var( $array['type'] ) )
-					continue;
-				$cl = __NAMESPACE__ . '\\type_' . $type;
-				if ( ! class_exists( $cl ) )
-					continue;
-				array_walk( $array, $cl . '::arguments_walker', $key );
-				unset( $array['domain'] );
-				unset( $array['model'] );
-			}
-		}
-	}
-
 	protected static function is_met_requirements( Array $args ) {
-		return $args['assets'] ? true : false;
+		return parent::is_met_requirements( $args ) && isset( $args['model'] );
 	}
 
 }

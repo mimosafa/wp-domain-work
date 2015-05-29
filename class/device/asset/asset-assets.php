@@ -54,7 +54,14 @@ abstract class asset_assets extends asset_abstract {
 	 * @param  int|WP_Post $post
 	 * @return mixed
 	 */
-	public function get( $post ) {} // @todo
+	public function get( $post ) {
+		if ( ! $post = get_post( $post ) )
+			return;
+		if ( ! $this->check_dependency( $post ) )
+			return null;
+
+		//
+	}
 
 	/**
 	 * Update value
@@ -68,13 +75,24 @@ abstract class asset_assets extends asset_abstract {
 	 * @return (void)
 	 */
 	public function update( $post, $value ) {
-		if ( ! is_array( $value ) )
+		if ( ! is_array( $value ) || ! $post = get_post( $post ) )
 			return;
 		if ( ! $this->check_dependency( $post ) )
 			return null;
 		$value = $this->filter_input( $value );
+		$this->update_assets( $post, $value );
+	}
+
+	/**
+	 * @access protected
+	 *
+	 * @param  WP_Post $post
+	 * @param  array   $args
+	 * @return (void)
+	 */
+	protected function update_assets( \WP_Post $post, Array $values ) {
 		$property = \WPDW\_property( $this->domain );
-		foreach ( $value as $asset => $val ) {
+		foreach ( $values as $asset => $val ) {
 			$property->$asset->update( $post, $val );
 		}
 	}
@@ -121,6 +139,11 @@ abstract class asset_assets extends asset_abstract {
 			 * @var array $assets
 			 */
 			$arg = self::flatten( filter_var( $arg, \FILTER_DEFAULT, \FILTER_REQUIRE_ARRAY ), true );
+		elseif ( $key === 'multiple' ) :
+			/**
+			 * @var boolean $multiple false
+			 */
+			$arg = false;
 		elseif ( in_array( $key, [ 'glue' ], true ) ) :
 			/**
 			 * @var string $glue
@@ -138,7 +161,7 @@ abstract class asset_assets extends asset_abstract {
 	 * @return boolean
 	 */
 	protected static function is_met_requirements( Array $args ) {
-		return empty( $args['assets'] ) ? false : true;
+		return $args['assets'] ? true : false;
 	}
 
 }

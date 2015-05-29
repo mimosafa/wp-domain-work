@@ -2,7 +2,7 @@
 namespace WPDW\Device\Asset;
 
 class type_string extends asset_simple {
-	use asset_vars;
+	use asset_vars, Model\meta_post_meta;
 
 	/**
 	 * @var boolean
@@ -11,7 +11,7 @@ class type_string extends asset_simple {
 	protected $paragraph = false; // @todo
 
 	/**
-	 * @var boolean|array
+	 * @var boolean
 	 */
 	protected $trim = true; // @todo
 
@@ -53,7 +53,7 @@ class type_string extends asset_simple {
 	 * @return (void)
 	 */
 	public static function arguments_walker( &$arg, $key, $asset ) {
-		if ( in_array( $key, [ 'multibyte', 'paragraph' ], true ) ) :
+		if ( in_array( $key, [ 'multibyte', 'paragraph', 'trim' ], true ) ) :
 			/**
 			 * @var boolean $multibyte|$paragraph
 			 */

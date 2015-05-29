@@ -2,7 +2,7 @@
 namespace WPDW\Device\Asset;
 
 class type_datetime extends asset_simple {
-	use asset_vars;
+	use asset_vars, Model\meta_post_meta;
 
 	protected $unit = 'datetime_local';
 

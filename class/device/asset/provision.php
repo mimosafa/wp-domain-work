@@ -169,6 +169,9 @@ class provision {
 		if ( ! $args )
 			return;
 
+		/**
+		 * Validate asset arguments (Before set default arguments)
+		 */
 		if ( isset( $args['assets'] ) ) {
 			if ( $args['type'] === 'complex' ) {
 				/**
@@ -206,8 +209,27 @@ class provision {
 		$class = $this->get_class_name( $args['type'] );
 		$class::prepare_arguments( $args, $asset );
 
+		if ( ! $args )
+			return;
+
+		/**
+		 * Validate asset arguments (After set default arguments)
+		 */
+		if ( $args['type'] === 'complex' ) {
+			if ( $args['with_key'] ) {
+				if ( $args['key_asset'] && ! in_array( $args['key_asset'], $args['assets'], true ) )
+					$args['key_asset'] = '';
+				if ( ! $args['key_asset'] )
+					$args['with_key'] = false;
+			}
+		}
+		if ( ! $args['multiple'] )
+			unset( $args['delimiter'] );
+
+		/**
+		 * Add/Remove paramator
+		 */
 		if ( $asset[0] === '_' ) :
-			unset( $args['model'] );
 			self::$meta_assets[] = $asset;
 		else :
 			if ( ! in_array( $args['type'], [ 'set', 'group' ], true ) ) {
@@ -254,6 +276,8 @@ class provision {
 			$args = null;
 
 		}
+		if ( $args && $asset[0] === '_' )
+			$args['model'] = 'meta_post_meta';
 	}
 
 }
