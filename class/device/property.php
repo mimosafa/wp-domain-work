@@ -28,10 +28,10 @@ trait property {
 	 */
 	protected function __construct() {
 		if ( $this->isDefined( 'assets' ) ) {
-			$this->_assets_provision = new Asset\provision();
-			$this->_assets_provision->sort_assets( $this->assets );
 			$domain = explode( '\\', __CLASS__ )[1];
-			array_walk( $this->assets, [ &$this->_assets_provision, 'prepare_assets' ], $domain );
+			$this->_assets_provision = new Asset\provision( $domain );
+			$this->_assets_provision->sort_assets( $this->assets );
+			array_walk( $this->assets, [ &$this->_assets_provision, 'prepare_assets' ] );
 			
 			$this->assets = array_filter( $this->assets );
 		}

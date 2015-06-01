@@ -5,6 +5,11 @@ class provision {
 	use \WPDW\Util\Array_Function;
 
 	/**
+	 * @var string
+	 */
+	private $domain;
+
+	/**
 	 * Words that are not allowed to be used as an asset name
 	 * @var array
 	 */
@@ -29,9 +34,9 @@ class provision {
 	 * Cache some type of asset name
 	 * @var array
 	 */
-	private static $meta_assets;
-	private static $simple_assets;
-	private static $set_assets;
+	private $meta_assets = [];
+	private $simple_assets = [];
+	private $set_assets = [];
 
 	/**
 	 * @var array
@@ -91,8 +96,10 @@ class provision {
 	 *
 	 * @access public
 	 */
-	public function __construct() {
-		self::$meta_assets = self::$simple_assets = self::$set_assets = [];
+	public function __construct( $domain ) {
+		if ( ! $domain = filter_var( $domain ) )
+			return;
+		$this->domain = $domain;
 	}
 
 	/**
@@ -127,10 +134,7 @@ class provision {
 		$sets   = [];
 		$groups = [];
 		foreach ( $assets as $asset => $args ) {
-			if ( in_array( $asset, self::$_excluded, true ) ) :
-				unset( $assets[$asset] );
-				continue;
-			elseif ( ! preg_match( '/\A[a-z_]?[a-z][a-z0-9_]+\z/', $asset ) ) :
+			if ( ! $this->is_valid_asset_name_string( $asset ) ) :
 				unset( $assets[$asset] );
 				continue;
 			elseif ( ! isset( $args['type'] ) ) :
@@ -155,6 +159,24 @@ class provision {
 	}
 
 	/**
+	 * Validate asset name string
+	 *
+	 * @access public
+	 *
+	 * @param  string $asset
+	 * @return boolean
+	 */
+	public function is_valid_asset_name_string( $asset ) {
+		if ( ! $name = filter_var( $asset ) )
+			return false;
+		if ( in_array( $asset, self::$_excluded, true ) )
+			return false;
+		if ( ! preg_match( '/\A[a-z_]?[a-z][a-z0-9_]+\z/', $asset ) )
+			return false;
+		return true;
+	}
+
+	/**
 	 * @access public
 	 *
 	 * @see    WPDW\Device\property::__construct
@@ -164,7 +186,7 @@ class provision {
 	 * @param  string $domain
 	 * @return (void)
 	 */
-	public function prepare_assets( &$args, $asset, $domain ) {
+	public function prepare_assets( &$args, $asset ) {
 		$this->prepare_asset_arguments( $asset, $args );
 		if ( ! $args )
 			return;
@@ -178,7 +200,7 @@ class provision {
 				 * Callback function for assets filter of complex type
 				 */
 				$assetsFilter = function( $asset ) {
-					return in_array( $asset, self::$meta_assets, true );
+					return in_array( $asset, $this->meta_assets, true );
 				};
 				$args['assets'] = array_filter( $args['assets'], $assetsFilter );
 			} else if ( in_array( $args['type'], [ 'set', 'group' ], true ) ) {
@@ -187,9 +209,9 @@ class provision {
 				 */
 				$assetsFilter = function( $asset ) use ( $args ) {
 					if ( $args['type'] === 'set' ) {
-						return in_array( $asset, self::$simple_assets, true );
+						return in_array( $asset, $this->simple_assets, true );
 					} else {
-						return in_array( $asset, self::$simple_assets, true ) || in_array( $asset, self::$set_assets, true );
+						return in_array( $asset, $this->simple_assets, true ) || in_array( $asset, $this->set_assets, true );
 					}
 				};
 				$args['assets'] = array_filter( $args['assets'], $assetsFilter );
@@ -230,14 +252,14 @@ class provision {
 		 * Add/Remove paramator
 		 */
 		if ( $asset[0] === '_' ) :
-			self::$meta_assets[] = $asset;
+			$this->meta_assets[] = $asset;
 		else :
 			if ( ! in_array( $args['type'], [ 'set', 'group' ], true ) ) {
-				self::$simple_assets[] = $asset;
+				$this->simple_assets[] = $asset;
 			} else if ( $args['type'] === 'set' ) {
-				self::$set_assets[] = $asset;
+				$this->set_assets[] = $asset;
 			}
-			$args['domain'] = $domain;
+			$args['domain'] = $this->domain;
 		endif;
 	}
 

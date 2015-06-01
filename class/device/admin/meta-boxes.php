@@ -40,7 +40,7 @@ class meta_boxes extends post {
 		if ( ! $domain = filter_var( $domain ) )
 			return;
 		parent::__construct( $domain );
-		$this->box_id_prefix = parent::META_BOX_ID_PREFIX . $domain . '-';
+		$this->box_id_prefix = parent::BOX_ID_PREFIX . $domain . '-';
 		self::$_defaults['callback'] = [ &$this, 'meta_box' ];
 		add_action( 'add_meta_boxes', [ &$this, 'add_meta_boxes' ] );
 	}

@@ -16,7 +16,8 @@ trait meta_post_meta {
 			$meta_key = $prefix . '_' . $i;
 			$this->multiple = false; // Fix false for filter
 			$value = $this->filter( get_post_meta( $post_id, $meta_key, true ) );
-			$return[] = $value;
+			if ( $value || $i = 0 )
+				$return[] = $value;
 			$this->multiple = $multipleCache; // Reset
 			if ( ! $this->multiple )
 				break;

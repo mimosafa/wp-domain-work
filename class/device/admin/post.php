@@ -10,8 +10,8 @@ abstract class post {
 	use \WPDW\Util\Array_Function;
 
 	const FORM_ID_PREFIX = 'wpdw-form-';
-	const META_BOX_ID_PREFIX = 'wpdw-meta-box-';
-	const DIV_ID_PREFIX = 'wpdw-div-';
+	const BOX_ID_PREFIX  = 'wpdw-meta-box-';
+	const DIV_ID_PREFIX  = 'wpdw-div-';
 
 	/**
 	 * @var  WP_Domain\{$domain}\property
@@ -108,12 +108,13 @@ abstract class post {
 					return null;
 				if ( ! $setting = $this->property->get_setting( $var ) )
 					return null;
-				self::$done_assets[] = $var;
+				if ( $var[0] !== '_' )
+					self::$done_assets[] = $var;
 
 				/**
 				 * Find asset recursively
 				 */
-				if ( isset( $setting['assets'] ) ) {
+				if ( isset( $setting['assets'] ) && $setting['type'] !== 'complex' ) {
 					foreach ( $setting['assets'] as $asset )
 						$assetVar( $asset );
 				}
