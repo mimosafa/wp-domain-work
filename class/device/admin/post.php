@@ -12,6 +12,8 @@ abstract class post {
 	const BOX_ID_PREFIX  = 'wpdw-meta-box-';
 	const DIV_ID_PREFIX  = 'wpdw-div-';
 
+	const TEMPLATE_ID_PREFIX = 'wpdw-template-';
+
 	/**
 	 * @var  WP_Domain\{$domain}\property
 	 */
@@ -26,7 +28,7 @@ abstract class post {
 	 * @var array
 	 */
 	protected static $done_assets = [];
-	protected static $admin_forms = [];
+	protected static $asset_forms = [];
 	protected static $asset_values = [];
 
 	/**
@@ -50,8 +52,9 @@ abstract class post {
 
 		static $done = false;
 		if ( ! $done ) {
-			add_filter( 'is_protected_meta', [ $this, 'is_protected_meta' ], 10, 3 );
-			add_action( 'admin_enqueue_scripts', [ &$this, 'localize_form_data' ], 8 );
+			add_filter( 'is_protected_meta', [ &$this, 'is_protected_meta' ], 10, 3 );
+			add_action( 'admin_enqueue_scripts', [ &$this, 'localize_assets_data' ], 8 );
+			add_action( 'admin_footer', [ &$this, 'print_templates' ] );
 			$done = true;
 		}
 	}
@@ -73,7 +76,7 @@ abstract class post {
 		$id = '';
 		$ttl = $args['title'] ? null : '';
 		$assetWalker = function( $asset ) use ( &$id, &$ttl ) {
-			self::$admin_forms[] = $asset;
+			self::$asset_forms[] = $asset;
 			$id .= $asset . '-';
 			if ( is_string( $ttl ) )
 				$ttl .= $this->property->get_setting( $asset )['label'] . ' / ';
@@ -172,17 +175,30 @@ abstract class post {
 		return $protected;
 	}
 
-	public function localize_form_data() {
-		if ( self::$admin_forms && self::$done_assets ) {
+	public function localize_assets_data() {
+		if ( self::$asset_forms && self::$done_assets ) {
 			$data = [];
 			foreach ( self::$done_assets as $asset ) {
 				$data[$asset] = $this->property->$asset->get_recipe();
 			}
 			\WPDW\Scripts::add_data( 'assets', $data );
-			\WPDW\Scripts::add_data( 'adminForms', self::$admin_forms );
+			\WPDW\Scripts::add_data( 'assetForms', self::$asset_forms );
 			\WPDW\Scripts::add_data( 'assetValues', self::$asset_values );
 			\WPDW\Scripts::add_data( 'form_id_prefix', self::FORM_ID_PREFIX );
 		}
+	}
+
+	public function print_templates() {
+		$table_id = self::TEMPLATE_ID_PREFIX . 'table';
+		echo <<<EOF
+<script id="{$table_id}" type="text/template">
+	<table class="form-table">
+		<tbody>
+			<%= rows %>
+		</tbody>
+	</table>
+</script>
+EOF;
 	}
 
 }

@@ -1,19 +1,11 @@
 /* global wpdw */
-var wpdw = {
-
-	init: function() {
-		console.log( this );
-	}
-
-};
+var WPDW = {};
 
 ( function( $ ) {
 
-	if ( typeof wpdwData === 'undefined' )
+	if ( typeof WPDWData === 'undefined' )
 		return;
 
-	wpdw = $.extend( wpdw, wpdwData );
-
-	//wpdw.init();
+	WPDW = $.extend( WPDW, WPDWData );
 
 } )( jQuery );

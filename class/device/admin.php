@@ -125,7 +125,7 @@ trait admin {
 		global $pagenow;
 		if ( in_array( $pagenow, [ 'post.php', 'post-new.php'], true ) ) {
 			wp_enqueue_style( 'wpdw-post', \WPDW_PLUGIN_URL . '/css/admin-post.css', [], '', 'screen' );
-			wp_enqueue_script( 'wpdw-post', \WPDW_PLUGIN_URL . '/js/admin-post.js', [ 'wpdw' ], '', true );
+			wp_enqueue_script( 'wpdw-post', \WPDW_PLUGIN_URL . '/js/admin-post.js', [ 'wpdw', 'backbone' ], '', true );
 		}
 	}
 

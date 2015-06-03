@@ -60,7 +60,12 @@ abstract class asset_assets extends asset_abstract {
 		if ( ! $this->check_dependency( $post ) )
 			return null;
 
-		//
+		$value = [];
+		$property = \WPDW\_property( $this->domain );
+		foreach ( $this->assets as $asset ) {
+			$value[$asset] = $property->$asset->get( $post );
+		}
+		return $value;
 	}
 
 	/**

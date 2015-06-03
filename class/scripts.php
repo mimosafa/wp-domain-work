@@ -20,7 +20,7 @@ class Scripts {
 	public function register_scripts() {
 		wp_register_script( 'wpdw', \WPDW_PLUGIN_URL . '/js/wp-domain-work.js', [ 'jquery', 'underscore' ], \WPDW_VERSION, true );
 		if ( $this->data )
-			wp_localize_script( 'wpdw', 'wpdwData', $this->data );
+			wp_localize_script( 'wpdw', 'WPDWData', $this->data );
 	}
 
 	/**
