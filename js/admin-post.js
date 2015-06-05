@@ -1,37 +1,38 @@
+/**/
+"use strict";
+
 window.WPDW = window.WPDW || {};
-WPDW.Prop = WPDW.Prop || {};
 
-( function( $ ) {
-	"use strict";
+( function( $, _, Backbone ) {
 
-	// Model
-	WPDW.Prop.Asset = Backbone.Model.extend( {
-		defaults: {
-			name: '',
-			type: '',
-			multiple: false,
-		},
+	if ( typeof WPDW.assetForms === 'undefined' )
+		return;
+
+	var AssetModel = Backbone.Model.extend();
+
+	var AssetView = Backbone.View.extend( {
+		//
 	} );
 
-	// Collection
-	WPDW.Prop.Assets = Backbone.Collection.extend( {
-		model: WPDW.Prop.Asset,
-		initialize: function() {
-			if ( typeof WPDW.assetForms === 'undefined' )
-				return;
-			_.each( WPDW.assetForms, function( asset ) {
-				console.log( WPDW.assets[asset] );
-			} );
-		}
+	_.each( WPDW.assetForms, function( asset ) {
+		var params = WPDW.assets[asset];
+		$.extend( true, params, { value: WPDW.assetValues[asset] } );
+		var model  = new AssetModel( params );
+		console.log( model );
 	} );
 
-	// View
-	WPDW.Prop.View = Backbone.View.extend();
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 } )( jQuery, _, Backbone );
-
-( function( $, _ ) {
-
-	var assets = new WPDW.Prop.Assets();
-
-} )( jQuery, _ );

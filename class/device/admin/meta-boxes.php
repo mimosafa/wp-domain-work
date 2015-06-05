@@ -65,12 +65,6 @@ class meta_boxes extends post {
 		if ( ! $args = $this->prepare_arguments( $args ) )
 			return;
 		$this->meta_boxes[] = array_merge( self::$_defaults, $args );
-		/*
-		$args = array_merge( self::$_defaults, $args );
-		$callback_args = array_splice( $args, 6 );
-		extract( $args );
-		$this->meta_boxes[] = [ $this->box_id_prefix . $id, $title, $callback, null, $context, $priority, $callback_args ];
-		*/
 	}
 
 	/**
@@ -88,11 +82,11 @@ class meta_boxes extends post {
 			$def = parent::get_filter_definition();
 			// context
 			$contextVar = function( $var ) {
-				return in_array( $var, [ 'normal', 'advanced', 'side' ], true ) ? $var : null;
+				return in_array( $var, [ 'normal', 'advanced', 'side' ], true ) ? $var : 'advanced';
 			};
 			// priority
 			$priorityVar = function( $var ) {
-				return in_array( $var, [ 'high', 'core', 'default', 'low' ], true ) ? $var : null;
+				return in_array( $var, [ 'high', 'core', 'default', 'low' ], true ) ? $var : 'default';
 			};
 			$def['context']  = [ 'filter' => \FILTER_CALLBACK, 'options' => $contextVar ];
 			$def['priority'] = [ 'filter' => \FILTER_CALLBACK, 'options' => $priorityVar ];
@@ -117,15 +111,21 @@ class meta_boxes extends post {
 				 */
 				extract( $args );
 
-				foreach ( (array) $asset as $a ) {
-					self::$asset_values[$a] = $this->property->$a->get( $post );
-				}
+				$context  = ! is_array( $context ) ? $context : array_shift( WPDW\Util\Array_Function::flatten( $context, true ) );
+				$priority = ! is_array( $priority ) ? $priority : array_shift( WPDW\Util\Array_Function::flatten( $priority, true ) );
+				$callback_args = [];
 
-				$callback_args = [ 'asset' => $asset ];
-				if ( isset( $description ) )
-					$callback_args['description'] = $description;
+				if ( is_array( $asset ) ) :
 
-				//$cb = [ &$this, 'print_fieldset_' . $asset ];
+					$callback = [ &$this, 'plural_assets_form_table' ];
+					$callback_args['assets'] = $asset;
+
+				else :
+
+					self::$asset_values[$asset] = $this->property->$asset->get( $post );
+					$callback = [ &$this, 'print_fieldset_' . $asset ];
+
+				endif;
 
 				add_meta_box( $this->box_id_prefix . $id, $title, $callback, $post_type, $context, $priority, $callback_args );
 			}
@@ -137,6 +137,24 @@ class meta_boxes extends post {
 			$asset = $m[1];
 			printf( '<fieldset id="%s"></fieldset>', esc_attr( self::FORM_ID_PREFIX . $asset ) );
 		endif;
+	}
+
+	/**
+	 * @access public
+	 */
+	public function plural_assets_form_table( $post, $metabox ) {
+		if ( ! $assets = $metabox['args']['assets'] )
+			return;
+		echo "<table class=\"form-table\">\n\t<tbody>\n";
+		foreach ( (array) $assets as $asset ) {
+			$label = $this->property->get_setting( $asset )['label'];
+			printf(
+				"\t\t<tr>\n\t\t\t<th><label for=\"\">%s</label></th>\n\t\t\t<td><fieldset id=\"%s\"></fieldset></td>\n",
+				esc_html( $label ),
+				esc_attr( self::FORM_ID_PREFIX . $asset )
+			);
+		}
+		echo "\t</tbody>\n</table>";
 	}
 
 	/**

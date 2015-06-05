@@ -54,7 +54,6 @@ abstract class post {
 		if ( ! $done ) {
 			add_filter( 'is_protected_meta', [ &$this, 'is_protected_meta' ], 10, 3 );
 			add_action( 'admin_enqueue_scripts', [ &$this, 'localize_assets_data' ], 8 );
-			add_action( 'admin_footer', [ &$this, 'print_templates' ] );
 			$done = true;
 		}
 	}
@@ -175,6 +174,13 @@ abstract class post {
 		return $protected;
 	}
 
+	/**
+	 * @access public
+	 *
+	 * @uses   WPDW\Scripts::add_data()
+	 *
+	 * @return (void)
+	 */
 	public function localize_assets_data() {
 		if ( self::$asset_forms && self::$done_assets ) {
 			$data = [];
@@ -186,19 +192,6 @@ abstract class post {
 			\WPDW\Scripts::add_data( 'assetValues', self::$asset_values );
 			\WPDW\Scripts::add_data( 'form_id_prefix', self::FORM_ID_PREFIX );
 		}
-	}
-
-	public function print_templates() {
-		$table_id = self::TEMPLATE_ID_PREFIX . 'table';
-		echo <<<EOF
-<script id="{$table_id}" type="text/template">
-	<table class="form-table">
-		<tbody>
-			<%= rows %>
-		</tbody>
-	</table>
-</script>
-EOF;
 	}
 
 }
