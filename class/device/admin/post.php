@@ -20,6 +20,11 @@ abstract class post {
 	protected $property;
 
 	/**
+	 * @var WPDW\WP\nonce
+	 */
+	protected static $nonce;
+
+	/**
 	 * @var WPDW\Device\Admin\template
 	 */
 	protected static $template;
@@ -46,6 +51,9 @@ abstract class post {
 			return;
 
 		$this->property = \WPDW\_property( $domain );
+
+		if ( ! self::$nonce )
+			self::$nonce = \WPDW\WP\nonce::getInstance( $domain );
 
 		if ( ! self::$template )
 			self::$template = new template( $domain );
@@ -185,7 +193,15 @@ abstract class post {
 		if ( self::$asset_forms && self::$done_assets ) {
 			$data = [];
 			foreach ( self::$done_assets as $asset ) {
-				$data[$asset] = $this->property->$asset->get_recipe();
+				$nonce = [
+					'name'  => self::$nonce->get_nonce( $asset ),
+					'value' => self::$nonce->create_nonce( $asset ),
+					'refer' => wp_unslash( $_SERVER['REQUEST_URI'] )
+				];
+				$data[$asset] = array_merge(
+					$this->property->$asset->get_recipe(),
+					[ 'nonce' => $nonce ]
+				);
 			}
 			\WPDW\Scripts::add_data( 'assets', $data );
 			\WPDW\Scripts::add_data( 'assetForms', self::$asset_forms );

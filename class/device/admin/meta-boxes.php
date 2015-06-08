@@ -117,6 +117,9 @@ class meta_boxes extends post {
 
 				if ( is_array( $asset ) ) :
 
+					foreach ( $asset as $a ) {
+						self::$asset_values[$a] = $this->property->$a->get( $post );
+					}
 					$callback = [ &$this, 'plural_assets_form_table' ];
 					$callback_args['assets'] = $asset;
 
@@ -149,7 +152,7 @@ class meta_boxes extends post {
 		foreach ( (array) $assets as $asset ) {
 			$label = $this->property->get_setting( $asset )['label'];
 			printf(
-				"\t\t<tr>\n\t\t\t<th><label for=\"\">%s</label></th>\n\t\t\t<td><fieldset id=\"%s\"></fieldset></td>\n",
+				"\t\t<tr>\n\t\t\t<th><label for=\"%2\$s\">%1\$s</label></th>\n\t\t\t<td><fieldset id=\"%2\$s\"></fieldset></td>\n",
 				esc_html( $label ),
 				esc_attr( self::FORM_ID_PREFIX . $asset )
 			);
