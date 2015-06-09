@@ -9,32 +9,23 @@ namespace WPDW\Device\Admin;
 abstract class post {
 
 	const FORM_ID_PREFIX = 'wpdw-form-';
-	const BOX_ID_PREFIX  = 'wpdw-meta-box-';
-	const DIV_ID_PREFIX  = 'wpdw-div-';
-
-	const TEMPLATE_ID_PREFIX = 'wpdw-template-';
 
 	/**
 	 * @var  WP_Domain\{$domain}\property
 	 */
-	protected $property;
+	protected static $property;
 
 	/**
 	 * @var WPDW\WP\nonce
 	 */
 	protected static $nonce;
 
-	/**
-	 * @var WPDW\Device\Admin\template
-	 */
-	protected static $template;
+	protected static $forms = [];
 
 	/**
 	 * @var array
 	 */
 	protected static $done_assets = [];
-	protected static $asset_forms = [];
-	protected static $asset_values = [];
 
 	/**
 	 * Constructor
@@ -50,18 +41,16 @@ abstract class post {
 		if ( ! $domain = filter_var( $domain ) )
 			return;
 
-		$this->property = \WPDW\_property( $domain );
+		if ( ! self::$property )
+			self::$property = \WPDW\_property( $domain );
 
 		if ( ! self::$nonce )
 			self::$nonce = \WPDW\WP\nonce::getInstance( $domain );
 
-		if ( ! self::$template )
-			self::$template = new template( $domain );
-
 		static $done = false;
 		if ( ! $done ) {
-			add_filter( 'is_protected_meta', [ &$this, 'is_protected_meta' ], 10, 3 );
 			add_action( 'admin_enqueue_scripts', [ &$this, 'localize_assets_data' ], 8 );
+			add_filter( 'is_protected_meta', [ &$this, 'is_protected_meta' ], 10, 3 );
 			$done = true;
 		}
 	}
@@ -74,92 +63,125 @@ abstract class post {
 	 * @param  array $args
 	 * @return array
 	 */
-	protected function prepare_arguments( Array $args ) {
-		$args = filter_var_array( $args, $this->get_filter_definition() );
-		$args['asset'] = \WPDW\Util\Array_Function::flatten( (array) $args['asset'], true );
-		if ( ! $args['asset'] )
+	protected function prepare_arguments( Array &$args ) {
+		array_walk( $args, [ &$this, 'arguments_walker' ] );
+		if ( ! isset( $args['asset'] ) || ! $args['asset'] )
 			return;
-
-		$id = '';
-		$ttl = $args['title'] ? null : '';
-		$assetWalker = function( $asset ) use ( &$id, &$ttl ) {
-			self::$asset_forms[] = $asset;
-			$id .= $asset . '-';
-			if ( is_string( $ttl ) )
-				$ttl .= $this->property->get_setting( $asset )['label'] . ' / ';
-		};
-		array_walk( $args['asset'], $assetWalker );
-
-		$args['id'] = rtrim( $id, '-' );
-		if ( $ttl )
-			$args['title'] = rtrim( $ttl, '/ ' );
-
-		$args['asset'] = count( $args['asset'] ) > 1 ? $args['asset'] : array_shift( $args['asset'] );
-
-		return array_filter( $args );
-	}
-
-	/**
-	 * Common arguments filter definition
-	 *
-	 * @access protected
-	 *
-	 * @return array
-	 */
-	protected function get_filter_definition() {
-		static $def;
-		if ( ! $def ) {
-			// Asset
-			$assetVar = function( $var ) use ( &$assetVar ) {
-				if ( ! $this->property || in_array( $var, self::$done_assets, true ) )
+		$args['id'] = implode( '_', (array) $args['asset'] );
+		if ( ! isset( $args['title'] ) || ! $args['title'] ) {
+			$map = function( $asset ) {
+				if ( ! $setting = self::$property->get_setting( $asset ) )
 					return null;
-				if ( ! $setting = $this->property->get_setting( $var ) )
-					return null;
-				if ( $var[0] !== '_' )
-					self::$done_assets[] = $var;
-
-				/**
-				 * Find asset recursively
-				 */
-				if ( isset( $setting['assets'] ) && $setting['type'] !== 'complex' ) {
-					foreach ( $setting['assets'] as $asset )
-						$assetVar( $asset );
-				}
-
-				return $var;
+				return $setting['label'];
 			};
-
-			$def = [
-				'title' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
-				'asset'    => [ 'filter' => \FILTER_CALLBACK, 'options' => $assetVar ],
-				'description' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
-			];
+			$titles = array_filter( array_map( $map, (array) $args['asset'] ) );
+			$args['title'] = implode( ' / ', $titles );
 		}
-		return $def;
 	}
 
 	/**
 	 * @access protected
 	 *
-	 * @param  string|array $asset
-	 * @param  array $args
-	 * @param  WP_Post $post
-	 * @return array
+	 * @param  mixed  &$arg
+	 * @param  string $key
+	 * @return (void)
 	 */
-	protected function get_recipe( $asset, Array $args, \WP_Post $post ) {
-		if ( is_array( $asset ) ) {
-			$recipe = [ 'type' => '_plural_assets', 'assets' => [] ];
-			foreach ( $asset as $a )
-				$recipe['assets'][] = $this->property->$a->get_recipe( $post );
-		} else {
-			$recipe = $this->property->$asset->get_recipe( $post );
-		}
-		// description
-		if ( array_key_exists( 'description', $args ) )
-			$recipe = array_merge( $recipe, [ 'description' => $args['description'] ] );
+	protected function arguments_walker( &$arg, $key ) {
+		$assetFilter = function( $var ) use ( &$assetFilter ) {
+			if ( in_array( $var, self::$done_assets, true ) )
+				return null;
+			if ( ! $setting = self::$property->get_setting( $var ) )
+				return null;
+			if ( $var[0] !== '_' )
+				self::$done_assets[] = $var;
+			// Recursive
+			if ( isset( $setting['assets'] ) && $setting['type'] !== 'complex' ) {
+				foreach ( $setting['assets'] as $asset )
+					$assetFilter( $asset );
+			}
+			return $var;
+		};
 
-		return $recipe;
+		if ( in_array( $key, [ 'title', 'description' ], true ) ) :
+			$arg = filter_var( $arg, \FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		elseif ( $key === 'asset' ) :
+			$arg = filter_var( $arg, \FILTER_CALLBACK, [ 'options' => $assetFilter ] );
+			if ( is_array( $arg ) ) {
+				$arg = \WPDW\Util\Array_Function::flatten( $arg, true );
+			}
+		endif;
 	}
+
+	/**
+	 * (Magic method) print_fieldset_*asset_name*(): Admin forms callback
+	 *
+	 * @access public
+	 *
+	 * @param  callable $func
+	 * @param  array $arg
+	 * @return (void)
+	 */
+	public function __call( $func, $arg ) {
+		if ( ! preg_match( '/\Arender_([a-z][a-z0-9_]+)/', $func, $m ) )
+			return;
+		$post = $arg[0]; // WP_Post
+		$key  = $m[1];
+		$args = self::$forms[$key];
+		$asset = $args['asset'];
+
+		//
+		echo '<pre>'; var_dump( $args ); echo '</pre>';
+	}
+
+	/**
+	 * @access public
+	 *
+	 * @uses   WPDW\Scripts::add_data()
+	 *
+	 * @return (void)
+	 */
+	public function localize_assets_data() {
+		if ( self::$forms ) {
+			$data = [];
+			$walker = function( $asset ) use ( &$data ) {
+				$nonce = [
+					'name'  => self::$nonce->get_nonce( $asset ),
+					'value' => self::$nonce->create_nonce( $asset ),
+					'refer' => wp_unslash( $_SERVER['REQUEST_URI'] )
+				];
+				$data[$asset] = array_merge(
+					self::$property->$asset->get_recipe(),
+					[ 'nonce' => $nonce ]
+				);
+			};
+			$assets = [];
+			foreach ( self::$forms as $form ) {
+				$assets[] = $form['asset'];
+			}
+			array_walk_recursive( $assets, $walker );
+
+			if ( $data )
+				\WPDW\Scripts::add_data( 'assets', $data );
+			/*
+			$data = [];
+			foreach ( self::$done_assets as $asset ) {
+				$nonce = [
+					'name'  => self::$nonce->get_nonce( $asset ),
+					'value' => self::$nonce->create_nonce( $asset ),
+					'refer' => wp_unslash( $_SERVER['REQUEST_URI'] )
+				];
+				$data[$asset] = array_merge(
+					self::$property->$asset->get_recipe(),
+					[ 'nonce' => $nonce ]
+				);
+			}
+			\WPDW\Scripts::add_data( 'assets', $data );
+			\WPDW\Scripts::add_data( 'form_id_prefix', self::FORM_ID_PREFIX );
+			*/
+		}
+	}
+
+	//
 
 	/**
 	 * @access public
@@ -180,34 +202,6 @@ abstract class post {
 				$protected = true;
 		}
 		return $protected;
-	}
-
-	/**
-	 * @access public
-	 *
-	 * @uses   WPDW\Scripts::add_data()
-	 *
-	 * @return (void)
-	 */
-	public function localize_assets_data() {
-		if ( self::$asset_forms && self::$done_assets ) {
-			$data = [];
-			foreach ( self::$done_assets as $asset ) {
-				$nonce = [
-					'name'  => self::$nonce->get_nonce( $asset ),
-					'value' => self::$nonce->create_nonce( $asset ),
-					'refer' => wp_unslash( $_SERVER['REQUEST_URI'] )
-				];
-				$data[$asset] = array_merge(
-					$this->property->$asset->get_recipe(),
-					[ 'nonce' => $nonce ]
-				);
-			}
-			\WPDW\Scripts::add_data( 'assets', $data );
-			\WPDW\Scripts::add_data( 'assetForms', self::$asset_forms );
-			\WPDW\Scripts::add_data( 'assetValues', self::$asset_values );
-			\WPDW\Scripts::add_data( 'form_id_prefix', self::FORM_ID_PREFIX );
-		}
 	}
 
 }
