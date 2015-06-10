@@ -2,6 +2,7 @@
 namespace WPDW\Device\Asset;
 
 abstract class asset_abstract implements asset {
+	use \mimosafa\Decoder { getArrayToHtmlString as getHtml; }
 
 	/**
 	 * @var string

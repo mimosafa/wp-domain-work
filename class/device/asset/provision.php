@@ -52,7 +52,7 @@ class provision {
 			'default'  => [ 'label' => 'Order' ]
 		],
 		'post_parent' => [
-			'required' => [ 'type' => 'post', 'model' => 'post_attribute', 'multiple' => false, ],
+			'required' => [ 'type' => 'post', 'model' => 'post_attribute', 'field' => 'ID', 'multiple' => false, ],
 		],
 	];
 
@@ -81,6 +81,9 @@ class provision {
 		'time' => [
 			'required' => [ 'type' => 'datetime', 'unit' => 'time', ],
 			'default'  => [ 'model' => 'post_meta', 'input_format' => 'H:i', 'output_format' => 'H:i', ]
+		],
+		'list' => [
+			'default' => [ 'model' => 'post_meta' ]
 		],
 		'post_children' => [
 			'required' => [ 'type' => 'post', 'model' => 'post', 'context' => 'post_children', ],

@@ -2,7 +2,7 @@
 namespace WPDW\Device\Asset;
 
 class type_string extends asset_simple {
-	use asset_vars, Model\meta_post_meta;
+	use asset_trait, Model\meta_post_meta;
 
 	/**
 	 * @var boolean
@@ -85,49 +85,28 @@ class type_string extends asset_simple {
 	 * @param  mixed $value
 	 * @return string|array|null
 	 */
-	public function filter( $value ) {
-		static $_filter_multiple = false;
-		if ( $this->multiple && is_array( $value ) ) {
-
-			if ( $_filter_multiple )
+	public function filter_singular( $value ) {
+		// Regexp
+		if ( $this->regexp ) {
+			if ( ! preg_match( $this->regexp, $value ) )
 				return null;
-			$filter_multiple = true;
-			$filtered = [];
-			foreach ( $value as $val )
-				$filtered[] = $this->filter( $val );
-			return array_filter( $filtered );
-
-		} else {
-
-			/**
-			 * Regexp
-			 */
-			if ( $this->regexp ) {
-				if ( ! preg_match( $this->regexp, $value ) )
-					return null;
-			}
-			/**
-			 * Multi-Byte
-			 */
-			if ( ! $this->multibyte && strlen( $value ) !== mb_strlen( $value ) )
-				return null;
-			/**
-			 * String length
-			 */
-			if ( $this->min || $this->max ) {
-				$strlen = $this->multibyte ? 'mb_strlen' : 'strlen';
-				$len = $strlen( $value );
-				if ( $this->min && $len < $this->min )
-					return null;
-				if ( $this->max && $len > $this->max )
-					return null;
-			}
-			/**
-			 * Return validated value
-			 */
-			return $value;
-
 		}
+
+		// Multi-Byte
+		if ( ! $this->multibyte && strlen( $value ) !== mb_strlen( $value ) )
+			return null;
+
+		// String length
+		if ( $this->min || $this->max ) {
+			$strlen = $this->multibyte ? 'mb_strlen' : 'strlen';
+			$len = $strlen( $value );
+			if ( $this->min && $len < $this->min )
+				return null;
+			if ( $this->max && $len > $this->max )
+				return null;
+		}
+
+		return $value;
 	}
 
 	/**
@@ -143,6 +122,55 @@ class type_string extends asset_simple {
 	 */
 	public function print_column( $value, $post_id ) {
 		return esc_html( $value );
+	}
+
+	/**
+	 * Get DOM array to render form html element
+	 *
+	 * @access public
+	 *
+	 * @see    mimosafa\Decoder
+	 *
+	 * @todo   multiple value
+	 *
+	 * @param  mixed  $value
+	 * @param  string $namespace
+	 * @return array
+	 */
+	public function admin_form_element_dom_array( $value, $namespace = '' ) {
+		$name  = $namespace ? sprintf( '%s[%s]', $namespace, $this->name ) : $this->name;
+		$name .= $this->multiple ? '[]' : '';
+		$value = (array) $value;
+
+		$domArray = [];
+		do {
+			$val = current( $value );
+			$val = $val !== false ? $val : '';
+			if ( ! $this->paragraph ) {
+				$domArray[] = [
+					'element' => 'input',
+					'attribute' => [
+						'type' => 'text',
+						'name' => esc_attr( $name ),
+						'value' => esc_attr( $val ),
+						'class' => 'regular-text'
+					]
+				];
+			} else {
+				$domArray[] = [
+					'element' => 'textarea',
+					'attribute' => [
+						'name' => esc_attr( $name ),
+						'class' => 'large-text'
+					],
+					'text' => esc_attr( $val ),
+				];
+			}
+		} while ( next( $value ) !== false );
+
+		$domArray = $domArray[0];
+
+		return $domArray;
 	}
 
 }

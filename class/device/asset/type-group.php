@@ -2,7 +2,7 @@
 namespace WPDW\Device\Asset;
 
 class type_group extends asset_assets {
-	use asset_vars;
+	use asset_trait;
 
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'admin_form_style' ) :

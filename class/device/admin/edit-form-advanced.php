@@ -99,29 +99,20 @@ class edit_form_advanced extends post {
 	}
 
 	/**
-	 * @access public
+	 * Render form element
+	 *
+	 * @access protected
+	 *
+	 * @uses   WPDW\Device\Admin\Post::output_asset_form()
+	 *
+	 * @param  string  $asset
+	 * @param  WP_Post $post
+	 * @return (void)
 	 */
-	public function edit_forms( $post ) {
-
-		/*
-		foreach ( $args as $array ) {
-			$divid = $this->div_id_prefix . $array['id'];
-			echo "<div id=\"{$divid}\">\n";
-			if ( is_callable( $array['callback'] ) ) {
-				$cb = $array['callback'];
-				unset( $array['id'] );
-				unset( $array['callback'] );
-				$array['post'] = $post;
-				echo "\t<h3>{$array['title']}</h3>";
-				call_user_func_array( $cb, $array );
-			} else if ( isset( $array['args']['list-table'] ) ) {
-				$this->print_list_table( $array, $post );
-			} else {
-				$this->print_edit_form( $array, $post );
-			}
-			echo '</div>';
-		}
-		*/
+	protected function output_asset_form( $asset, \WP_Post $post ) {
+		echo '<div class="inside" id="' . self::DIV_ID_PREFIX . esc_attr( $asset ) . '">';
+		parent::output_asset_form( $asset, $post );
+		echo '</div>';
 	}
 
 	/**

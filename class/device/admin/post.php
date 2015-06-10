@@ -38,18 +38,22 @@ abstract class post {
 	 * @param  string $domain
 	 */
 	public function __construct( $domain ) {
-		if ( ! $domain = filter_var( $domain ) )
-			return;
-
 		if ( ! self::$property )
 			self::$property = \WPDW\_property( $domain );
 
+		/**
+		 * Nonce gen
+		 * - $domain must be the same as when saving
+		 * @see WPDW\Device\Admin\save_post::__construct()
+		 */
 		if ( ! self::$nonce )
 			self::$nonce = \WPDW\WP\nonce::getInstance( $domain );
 
+		/**
+		 * Add hook only once
+		 */
 		static $done = false;
 		if ( ! $done ) {
-			add_action( 'admin_enqueue_scripts', [ &$this, 'localize_assets_data' ], 8 );
 			add_filter( 'is_protected_meta', [ &$this, 'is_protected_meta' ], 10, 3 );
 			$done = true;
 		}
@@ -87,20 +91,23 @@ abstract class post {
 	 * @return (void)
 	 */
 	protected function arguments_walker( &$arg, $key ) {
-		$assetFilter = function( $var ) use ( &$assetFilter ) {
-			if ( in_array( $var, self::$done_assets, true ) )
-				return null;
-			if ( ! $setting = self::$property->get_setting( $var ) )
-				return null;
-			if ( $var[0] !== '_' )
-				self::$done_assets[] = $var;
-			// Recursive
-			if ( isset( $setting['assets'] ) && $setting['type'] !== 'complex' ) {
-				foreach ( $setting['assets'] as $asset )
-					$assetFilter( $asset );
-			}
-			return $var;
-		};
+		static $assetFilter;
+		if ( ! $assetFilter ) {
+			$assetFilter = function( $var ) use ( &$assetFilter ) {
+				if ( in_array( $var, self::$done_assets, true ) )
+					return null;
+				if ( ! $setting = self::$property->get_setting( $var ) )
+					return null;
+				if ( $var[0] !== '_' )
+					self::$done_assets[] = $var;
+				// Recursive
+				if ( isset( $setting['assets'] ) && $setting['type'] !== 'complex' ) {
+					foreach ( $setting['assets'] as $asset )
+						$assetFilter( $asset );
+				}
+				return $var;
+			};
+		}
 
 		if ( in_array( $key, [ 'title', 'description' ], true ) ) :
 			$arg = filter_var( $arg, \FILTER_SANITIZE_FULL_SPECIAL_CHARS );
@@ -124,64 +131,82 @@ abstract class post {
 	public function __call( $func, $arg ) {
 		if ( ! preg_match( '/\Arender_([a-z][a-z0-9_]+)/', $func, $m ) )
 			return;
-		$post = $arg[0]; // WP_Post
-		$key  = $m[1];
-		$args = self::$forms[$key];
+
+		/**
+		 * @var WP_Post
+		 */
+		$post = $arg[0];
+		if ( ! is_object( $post ) && get_class( $post ) !== 'WP_Post' )
+			return;
+
+		$args = self::$forms[$m[1]];
 		$asset = $args['asset'];
 
-		//
-		echo '<pre>'; var_dump( $args ); echo '</pre>';
+		if ( is_array( $asset ) ) {
+			$this->output_form_table( $asset, $post );
+			return;
+		}
+
+		$this->output_asset_form( $asset, $post );
+		$this->output_nonce( $asset );
 	}
 
 	/**
-	 * @access public
+	 * Render form element
 	 *
-	 * @uses   WPDW\Scripts::add_data()
+	 * @access protected
 	 *
+	 * @uses   WPDW\Asset\type_{$type}::admin_form_element()
+	 *
+	 * @param  string  $asset
+	 * @param  WP_Post $post
 	 * @return (void)
 	 */
-	public function localize_assets_data() {
-		if ( self::$forms ) {
-			$data = [];
-			$walker = function( $asset ) use ( &$data ) {
-				$nonce = [
-					'name'  => self::$nonce->get_nonce( $asset ),
-					'value' => self::$nonce->create_nonce( $asset ),
-					'refer' => wp_unslash( $_SERVER['REQUEST_URI'] )
-				];
-				$data[$asset] = array_merge(
-					self::$property->$asset->get_recipe(),
-					[ 'nonce' => $nonce ]
-				);
-			};
-			$assets = [];
-			foreach ( self::$forms as $form ) {
-				$assets[] = $form['asset'];
-			}
-			array_walk_recursive( $assets, $walker );
-
-			if ( $data )
-				\WPDW\Scripts::add_data( 'assets', $data );
-			/*
-			$data = [];
-			foreach ( self::$done_assets as $asset ) {
-				$nonce = [
-					'name'  => self::$nonce->get_nonce( $asset ),
-					'value' => self::$nonce->create_nonce( $asset ),
-					'refer' => wp_unslash( $_SERVER['REQUEST_URI'] )
-				];
-				$data[$asset] = array_merge(
-					self::$property->$asset->get_recipe(),
-					[ 'nonce' => $nonce ]
-				);
-			}
-			\WPDW\Scripts::add_data( 'assets', $data );
-			\WPDW\Scripts::add_data( 'form_id_prefix', self::FORM_ID_PREFIX );
-			*/
-		}
+	protected function output_asset_form( $asset, \WP_Post $post ) {
+		$html = self::$property->$asset->admin_form_element( $post );
+		#echo '<pre>';
+		echo html_entity_decode( $html );
+		#echo '</pre>';
 	}
 
-	//
+	/**
+	 * Render form table element
+	 *
+	 * @access private
+	 *
+	 * @param  array   $assets
+	 * @param  WP_Post $post
+	 * @return (void)
+	 */
+	private function output_form_table( Array $assets, \WP_Post $post ) {
+		echo '<table class="form-table"><tbody>';
+		foreach ( $assets as $asset ) {
+			echo '<tr><th><label for="' . self::FORM_ID_PREFIX . esc_attr( $asset ) . '">';
+			esc_html_e( self::$property->get_setting( $asset )['label'] );
+			echo '</label></th><td>';
+			$this->output_asset_form( $asset, $post );
+			$this->output_nonce( $asset );
+			echo '</td></tr>';
+		}
+		echo '</tbody></table>';
+	}
+
+	/**
+	 * Render nonce hidden form
+	 *
+	 * @access private
+	 *
+	 * @param  string $asset
+	 * @return (void)
+	 */
+	private function output_nonce( $asset ) {
+		$name  = self::$nonce->get_nonce( $asset );
+		$value = self::$nonce->create_nonce( $asset );
+		printf(
+			"<input type=\"hidden\" name=\"%1\$s\" id=\"%1\$s\" value=\"%2\$s\" />",
+			esc_attr( $name ), esc_attr( $value )
+		);
+	}
 
 	/**
 	 * @access public

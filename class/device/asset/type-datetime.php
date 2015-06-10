@@ -2,7 +2,7 @@
 namespace WPDW\Device\Asset;
 
 class type_datetime extends asset_simple {
-	use asset_vars, Model\meta_post_meta;
+	use asset_trait, Model\meta_post_meta;
 
 	protected $unit = 'datetime_local';
 
@@ -57,30 +57,46 @@ class type_datetime extends asset_simple {
 	 * @param  mixed $value
 	 * @return int|array|null
 	 */
-	public function filter( $value ) {
-		static $_filter_multiple = false;
-		if ( $this->multiple && is_array( $value ) ) {
+	public function filter_singular( $value ) {
 
-			if ( $_filter_multiple )
-				return null;
-			$filter_multiple = true;
-			$filtered = [];
-			foreach ( $value as $val )
-				$filtered[] = $this->filter( $val );
-			return array_filter( $filtered );
-
-		} else {
-
-			// @todo
-			return $value;
-
-		}
+		// @todo
+		return $value;
 
 	}
 
 	public function print_column( $value, $post_id ) {
 		// yet
 		return esc_html( $value );
+	}
+
+	/**
+	 * Get DOM array to render form html element
+	 *
+	 * @access public
+	 *
+	 * @see    mimosafa\Decoder
+	 *
+	 * @todo   multiple value
+	 *
+	 * @param  mixed  $value
+	 * @param  string $namespace
+	 * @return array
+	 */
+	public function admin_form_element_dom_array( $value, $namespace = '' ) {
+		$name  = $namespace ? sprintf( '%s[%s]', $namespace, $this->name ) : $this->name;
+		$name .= $this->multiple ? '[]' : '';
+		$value = esc_attr( $value );
+
+		$domArray = [
+			'element' => 'input',
+			'attribute' => [
+				'type' => $this->unit,
+				'name' => esc_attr( $name ),
+				'value' => esc_attr( $value ),
+			]
+		];
+
+		return $domArray;
 	}
 
 }

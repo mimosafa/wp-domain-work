@@ -1,7 +1,7 @@
 <?php
 namespace WPDW\Device\Asset;
 
-trait asset_vars {
+trait asset_trait {
 
 	/**
 	 * Arguments (WP_Domain\{$domain}\property::$assets) provisioner
@@ -11,7 +11,7 @@ trait asset_vars {
 	 * @see    WPDW\Device\property::prepare_assets()
 	 *
 	 * @uses   WPDW\Device\Asset\type_{$type}::is_met_requirements()
-	 * @see    WPDW\Device\Asset\asset_{simple|complex}::is_met_requirements()
+	 * @see    WPDW\Device\Asset\asset_{simple|assets}::is_met_requirements()
 	 *
 	 * @param  array  &$args
 	 * @param  string $asset
@@ -28,6 +28,7 @@ trait asset_vars {
 			return;
 		}
 		
+		// Label
 		if ( ! $args['label'] )
 			$args['label'] = ucwords( trim( str_replace( '_', ' ', $args['name'] ) ) );
 	}

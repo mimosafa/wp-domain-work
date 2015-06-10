@@ -169,4 +169,45 @@ abstract class asset_assets extends asset_abstract {
 		return $args['assets'] ? true : false;
 	}
 
+	/**
+	 * Render html element as form element
+	 *
+	 * @access public
+	 *
+	 * @uses   mimosafa\Decoder::getArrayToHtmlString() as getHtml()
+	 *
+	 * @param  WP_Post $post
+	 * @return (void)
+	 */
+	public function admin_form_element( \WP_Post $post ) {
+		$table = [
+			'element'   => 'table',
+			'attribute' => [ 'class' => 'form-table' ],
+			'children'  => [ [ 'element' => 'tbody', 'children' => [] ] ]
+		];
+		$rows =& $table['children'][0]['children'];
+		$property = \WPDW\_property( $this->domain );
+		foreach ( $this->assets as $asset ) {
+			$label = $property->get_setting( $asset )['label'];
+			$instance = $property->$asset;
+			$value = $instance->get( $post );
+
+			$label_el = [
+				'element' => 'label',
+				'text' => esc_html( $label )
+			];
+			$form_el = $instance->admin_form_element_dom_array( $value, $this->name );
+
+			$rows[] = [
+				'element' => 'tr',
+				'children' => [
+					[ 'element' => 'th', 'children' => [ $label_el ] ],
+					[ 'element' => 'td', 'children' => [ $form_el ] ]
+				]
+			];
+		}
+		#return var_export( $table, true );
+		return self::getHtml( [ $table ] );
+	}
+
 }

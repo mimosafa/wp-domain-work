@@ -2,7 +2,7 @@
 namespace WPDW\Device\Asset;
 
 class type_post extends asset_simple {
-	use asset_vars, Model\meta_post_meta;
+	use asset_trait, Model\meta_post_meta;
 
 	/**
 	 * @var string
@@ -82,36 +82,26 @@ class type_post extends asset_simple {
 	 * @param  mixed $value
 	 * @return mixed
 	 */
-	public function filter( $value ) {
-		static $_filter_multiple = false;
-		if ( $this->multiple && is_array( $value ) ) {
-
-			if ( $_filter_multiple )
+	public function filter_singular( $value ) {
+		if ( is_object( $value ) && get_class( $value ) === 'WP_Post' ) :
+			$post = $value;
+		else :
+			if ( ! $value = filter_var( $value ) )
 				return null;
-			$filter_multiple = true;
-			$filtered = [];
-			foreach ( $value as $val )
-				$filtered[] = $this->filter( $val );
-			return array_filter( $filtered );
 
-		} else {
+			if ( $this->field === 'ID' && $value = absint( $value ) )
+				$post = get_post( $value );
+			else if ( $this->field === 'post_name' && filter_var( $value ) )
+				$post = get_page_by_path( $value, 'OBJECT', \WPDW\_alias( $this->domain ) );
+			else
+				return null;
+		endif;
 
-			if ( is_object( $value ) && get_class( $value ) === 'WP_Post' ) :
-				$post = $value;
-			else :
-				if ( $this->field === 'ID' && $value = absint( $value ) )
-					$q = array_merge( $this->query_args, [ 'p' => $value, 'posts_per_page' => 1 ] );
-				else if ( $this->field === 'post_name' && filter_var( $value ) )
-					$q = array_merge( $this->query_args, [ 'name' => $value, 'posts_per_page' => 1 ] );
-				else
-					return null;
-				$value = get_posts( $q );
-				$post = $value ? array_shift( $value ) : null;
-			endif;
+		/**
+		 * @todo WP_Post object validation
+		 */
 
-			return $post;
-
-		}
+		return $post;
 	}
 
 	/**

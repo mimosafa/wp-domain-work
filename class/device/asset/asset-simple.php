@@ -10,15 +10,46 @@ abstract class asset_simple extends asset_abstract {
 	protected $model;
 
 	/**
-	 * Abstract method: Filter values
+	 * Abstract method: Filter singular value
 	 *
 	 * @access protected
 	 *
 	 * @param  mixed $value
-	 * @param  null|WP_Post Optional
 	 * @return mixed|null
 	 */
-	abstract public function filter( $value );
+	abstract public function filter_singular( $value );
+
+	/**
+	 * Filter value(s)
+	 *
+	 * @access public
+	 *
+	 * @param  mixed $value
+	 * @return string|array|null
+	 */
+	public function filter( $value ) {
+		static $_filter_multiple = false; // Flag for multidimentional array
+
+		if ( $this->multiple && is_array( $value ) ) {
+
+			if ( $_filter_multiple )
+				return null;
+
+			$filter_multiple = true; // Set flag true
+			$filtered = [];
+			foreach ( $value as $val )
+				$filtered[] = $this->filter( $val );
+
+			$_filter_multiple = false; // Reset flag
+
+			return array_filter( $filtered );
+
+		} else {
+
+			return $this->filter_singular( $value );
+
+		}
+	}
 
 	/**
 	 * Input value filter. Default is same as filter() method.
@@ -120,6 +151,23 @@ abstract class asset_simple extends asset_abstract {
 	 */
 	protected static function is_met_requirements( Array $args ) {
 		return $args['model'] || $args['name'][0] === '_' ? true : false;
+	}
+
+	/**
+	 * Render html element as form element
+	 *
+	 * @access public
+	 *
+	 * @uses   mimosafa\Decoder::getArrayToHtmlString() as getHtml()
+	 *
+	 * @param  WP_Post $post
+	 * @return (void)
+	 */
+	public function admin_form_element( \WP_Post $post ) {
+		$value = $this->get( $post );
+		$domArray = $this->admin_form_element_dom_array( $value );
+		#return var_export( $domArray, true );
+		return self::getHtml( [ $domArray ] );
 	}
 
 }

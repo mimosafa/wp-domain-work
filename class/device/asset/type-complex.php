@@ -2,7 +2,7 @@
 namespace WPDW\Device\Asset;
 
 class type_complex extends asset_assets {
-	use asset_vars;
+	use asset_trait;
 
 	/**
 	 * @var string

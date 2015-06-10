@@ -2,7 +2,7 @@
 namespace WPDW\Device\Asset;
 
 class type_integer extends asset_simple {
-	use asset_vars, Model\meta_post_meta;
+	use asset_trait, Model\meta_post_meta;
 
 	/**
 	 * @var int|null
@@ -72,35 +72,17 @@ class type_integer extends asset_simple {
 	 * @param  mixed $value
 	 * @return int|array|null
 	 */
-	public function filter( $value ) {
-		static $_filter_multiple = false;
-		if ( $this->multiple && is_array( $value ) ) {
+	public function filter_singular( $value ) {
+		$options = [ 'default' => null ];
 
-			if ( $_filter_multiple )
-				return null;
-			$filter_multiple = true;
-			$filtered = [];
-			foreach ( $value as $val )
-				$filtered[] = $this->filter( $val );
-			return array_filter( $filtered );
+		// Min-range
+		if ( $this->min !== null )
+			$options['min_range'] = $this->min;
+		// Max-range
+		if ( $this->max !== null )
+			$options['max_range'] = $this->max;
 
-		} else {
-
-			$options = [ 'default' => null ];
-			/**
-			 * Min-range
-			 */
-			if ( $this->min !== null )
-				$options['min_range'] = $this->min;
-			/**
-			 * Max-range
-			 */
-			if ( $this->max !== null )
-				$options['max_range'] = $this->max;
-
-			return filter_var( $value, \FILTER_VALIDATE_INT, [ 'options' => $options ] );
-
-		}
+		return filter_var( $value, \FILTER_VALIDATE_INT, [ 'options' => $options ] );
 	}
 
 	/**
@@ -116,6 +98,36 @@ class type_integer extends asset_simple {
 	 */
 	public function print_column( $value, $post_id ) {
 		return esc_html( $value );
+	}
+
+	/**
+	 * Get DOM array to render form html element
+	 *
+	 * @access public
+	 *
+	 * @see    mimosafa\Decoder
+	 *
+	 * @todo   multiple value
+	 *
+	 * @param  mixed  $value
+	 * @param  string $namespace
+	 * @return array
+	 */
+	public function admin_form_element_dom_array( $value, $namespace = '' ) {
+		$name  = $namespace ? sprintf( '%s[%s]', $namespace, $this->name ) : $this->name;
+		$name .= $this->multiple ? '[]' : '';
+		$value = esc_attr( $value );
+
+		$domArray = [
+			'element' => 'input',
+			'attribute' => [
+				'type' => 'number',
+				'name' => esc_attr( $name ),
+				'value' => esc_attr( $value ),
+			]
+		];
+
+		return $domArray;
 	}
 
 }

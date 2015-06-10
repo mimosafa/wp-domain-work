@@ -7,13 +7,12 @@
 use mimosafa\ClassLoader as CL;
 
 require_once __DIR__ . '/lib/mimosafa/ClassLoader.php';
+// Plugin classes
 CL::register( 'WPDW', __DIR__ . '/class',
-	CL::FILENAME_STRTOLOWER |
-	CL::FILENAME_UNDERBAR_AS_HYPHEN |
-	CL::NAMESPACE_STRTOLOWER |
-	CL::NAMESPACE_UNDERBAR_AS_HYPHEN |
-	CL::REMOVE_FIRST_NAMESPACE_STRING
+	CL::FILENAME_STRTOLOWER | CL::FILENAME_UNDERBAR_AS_HYPHEN | CL::NAMESPACE_STRTOLOWER |
+	CL::NAMESPACE_UNDERBAR_AS_HYPHEN | CL::REMOVE_FIRST_NAMESPACE_STRING
 );
+// Other libraries
 CL::register( 'mimosafa', __DIR__ . '/lib' );
 
 /**

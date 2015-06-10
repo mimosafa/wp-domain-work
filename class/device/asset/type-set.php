@@ -2,7 +2,7 @@
 namespace WPDW\Device\Asset;
 
 class type_set extends asset_assets {
-	use asset_vars;
+	use asset_trait;
 
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'admin_form_style' ) :
@@ -13,6 +13,51 @@ class type_set extends asset_assets {
 		else :
 			parent::arguments_walker( $arg, $key, $asset );
 		endif;
+	}
+
+	/**
+	 * Render html element as form element
+	 *
+	 * @access public
+	 *
+	 * @uses   mimosafa\Decoder::getArrayToHtmlString() as getHtml()
+	 *
+	 * @param  WP_Post $post
+	 * @return (void)
+	 */
+	public function admin_form_element( \WP_Post $post ) {
+		if ( $this->admin_form_style !== 'inline' )
+			return parent::admin_form_element( $post );
+		
+		$value = $this->get( $post );
+		$domArray = $this->admin_form_element_dom_array( $value );
+		#return var_export( $domArray, true );
+		return self::getHtml( [ $domArray ] );
+	}
+
+	/**
+	 * Get DOM array to render form html element
+	 *
+	 * @access public
+	 *
+	 * @see    mimosafa\Decoder
+	 *
+	 * @param  mixed  $value
+	 * @param  string $namespace
+	 * @return array
+	 */
+	public function admin_form_element_dom_array( Array $value, $namespace = '' ) {
+		$name = $namespace ? sprintf( '%s[%s]', $namespace, $this->name ) : $this->name;
+		$fieldset = [ 'element' => 'fieldset', 'children' => [] ];
+		$forms =& $fieldset['children'];
+
+		$property = \WPDW\_property( $this->domain );
+		foreach ( $this->assets as $asset ) {
+			$val = $value[$asset] ?: '';
+			$forms[] = $property->$asset->admin_form_element_dom_array( $val, $name );
+		}
+
+		return $fieldset;
 	}
 
 }
