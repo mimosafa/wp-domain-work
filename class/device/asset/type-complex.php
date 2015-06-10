@@ -39,14 +39,18 @@ class type_complex extends asset_assets {
 
 	public function print_column( $value, $post_id ) {}
 
-	public function get_recipe( $post = null ) {
-		$recipe = parent::get_recipe();
-		array_walk( $recipe['assets'], function( &$assetRecipe ) {
-			$assetRecipe['value'] = ''; // @todo
-		} );
-		return $recipe;
-	}
-
+	/**
+	 * Array_walk callback function
+	 *
+	 * @see    WPDW\Device\asset_trait::prepare_arguments()
+	 *
+	 * @access protected
+	 *
+	 * @param  mixed  &$arg
+	 * @param  string $key
+	 * @param  string $asset
+	 * @return (void)
+	 */
 	protected static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'model' ) :
 			/**

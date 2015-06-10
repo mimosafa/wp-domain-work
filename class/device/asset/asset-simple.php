@@ -108,22 +108,9 @@ abstract class asset_simple extends asset_abstract {
 	}
 
 	/**
-	 * Return recipe of the asset as array
-	 *
-	 * @access public
-	 *
-	 * @param  int|WP_Post $post
-	 * @return array
-	 */
-	public function get_recipe( $post = null ) {
-		$recipe = get_object_vars( $this );
-		return $post ? array_merge( $recipe, [ 'value' => $this->get( $post ) ] ) : $recipe;
-	}
-
-	/**
 	 * Array_walk callback function
 	 *
-	 * @see    WPDW\Device\asset_vars::prepare_arguments()
+	 * @see    WPDW\Device\asset_trait::prepare_arguments()
 	 *
 	 * @access protected
 	 *
@@ -167,7 +154,7 @@ abstract class asset_simple extends asset_abstract {
 		$value = $this->get( $post );
 		$domArray = $this->admin_form_element_dom_array( $value );
 		#return var_export( $domArray, true );
-		return self::getHtml( [ $domArray ] );
+		return self::getHtml( $domArray );
 	}
 
 }

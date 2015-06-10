@@ -92,31 +92,12 @@ class meta_boxes extends post {
 			 */
 			extract( $args );
 
-			$callback = [ &$this, 'render_' . $id ];
+			$callback = [ &$this, '_render_' . $id ];
 			add_meta_box( self::BOX_ID_PREFIX . $id, $title, $callback, $post_type, $context, $priority );
 
 			self::$forms[$id] = $args;
 		}
 
-	}
-
-	/**
-	 * @access public
-	 */
-	public function plural_assets_form_table( $post, $metabox ) {
-		if ( ! $assets = $metabox['args']['assets'] )
-			return;
-
-		echo "<table class=\"form-table\">\n\t<tbody>\n";
-		foreach ( (array) $assets as $asset ) {
-			$label = self::$property->get_setting( $asset )['label'];
-			printf(
-				"\t\t<tr>\n\t\t\t<th><label for=\"%2\$s\">%1\$s</label></th>\n\t\t\t<td><fieldset id=\"%2\$s\"></fieldset></td>\n",
-				esc_html( $label ),
-				esc_attr( self::FORM_ID_PREFIX . $asset )
-			);
-		}
-		echo "\t</tbody>\n</table>\n";
 	}
 
 }

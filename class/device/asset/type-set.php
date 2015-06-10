@@ -31,8 +31,7 @@ class type_set extends asset_assets {
 		
 		$value = $this->get( $post );
 		$domArray = $this->admin_form_element_dom_array( $value );
-		#return var_export( $domArray, true );
-		return self::getHtml( [ $domArray ] );
+		return self::getHtml( $domArray );
 	}
 
 	/**
@@ -54,10 +53,11 @@ class type_set extends asset_assets {
 		$property = \WPDW\_property( $this->domain );
 		foreach ( $this->assets as $asset ) {
 			$val = $value[$asset] ?: '';
-			$forms[] = $property->$asset->admin_form_element_dom_array( $val, $name );
+			$domArray = $property->$asset->admin_form_element_dom_array( $val, $name );
+			$forms = array_merge( $forms, $domArray );
 		}
 
-		return $fieldset;
+		return [ $fieldset ];
 	}
 
 }

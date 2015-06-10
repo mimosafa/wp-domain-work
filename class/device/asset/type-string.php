@@ -163,12 +163,10 @@ class type_string extends asset_simple {
 						'name' => esc_attr( $name ),
 						'class' => 'large-text'
 					],
-					'text' => esc_attr( $val ),
+					'text' => esc_html( $val ),
 				];
 			}
 		} while ( next( $value ) !== false );
-
-		$domArray = $domArray[0];
 
 		return $domArray;
 	}

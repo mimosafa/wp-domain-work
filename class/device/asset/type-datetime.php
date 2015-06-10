@@ -85,16 +85,21 @@ class type_datetime extends asset_simple {
 	public function admin_form_element_dom_array( $value, $namespace = '' ) {
 		$name  = $namespace ? sprintf( '%s[%s]', $namespace, $this->name ) : $this->name;
 		$name .= $this->multiple ? '[]' : '';
-		$value = esc_attr( $value );
+		$value = (array) $value;
 
-		$domArray = [
-			'element' => 'input',
-			'attribute' => [
-				'type' => $this->unit,
-				'name' => esc_attr( $name ),
-				'value' => esc_attr( $value ),
-			]
-		];
+		$domArray = [];
+		do {
+			$val = current( $value );
+			$val = $val !== false ? $val : '';
+			$domArray[] = [
+				'element' => 'input',
+				'attribute' => [
+					'type' => $this->unit,
+					'name' => esc_attr( $name ),
+					'value' => esc_attr( $val ),
+				]
+			];
+		} while ( next( $value ) !== false );
 
 		return $domArray;
 	}

@@ -38,9 +38,6 @@
 #side-sortables .form-table label {
   font-size: 14px
 }
-#side-sortables .form-table fieldset label {
-  display: block
-}
 
 /**
  * @see Class: WPDW\Device\Admin\edit-form-advanced

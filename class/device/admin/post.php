@@ -20,11 +20,10 @@ abstract class post {
 	 */
 	protected static $nonce;
 
-	protected static $forms = [];
-
 	/**
 	 * @var array
 	 */
+	protected static $forms = [];
 	protected static $done_assets = [];
 
 	/**
@@ -115,12 +114,14 @@ abstract class post {
 			$arg = filter_var( $arg, \FILTER_CALLBACK, [ 'options' => $assetFilter ] );
 			if ( is_array( $arg ) ) {
 				$arg = \WPDW\Util\Array_Function::flatten( $arg, true );
+				if ( count( $arg ) === 1 )
+					$arg = array_shift( $arg );
 			}
 		endif;
 	}
 
 	/**
-	 * (Magic method) print_fieldset_*asset_name*(): Admin forms callback
+	 * (Magic method) _print_fieldset_{$id}(): Admin forms callback
 	 *
 	 * @access public
 	 *
@@ -129,7 +130,11 @@ abstract class post {
 	 * @return (void)
 	 */
 	public function __call( $func, $arg ) {
-		if ( ! preg_match( '/\Arender_([a-z][a-z0-9_]+)/', $func, $m ) )
+		if ( ! preg_match( '/\A_render_([a-z][a-z0-9_]+)/', $func, $m ) )
+			return;
+
+		$key = $m[1];
+		if ( ! isset( self::$forms[$key] ) )
 			return;
 
 		/**
@@ -139,7 +144,7 @@ abstract class post {
 		if ( ! is_object( $post ) && get_class( $post ) !== 'WP_Post' )
 			return;
 
-		$args = self::$forms[$m[1]];
+		$args = self::$forms[$key];
 		$asset = $args['asset'];
 
 		if ( is_array( $asset ) ) {
@@ -164,9 +169,7 @@ abstract class post {
 	 */
 	protected function output_asset_form( $asset, \WP_Post $post ) {
 		$html = self::$property->$asset->admin_form_element( $post );
-		#echo '<pre>';
 		echo html_entity_decode( $html );
-		#echo '</pre>';
 	}
 
 	/**
@@ -181,7 +184,7 @@ abstract class post {
 	private function output_form_table( Array $assets, \WP_Post $post ) {
 		echo '<table class="form-table"><tbody>';
 		foreach ( $assets as $asset ) {
-			echo '<tr><th><label for="' . self::FORM_ID_PREFIX . esc_attr( $asset ) . '">';
+			echo '<tr><th><label>';
 			esc_html_e( self::$property->get_setting( $asset )['label'] );
 			echo '</label></th><td>';
 			$this->output_asset_form( $asset, $post );

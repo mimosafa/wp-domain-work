@@ -102,24 +102,6 @@ abstract class asset_assets extends asset_abstract {
 		}
 	}
 
-	/**
-	 * Return recipe of the asset as array
-	 *
-	 * @access public
-	 *
-	 * @uses   WPDW\_property()
-	 *
-	 * @param  int|WP_Post $post
-	 * @return array
-	 */
-	public function get_recipe( $post = null ) {
-		$recipe = get_object_vars( $this );
-		array_walk( $recipe['assets'], function( &$asset, $i, $post ) {
-			$asset = \WPDW\_property( $this->domain )->$asset->get_recipe( $post );
-		}, $post );
-		return $recipe;
-	}
-
 	public function print_column( $value, $post_id ) {
 		//
 	}
@@ -192,21 +174,17 @@ abstract class asset_assets extends asset_abstract {
 			$instance = $property->$asset;
 			$value = $instance->get( $post );
 
-			$label_el = [
-				'element' => 'label',
-				'text' => esc_html( $label )
-			];
+			$label_el = [ 'element' => 'label', 'text' => esc_html( $label ) ];
 			$form_el = $instance->admin_form_element_dom_array( $value, $this->name );
 
 			$rows[] = [
 				'element' => 'tr',
 				'children' => [
 					[ 'element' => 'th', 'children' => [ $label_el ] ],
-					[ 'element' => 'td', 'children' => [ $form_el ] ]
+					[ 'element' => 'td', 'children' => $form_el ]
 				]
 			];
 		}
-		#return var_export( $table, true );
 		return self::getHtml( [ $table ] );
 	}
 

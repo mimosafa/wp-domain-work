@@ -66,7 +66,6 @@ class type_boolean extends asset_simple {
 	 */
 	public function admin_form_element_dom_array( $value, $namespace = '' ) {
 		$name = $namespace ? sprintf( '%s[%s]', $namespace, $this->name ) : $this->name;
-		$label_text = $this->display ?: $this->description ?: $this->label;
 		$input_attr = [
 			'type' => 'checkbox',
 			'name' => esc_attr( $name ),
@@ -75,16 +74,17 @@ class type_boolean extends asset_simple {
 		if ( filter_var( $value, \FILTER_VALIDATE_BOOLEAN ) )
 			$input_attr['checked'] = 'checked';
 
+		$label_text = $this->display ?: $this->description ?: $this->label;
 		$domArray = [
 			'element' => 'label',
 			'children' => [
 				[ 'element' => 'input', 'attribute' => $input_attr ],
-				[ 'element' => 'span', 'text' => esc_attr( $label_text ) ]
+				[ 'element' => 'span', 'text' => esc_html( $label_text ) ]
 			],
 			'attribute' => [ 'class' => 'wpdw-checkbox' ]
 		];
 
-		return $domArray;
+		return [ $domArray ];
 	}
 
 }

@@ -74,7 +74,7 @@ class type_list extends asset_simple {
 	 *
 	 * @see    mimosafa\Decoder
 	 *
-	 * @todo   multiple value
+	 * @todo   Other form style (radio, checkbox)
 	 *
 	 * @param  mixed  $value
 	 * @param  string $namespace
@@ -82,12 +82,30 @@ class type_list extends asset_simple {
 	 */
 	public function admin_form_element_dom_array( $value, $namespace = '' ) {
 		$name  = $namespace ? sprintf( '%s[%s]', $namespace, $this->name ) : $this->name;
-		$name .= $this->multiple ? '[]' : '';
-		$value = esc_attr( $value );
+		#$name .= $this->multiple ? '[]' : '';
+		$value = (array) $value;
 
-		$select = [ 'element' => 'select', 'children' => [] ];
+		$select = [ 'element' => 'select', 'children' => [], 'attribute' => [ 'name' => $name ] ];
+		$attr =& $select['attribute'];
+		if ( $this->multiple ) {
+			$attr['multiple'] = 'multiple';
+		}
+		$options =& $select['children'];
+		if ( ! $this->required ) {
+			$options[] = [ 'element' => 'option', 'text' => '-' ];
+		}
+		foreach ( $this->options as $key => $val ) {
+			$option = [
+				'element' => 'option',
+				'text' => esc_html( $val ),
+				'attribute' => [ 'value' => esc_attr( $key ) ]
+			];
+			if ( in_array( $key, $value, true ) )
+				$option['attribute']['selected'] = 'selected';
+			$options[] = $option;
+		}
 
-		return $select;
+		return [ $select ];
 	}
 
 }

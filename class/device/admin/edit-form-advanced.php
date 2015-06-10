@@ -8,12 +8,7 @@ class edit_form_advanced extends post {
 	/**
 	 * @var array
 	 */
-	private $edit_forms = [
-		'edit_form_top' => [],
-		'edit_form_before_permalink' => [],
-		'edit_form_after_title'  => [],
-		'edit_form_after_editor' => [],
-	];
+	private $edit_forms = [];
 
 	/**
 	 * Default arguments
@@ -90,7 +85,7 @@ class edit_form_advanced extends post {
 				 */
 				extract( $args );
 
-				$callback = [ &$this, 'render_' . $id ];
+				$callback = [ &$this, '_render_' . $id ];
 				add_action( $hook, $callback );
 
 				self::$forms[$id] = $args;
@@ -103,6 +98,8 @@ class edit_form_advanced extends post {
 	 *
 	 * @access protected
 	 *
+	 * @todo   Display title
+	 *
 	 * @uses   WPDW\Device\Admin\Post::output_asset_form()
 	 *
 	 * @param  string  $asset
@@ -113,20 +110,6 @@ class edit_form_advanced extends post {
 		echo '<div class="inside" id="' . self::DIV_ID_PREFIX . esc_attr( $asset ) . '">';
 		parent::output_asset_form( $asset, $post );
 		echo '</div>';
-	}
-
-	/**
-	 * @access private
-	 *
-	 * @param  array $array
-	 * @param  WP_Post $post
-	 * @return (void)
-	 */
-	private function print_edit_form( $array, \WP_Post $post ) {
-		$asset = $array['args']['asset'];
-		$args  = $this->get_recipe( $asset, $array['args'], $post );
-		echo "\t<h3>{$array['title']}</h3>";
-		self::$template->output( $args );
 	}
 
 	/**
