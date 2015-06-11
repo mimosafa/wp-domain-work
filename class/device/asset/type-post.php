@@ -25,10 +25,10 @@ class type_post extends asset_simple {
 	 *
 	 * @uses   WPDW\Device\Asset\asset_simple::__construct()
 	 *
-	 * @param  array $args
+	 * @param  WPDW\Device\Asset\verified $args
 	 * @return (void)
 	 */
-	public function __construct( Array $args ) {
+	public function __construct( verified $args ) {
 		parent::__construct( $args );
 		if ( $this->field !== 'ID' && ( ! $this->post_type || count( $this->post_type ) > 1 ) )
 			$this->field = 'ID';

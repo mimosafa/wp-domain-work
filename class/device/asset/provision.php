@@ -34,9 +34,9 @@ class provision {
 	 * Cache some type of asset name
 	 * @var array
 	 */
-	private $meta_assets = [];
+	private $meta_assets   = [];
 	private $simple_assets = [];
-	private $set_assets = [];
+	private $set_assets    = [];
 
 	/**
 	 * @var array
@@ -187,7 +187,7 @@ class provision {
 	 * @param  array  &$args
 	 * @param  string $asset
 	 * @param  string $domain
-	 * @return (void)
+	 * @return (void) Set arguments as WPDW\Device\Asset\verified object
 	 */
 	public function prepare_assets( &$args, $asset ) {
 		$this->prepare_asset_arguments( $asset, $args );
@@ -264,6 +264,12 @@ class provision {
 			}
 			$args['domain'] = $this->domain;
 		endif;
+
+		/**
+		 * @var  WPDW\Device\Asset\verified
+		 * @link __FILE__
+		 */
+		$args = new verified( $args );
 	}
 
 	/**
@@ -303,6 +309,48 @@ class provision {
 		}
 		if ( $args && $asset[0] === '_' )
 			$args['model'] = 'meta_post_meta';
+	}
+
+}
+
+/**
+ * Verified arguments class
+ */
+class verified implements \ArrayAccess, \IteratorAggregate {
+
+	/**
+	 * @var array
+	 */
+	private $arguments;
+
+	/**
+	 * Constructor
+	 */
+	public function __construct( Array $args ) {
+		$this->arguments = $args;
+	}
+
+	/**
+	 * ArrayAccess methods
+	 */
+	public function offsetSet( $offset, $value ) {
+		// Do nothing
+	}
+	public function offsetExists( $offset ) {
+		return isset( $this->arguments[$offset] );
+	}
+	public function offsetUnset( $offset ) {
+		// Do nothing
+	}
+	public function offsetGet($offset) {
+		return isset( $this->arguments[$offset] ) ? $this->arguments[$offset] : null;
+	}
+
+	/**
+	 * IteratorAggregate methods
+	 */
+	public function getIterator() {
+		return new \ArrayIterator( $this->arguments );
 	}
 
 }

@@ -33,12 +33,12 @@ abstract class asset_abstract implements asset {
 	/**
 	 * Constructor
 	 *
-	 * @param  array $args
+	 * @param  WPDW\Device\Asset\verified $args
 	 * @return (void)
 	 */
-	public function __construct( Array $args ) {
+	public function __construct( verified $args ) {
 		foreach ( $args as $key => $val ) {
-			if ( property_exists( $this, $key ) && isset( $key ) )
+			if ( property_exists( $this, $key ) && isset( $val ) )
 				$this->$key = $val;
 		}
 		if ( ! $this->multiple )

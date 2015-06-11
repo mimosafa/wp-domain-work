@@ -9,10 +9,20 @@ class type_boolean extends asset_simple {
 	 */
 	protected $display;
 
-	public function __construct( Array $args ) {
+	/**
+	 * Constructor
+	 *
+	 * @access public
+	 *
+	 * @uses   WPDW\Device\Asset\asset_simple::__construct()
+	 *
+	 * @param  WPDW\Device\Asset\verified $args
+	 * @return (void)
+	 */
+	public function __construct( verified $args ) {
+		parent::__construct( $args );
 		if ( $this->multiple )
 			$this->multiple = false;
-		parent::__construct( $args );
 	}
 
 	/**

@@ -33,10 +33,10 @@ class type_string extends asset_simple {
 	 *
 	 * @uses   WPDW\Device\Asset\asset_simple::__construct()
 	 *
-	 * @param  array $args
+	 * @param  WPDW\Device\Asset\verified $args
 	 * @return (void)
 	 */
-	public function __construct( Array $args ) {
+	public function __construct( verified $args ) {
 		parent::__construct( $args );
 		if ( $this->min > $this->max )
 			$this->min = $this->max = 0;

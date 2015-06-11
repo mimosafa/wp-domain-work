@@ -22,10 +22,10 @@ class type_integer extends asset_simple {
 	 *
 	 * @uses   WPDW\Device\Asset\asset_simple::__construct()
 	 *
-	 * @param  array $args
+	 * @param  WPDW\Device\Asset\verified $args
 	 * @return (void)
 	 */
-	public function __construct( Array $args ) {
+	public function __construct( verified $args ) {
 		parent::__construct( $args );
 		if ( is_int( $this->min ) && is_int( $this->max) && $this->min > $this->max )
 			$this->min = $this->max = null;
