@@ -147,6 +147,12 @@ abstract class post {
 		$args = self::$forms[$key];
 		$asset = $args['asset'];
 
+		/**
+		 * Render forms
+		 */
+		if ( isset( $args['_before_render'] ) )
+			echo $args['_before_render'];
+
 		if ( is_array( $asset ) ) {
 			$this->output_form_table( $asset, $post );
 			return;
@@ -154,6 +160,9 @@ abstract class post {
 
 		$this->output_asset_form( $asset, $post );
 		$this->output_nonce( $asset );
+
+		if ( isset( $args['_after_render'] ) )
+			echo $args['_after_render'];
 	}
 
 	/**

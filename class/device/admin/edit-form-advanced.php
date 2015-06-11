@@ -85,31 +85,13 @@ class edit_form_advanced extends post {
 				 */
 				extract( $args );
 
-				$callback = [ &$this, '_render_' . $id ];
-				add_action( $hook, $callback );
+				add_action( $hook, [ &$this, '_render_' . $id ] );
+				$args['_before_render'] = '<div class="inside" id="' . self::DIV_ID_PREFIX . esc_attr( $id ) . '">';
+				$args['_after_render']  = '</div>';
 
 				self::$forms[$id] = $args;
 			}
 		}
-	}
-
-	/**
-	 * Render form element
-	 *
-	 * @access protected
-	 *
-	 * @todo   Display title
-	 *
-	 * @uses   WPDW\Device\Admin\Post::output_asset_form()
-	 *
-	 * @param  string  $asset
-	 * @param  WP_Post $post
-	 * @return (void)
-	 */
-	protected function output_asset_form( $asset, \WP_Post $post ) {
-		echo '<div class="inside" id="' . self::DIV_ID_PREFIX . esc_attr( $asset ) . '">';
-		parent::output_asset_form( $asset, $post );
-		echo '</div>';
 	}
 
 	/**

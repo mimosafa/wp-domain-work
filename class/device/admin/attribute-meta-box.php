@@ -6,31 +6,23 @@ class attribute_meta_box extends post {
 	/**
 	 * Action tag prefix
 	 */
-	const ACTION_PREFIX = '_wpdw_admin_attribute_meta_box_';
+	const ATTR_BOX_ACTION_PREFIX = '_wpdw_admin_attribute_meta_box_';
 
 	/**
 	 * @var string
 	 */
 	private $post_type;
-	private $title;
 
 	/**
-	 * @var WP_Domain\{$domain}\property
+	 * @access public
+	 * @var    string
 	 */
-	protected $property;
-
-	/**
-	 * @var array
-	 */
-	private $attributes;
+	public $title;
 
 	/**
 	 * @var array
 	 */
-	private static $def = [
-		'title' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS,
-		'attributes' => [ 'filter' => \FILTER_SANITIZE_FULL_SPECIAL_CHARS, 'flags' => \FILTER_FORCE_ARRAY ],
-	];
+	private $attr_forms = [];
 
 	/**
 	 * Constructor
@@ -42,37 +34,43 @@ class attribute_meta_box extends post {
 	 * @see    wp-domain-work/inc/functions.php
 	 *
 	 * @param  string $domain
-	 * @param  array  $args
 	 * @return (void)
 	 */
-	public function __construct( $domain, Array $args ) {
+	public function __construct( $domain ) {
+		if ( ! $domain = filter_var( $domain ) )
+			return;
 		if ( ! $this->post_type = \WPDW\_alias( $domain ) )
 			return;
-		$this->property = \WPDW\_property( $domain );
-		$args = filter_var_array( $args, self::$def );
-		if ( $this->attributes = array_filter( $args['attributes'], [ $this, 'attributes_filter' ] ) ) {
-			$this->title = $args['title'] ?: get_post_type_object( $this->post_type )->labels->name . __( 'Attributes' );
-			$this->init();
-		}
+		parent::__construct( $domain );
+
+		$attrFilter = function( $attr ) {
+			if ( in_array( $attr, self::$done_assets, true ) )
+				return false;
+			if ( get_post_type_object( $this->post_type )->hierarchical )
+				return true;
+			if ( self::$property && isset( self::$property->$attr ) )
+				return true;
+			return false;
+		};
+		if ( ! $this->attributes = array_filter( [ 'post_parent', 'menu_order' ], $attrFilter ) )
+			return;
+
+		$this->init();
 	}
 
 	/**
-	 * @access private
+	 * @access protected
 	 *
-	 * @param  string $attr
-	 * @return boolean
+	 * @param  mixed  &$arg
+	 * @param  string $key
+	 * @return (void)
 	 */
-	private function attributes_filter( $attr ) {
-		/**
-		 * @uses WPDW\Device\Admin\post::$done_assets
-		 */
-		if ( in_array( $attr, self::$done_assets, true ) )
-			return false;
-		if ( $this->property && isset( $this->property->$attr ) )
-			return true;
-		else if ( get_post_type_object( $this->post_type )->hierarchical )
-			return true;
-		return false;
+	protected function arguments_walker( &$arg, $key ) {
+		if ( $key === 'context' ) :
+			$arg = in_array( $arg, [ 'top', 'middle', 'bottom' ], true ) ? $arg : 'bottom';
+		else :
+			parent::arguments_walker( $arg, $key );
+		endif;
 	}
 
 	/**
@@ -86,13 +84,49 @@ class attribute_meta_box extends post {
 
 	/**
 	 * @access public
+	 */
+	public function add( Array $args ) {
+		$args = array_merge( [ 'context' => '' ], $args );
+		$this->prepare_arguments( $args );
+		if ( ! isset( $args['asset'] ) || ! $args['asset'] )
+			return;
+
+		$this->attr_forms[] = $args;
+	}
+
+	/**
+	 * @access public
 	 *
 	 * @return (void)
 	 */
 	public function add_meta_box() {
 		if ( post_type_supports( $this->post_type, 'page-attributes' ) )
 			remove_meta_box( 'pageparentdiv', $this->post_type, 'side' );
-		add_meta_box( $this->post_type . 'attributediv', $this->title, [ $this, 'attribute_meta_box' ], $this->post_type, 'side', 'core' );
+
+		$id = $this->post_type . 'attributediv';
+		$title = $this->title ?: get_post_type_object( $this->post_type )->labels->name . __( 'Attributes' );
+		$cb = [ &$this, 'attribute_meta_box' ];
+
+		add_meta_box( $id, esc_html( $title ), [ &$this, 'attribute_meta_box' ], $this->post_type, 'side', 'core' );
+
+		if ( ! $this->attr_forms )
+			return;
+
+		foreach ( $this->attr_forms as $args ) {
+			/**
+			 * @var string|array $asset
+			 * @var string $id
+			 * @var string $title
+			 * @var string $context
+			 * @var string $description Optional
+			 */
+			extract( $args );
+
+			add_action( self::ATTR_BOX_ACTION_PREFIX . $context, [ &$this, '_render_' . $id ] );
+			$args['_before_render'] = '<p><strong>' . esc_html( $title ) . '</strong></p>';
+
+			self::$forms[$id] = $args;
+		}
 	}
 
 	/**
@@ -101,18 +135,18 @@ class attribute_meta_box extends post {
 	 * @param  WP_Post $post
 	 * @return (void)
 	 */
-	public function attribute_meta_box( $post ) {
-		do_action( self::ACTION_PREFIX . 'top', $post );
+	public function attribute_meta_box( \WP_Post $post ) {
+		do_action( self::ATTR_BOX_ACTION_PREFIX . 'top', $post );
 
 		if ( in_array( 'post_parent', $this->attributes, true ) )
 			$this->post_parent_form( $post );
 
-		do_action( self::ACTION_PREFIX . 'middle', $post );
+		do_action( self::ATTR_BOX_ACTION_PREFIX . 'middle', $post );
 
 		if ( in_array( 'menu_order', $this->attributes, true ) )
 			$this->menu_order_form( $post );
 
-		do_action( self::ACTION_PREFIX . 'bottom', $post );
+		do_action( self::ATTR_BOX_ACTION_PREFIX . 'bottom', $post );
 	}
 
 	/**
@@ -120,10 +154,12 @@ class attribute_meta_box extends post {
 	 *
 	 * @see    https://github.com/mimosafa/WordPress/blob/4.1-branch/wp-admin/includes/meta-boxes.php#L710
 	 *
+	 * @todo   !!!!!
+	 *
 	 * @param  WP_Post $post
 	 * @return (void)
 	 */
-	private function post_parent_form( $post ) {
+	private function post_parent_form( \WP_Post $post ) {
 		//
 	}
 
@@ -135,11 +171,11 @@ class attribute_meta_box extends post {
 	 * @param  WP_Post $post
 	 * @return (void)
 	 */
-	private function menu_order_form( $post ) {
+	private function menu_order_form( \WP_Post $post ) {
 		$label = 'Order';
 		$attr  = '';
-		if ( $this->property && isset( $this->property->menu_order ) ) {
-			$setting = $this->property->get_setting( 'menu_order' );
+		if ( self::$property && isset( self::$property->menu_order ) ) {
+			$setting = self::$property->get_setting( 'menu_order' );
 			$label = $setting['label'];
 			if ( $setting['readonly'] )
 				$attr .= ' readonly="readonly"';

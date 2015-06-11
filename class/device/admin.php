@@ -100,9 +100,14 @@ trait admin {
 				 * Attribute meta box
 				 * @uses  WPDW\Device\Admin\attribute_meta_box
 				 */
-				$args = is_array( $this->attribute_meta_box ) ? $this->attribute_meta_box : [];
-				$args = array_merge( [ 'attributes' => [ 'post_parent', 'menu_order' ] ], $args );
-				new Admin\attribute_meta_box( $this->domain, $args );
+				$attrBox = new Admin\attribute_meta_box( $this->domain );
+				if ( is_array( $this->attribute_meta_box ) && $this->attribute_meta_box ) {
+					if ( isset( $this->attribute_meta_box['title'] ) && $title = filter_var( $this->attribute_meta_box['title'] ) )
+						$attrBox->title = esc_attr( $title );
+					for ( $i = 0; isset( $this->attribute_meta_box[$i] ) ; $i++ ) {
+						$attrBox->add( (array) $this->attribute_meta_box[$i] );
+					}
+				}
 			}
 		}
 		new Admin\save_post( $this->domain );

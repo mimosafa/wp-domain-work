@@ -20,23 +20,23 @@
 }
 #side-sortables .form-table span.description {
   padding: 4px 0 0;
-  line-height: 1.4em
+  line-height: 1.4em;
 }
 #side-sortables .form-table th {
   padding-top: 10px;
   padding-bottom: 0;
-  border-bottom: 0
+  border-bottom: 0;
 }
 #side-sortables .form-table td {
   padding-top: 8px;
   padding-right: 0;
-  padding-left: 0
+  padding-left: 0;
 }
 #side-sortables .form-table input.regular-text {
-  width: 100%
+  width: 100%;
 }
 #side-sortables .form-table label {
-  font-size: 14px
+  font-size: 13px;
 }
 
 /**
@@ -64,7 +64,8 @@
  * Form parts
  * @see Class: WPDW\Device\Admin\template::$form_id_prefix
  */
-[id^="wp-domain-work-form-"] {
+/*[id^="wp-domain-work-form-"] {*/
+input.regular-text {
   max-width: 100%;
 }
 .wpdw-checkbox {
