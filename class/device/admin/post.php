@@ -18,6 +18,11 @@ abstract class post {
 	protected $arguments = [];
 
 	/**
+	 * @var string
+	 */
+	protected static $post_type;
+
+	/**
 	 * @var WP_Domain\{$domain}\property
 	 */
 	protected static $property;
@@ -28,10 +33,25 @@ abstract class post {
 	protected static $nonce;
 
 	/**
+	 * Arguments for render Forms
+	 * 
 	 * @var array
 	 */
 	protected static $forms = [];
+
+	/**
+	 * Assets array to prevent duplication of rendering forms
+	 * 
+	 * @var array
+	 */
 	protected static $done_assets = [];
+
+	/**
+	 * Abstract method for initialize class
+	 * 
+	 * @access protected
+	 */
+	abstract protected function init();
 
 	/**
 	 * Constructor
@@ -44,17 +64,14 @@ abstract class post {
 	 * @param  string $domain
 	 */
 	public function __construct( $domain ) {
+		if ( ! $domain = filter_var( $domain ) )
+			return;
+		if ( ! self::$post_type && ! self::$post_type = \WPDW\_alias( $domain ) )
+			return;
 		if ( ! self::$property )
 			self::$property = \WPDW\_property( $domain );
-
-		/**
-		 * Nonce gen
-		 * - $domain must be the same as when saving
-		 * @see WPDW\Device\Admin\save_post::__construct()
-		 */
 		if ( ! self::$nonce )
 			self::$nonce = \WPDW\WP\nonce::getInstance( $domain );
-
 		/**
 		 * Add hook only once
 		 */
@@ -63,6 +80,7 @@ abstract class post {
 			add_filter( 'is_protected_meta', [ &$this, 'is_protected_meta' ], 10, 3 );
 			$done = true;
 		}
+		$this->init();
 	}
 
 	/**

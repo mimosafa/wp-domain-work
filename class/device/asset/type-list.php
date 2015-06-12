@@ -40,7 +40,7 @@ class type_list extends asset_unit implements asset, writable {
 
 	/**
 	 * Validate $options argument
-	 * - More validation exists in __construct()
+	 * - More validation exists in _validate_after_constructed()
 	 *
 	 * @access protected
 	 *
@@ -66,18 +66,6 @@ class type_list extends asset_unit implements asset, writable {
 	}
 
 	/**
-	 * Constructor
-	 *
-	 * @param  WPDW\Device\Asset\verified $args
-	 * @return (void)
-	 */
-	public function __construct( verified $args ) {
-		parent::__construct( $args );
-		if ( ! $this->_validate_after_constructed() )
-			unset( $this->type );
-	}
-
-	/**
 	 * @todo
 	 *
 	 * Validate $options argument
@@ -89,6 +77,7 @@ class type_list extends asset_unit implements asset, writable {
 	protected function _validate_after_constructed() {
 		if ( is_array( $this->options ) )
 			return true;
+
 		$maybeAsset = $this->options;
 		if ( ! $optAsset = \WPDW\_property( $this->domain )->get_setting( $maybeAsset ) )
 			return false;

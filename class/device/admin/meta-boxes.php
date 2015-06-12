@@ -18,20 +18,9 @@ class meta_boxes extends post {
 	];
 
 	/**
-	 * Constructor
-	 *
-	 * @access public
-	 *
-	 * @uses   WPDW\Device\Admin\post::__construct
-	 *
-	 * @param  string $domain
-	 * @return (void)
+	 * @access protected
 	 */
-	public function __construct( $domain ) {
-		if ( ! $domain = filter_var( $domain ) )
-			return;
-
-		parent::__construct( $domain );
+	protected function init() {
 		add_action( 'add_meta_boxes', [ &$this, 'add_meta_boxes' ], 10, 2 );
 	}
 

@@ -13,20 +13,9 @@ class edit_form_advanced extends post {
 	];
 
 	/**
-	 * Constructor
-	 *
-	 * @access public
-	 *
-	 * @uses   WPDW\Device\Admin\post::__construct
-	 *
-	 * @param  string $domain
-	 * @return (void)
+	 * @access protected
 	 */
-	public function __construct( $domain ) {
-		if ( ! $domain = filter_var( $domain ) )
-			return;
-
-		parent::__construct( $domain );
+	protected function init() {
 		add_action( 'dbx_post_advanced', [ &$this, 'add_edit_forms' ] ); // @todo 'dbx_post_advanced' has been deprecated.
 	}
 

@@ -122,6 +122,9 @@ abstract class asset_abstract {
 				}
 			}
 		}
+
+		if ( ! $this->_validate_after_constructed() )
+			unset( $this->type );
 	}
 
 	/**
@@ -143,6 +146,18 @@ abstract class asset_abstract {
 	 */
 	public function _has_no_problem() {
 		return isset( $this->type );
+	}
+
+	/**
+	 * (Latest) Validation
+	 * - If necessary, overwrite
+	 *
+	 * @access protected
+	 *
+	 * @return boolean
+	 */
+	protected function _validate_after_constructed() {
+		return true;
 	}
 
 	/**

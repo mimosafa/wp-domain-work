@@ -15,11 +15,6 @@ class attribute_meta_box extends post {
 	];
 
 	/**
-	 * @var string
-	 */
-	private $post_type;
-
-	/**
 	 * @access public
 	 * @var    string
 	 */
@@ -31,37 +26,15 @@ class attribute_meta_box extends post {
 	private $attributes;
 
 	/**
-	 * Constructor
-	 *
-	 * @access public
-	 *
-	 * @uses   WPDW\_alias()
-	 * @uses   WPDW\_property()
-	 * @see    wp-domain-work/inc/functions.php
-	 *
-	 * @param  string $domain
-	 * @return (void)
-	 */
-	public function __construct( $domain ) {
-		if ( ! $domain = filter_var( $domain ) )
-			return;
-		if ( ! $this->post_type = \WPDW\_alias( $domain ) )
-			return;
-		parent::__construct( $domain );
-
-		$this->init();
-	}
-
-	/**
-	 * @access private
+	 * @access protected
 	 *
 	 * @return (void)
 	 */
-	private function init() {
+	protected function init() {
 		$attrFilter = function( $attr ) {
 			if ( in_array( $attr, self::$done_assets, true ) )
 				return false;
-			if ( get_post_type_object( $this->post_type )->hierarchical )
+			if ( get_post_type_object( self::$post_type )->hierarchical )
 				return true;
 			if ( self::$property && isset( self::$property->$attr ) )
 				return true;
@@ -70,7 +43,7 @@ class attribute_meta_box extends post {
 		if ( ! $this->attributes = array_filter( [ 'post_parent', 'menu_order' ], $attrFilter ) )
 			return;
 
-		add_action( 'add_meta_boxes_' . $this->post_type, [ &$this, 'add_meta_box' ] );
+		add_action( 'add_meta_boxes_' . self::$post_type, [ &$this, 'add_meta_box' ] );
 	}
 
 	/**
@@ -96,14 +69,14 @@ class attribute_meta_box extends post {
 	 * @return (void)
 	 */
 	public function add_meta_box() {
-		if ( post_type_supports( $this->post_type, 'page-attributes' ) )
-			remove_meta_box( 'pageparentdiv', $this->post_type, 'side' );
+		if ( post_type_supports( self::$post_type, 'page-attributes' ) )
+			remove_meta_box( 'pageparentdiv', self::$post_type, 'side' );
 
-		$id = $this->post_type . 'attributediv';
-		$title = $this->title ?: get_post_type_object( $this->post_type )->labels->name . __( 'Attributes' );
+		$id = self::$post_type . 'attributediv';
+		$title = $this->title ?: get_post_type_object( self::$post_type )->labels->name . __( 'Attributes' );
 		$cb = [ &$this, 'attribute_meta_box' ];
 
-		add_meta_box( $id, esc_html( $title ), [ &$this, 'attribute_meta_box' ], $this->post_type, 'side', 'core' );
+		add_meta_box( $id, esc_html( $title ), [ &$this, 'attribute_meta_box' ], self::$post_type, 'side', 'core' );
 
 		if ( ! $this->arguments )
 			return;
@@ -183,7 +156,7 @@ class attribute_meta_box extends post {
 <p><strong><?php _e( $label ) ?></strong></p>
 <p>
 	<label class="screen-reader-text" for="menu_order"><?php _e( $label ) ?></label>
-	<input name="menu_order" type="number" id="menu_order" min="0" value="<?php echo esc_attr( $post->menu_order ) ?>" <?php echo $attr; ?>/>
+	<input name="menu_order" type="number" id="menu_order" min="0" value="<?php echo esc_attr( $post->menu_order ) ?>"<?php echo $attr; ?> />
 </p>
 </div>
 <?php
