@@ -6,6 +6,7 @@ class posts_columns {
 	/**
 	 * @var string
 	 */
+	private $domain;
 	private $post_type;
 
 	/**
@@ -38,7 +39,7 @@ class posts_columns {
 			return;
 		if ( ! $this->post_type = \WPDW\_alias( $domain ) )
 			return;
-		// property instance
+
 		$this->property = \WPDW\_property( $domain );
 		$this->init();
 	}
@@ -130,19 +131,21 @@ class posts_columns {
 	 * @return (void)
 	 */
 	public function column_callback( $column_name, $post_id ) {
+		$assetInstance = $this->property->$column_name;
+		$value = $assetInstance->get( $post_id );
+
 		static $done = [];
-		$data =& $this->property->$column_name;
 		if ( ! in_array( $column_name, $done, true ) ) {
 			/**
 			 * Add filter for printing in column only once
 			 *
 			 * @uses WPDW\Device\Asset\type_{$type}::print_column()
 			 */
-			add_filter( '_wpdw_' . $column_name . '_column', [ $data, 'print_column' ], 10, 2 );
+			add_filter( '_wpdw_admin_' . $column_name . '_column', [ $assetInstance, 'print_column' ], 10, 2 );
 			$done[] = $column_name;
 		}
-		$value = $data->get( $post_id );
-		echo apply_filters( '_wpdw_' . $column_name . '_column', $value, $post_id );
+
+		echo apply_filters( '_wpdw_admin_' . $column_name . '_column', $value, $post_id );
 	}
 
 	/**

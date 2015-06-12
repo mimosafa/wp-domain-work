@@ -1,11 +1,11 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_list extends asset_simple {
-	use asset_trait, Model\meta_post_meta;
+class type_list extends asset_unit implements asset, writable {
+	use asset_trait;
 
 	/**
-	 * @var array
+	 * @var array|string
 	 */
 	protected $options;
 
@@ -13,21 +13,6 @@ class type_list extends asset_simple {
 	 * @var string
 	 */
 	protected $admin_form_style = 'select';
-
-	/**
-	 * @access public
-	 *
-	 * @param  mixed $value
-	 * @return mixed
-	 */
-	public function filter_singular( $value ) {
-
-		// @todo
-		return $value;
-
-	}
-
-	public function print_column( $value, $post_id ) {}
 
 	/**
 	 * @access public
@@ -42,19 +27,32 @@ class type_list extends asset_simple {
 	public static function arguments_walker( &$arg, $key, $asset ) {
 		if ( $key === 'options' ) :
 			/**
-			 * @var array $options
+			 * @var array|string $options
 			 */
-			if ( ! is_array( $arg ) ) {
-				$arg = null;
-			} else {
-				$def = array_fill_keys( array_keys( $arg ), \FILTER_REQUIRE_SCALAR );
-				$arg = array_filter( filter_var_array( $arg, $def ) );
-			}
+			self::_options_filter( $arg );
 		elseif ( $key === 'admin_form_style' ) :
-			$arg = in_array( $arg, [ 'selct', 'ragio', 'ragio_inline', 'checkbox', 'checkbox_inline' ], true ) ? $arg : 'select';
+			static $form_styles = [ 'selct', 'ragio', 'ragio_inline', 'checkbox', 'checkbox_inline' ];
+			$arg = in_array( $arg, $form_styles, true ) ? $arg : 'select';
 		else :
 			parent::arguments_walker( $arg, $key, $asset );
 		endif;
+	}
+
+	/**
+	 * Validate $options argument
+	 * - More validation exists in __construct()
+	 *
+	 * @access protected
+	 *
+	 * @uses   WPDW\Device\Asset\provision::is_valid_asset_name_string()
+	 */
+	protected static function _options_filter( &$arg ) {
+		if ( is_array( $arg ) ) {
+			$def = array_fill_keys( array_keys( $arg ), \FILTER_REQUIRE_SCALAR );
+			$arg = array_filter( filter_var_array( $arg, $def ) );
+		} else if ( ! provision::is_valid_asset_name_string( $arg ) ) {
+			$arg = null;
+		}
 	}
 
 	/**
@@ -65,6 +63,52 @@ class type_list extends asset_simple {
 	 */
 	protected static function is_met_requirements( Array $args ) {
 		return $args['options'] ? true : false;
+	}
+
+	/**
+	 * Constructor
+	 *
+	 * @param  WPDW\Device\Asset\verified $args
+	 * @return (void)
+	 */
+	public function __construct( verified $args ) {
+		parent::__construct( $args );
+		if ( ! $this->_validate_after_constructed() )
+			unset( $this->type );
+	}
+
+	/**
+	 * @todo
+	 *
+	 * Validate $options argument
+	 *
+	 * @access protected
+	 *
+	 * @return boolean
+	 */
+	protected function _validate_after_constructed() {
+		if ( is_array( $this->options ) )
+			return true;
+		$maybeAsset = $this->options;
+		if ( ! $optAsset = \WPDW\_property( $this->domain )->get_setting( $maybeAsset ) )
+			return false;
+		if ( ! $optAsset['multiple'] )
+			return false;
+		//
+		return true;
+	}
+
+	/**
+	 * @access public
+	 *
+	 * @param  mixed $value
+	 * @return mixed
+	 */
+	public function filter_singular( $value ) {
+
+		// @todo
+		return $value;
+
 	}
 
 	/**
@@ -82,7 +126,6 @@ class type_list extends asset_simple {
 	 */
 	public function admin_form_element_dom_array( $value, $namespace = '' ) {
 		$name  = $namespace ? sprintf( '%s[%s]', $namespace, $this->name ) : $this->name;
-		#$name .= $this->multiple ? '[]' : '';
 		$value = (array) $value;
 
 		$select = [ 'element' => 'select', 'children' => [], 'attribute' => [ 'name' => $name ] ];
@@ -107,5 +150,7 @@ class type_list extends asset_simple {
 
 		return [ $select ];
 	}
+
+	public function print_column( $value, $post_id ) {}
 
 }

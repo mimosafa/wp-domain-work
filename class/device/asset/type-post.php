@@ -1,8 +1,8 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_post extends asset_simple {
-	use asset_trait, Model\meta_post_meta;
+class type_post extends asset_unit implements asset, writable {
+	use asset_trait;
 
 	/**
 	 * @var string
@@ -16,27 +16,7 @@ class type_post extends asset_simple {
 	protected $post_status = [ 'publish' ];
 	protected $query_args  = [];
 
-	protected $field = 'ID'; // @todo Which field stored
-
-	/**
-	 * Constructor
-	 *
-	 * @access public
-	 *
-	 * @uses   WPDW\Device\Asset\asset_simple::__construct()
-	 *
-	 * @param  WPDW\Device\Asset\verified $args
-	 * @return (void)
-	 */
-	public function __construct( verified $args ) {
-		parent::__construct( $args );
-		if ( $this->field !== 'ID' && ( ! $this->post_type || count( $this->post_type ) > 1 ) )
-			$this->field = 'ID';
-		if ( $this->post_type )
-			$this->query_args = array_merge( $this->query_args, [ 'post_type' => $this->post_type ] );
-		if ( $this->post_status )
-			$this->query_args = array_merge( $this->query_args, [ 'post_status' => $this->post_status ] );
-	}
+	protected $field; // @todo Which field stored
 
 	/**
 	 * @access protected
@@ -74,6 +54,28 @@ class type_post extends asset_simple {
 		else :
 			parent::arguments_walker( $arg, $key, $asset );
 		endif;
+	}
+
+	/**
+	 * Constructor
+	 *
+	 * @access public
+	 *
+	 * @uses   WPDW\Device\Asset\asset_simple::__construct()
+	 *
+	 * @param  WPDW\Device\Asset\verified $args
+	 * @return (void)
+	 */
+	public function __construct( verified $args ) {
+		parent::__construct( $args );
+		
+		if ( $this->post_type )
+			$this->query_args = array_merge( $this->query_args, [ 'post_type' => $this->post_type ] );
+		if ( $this->post_status )
+			$this->query_args = array_merge( $this->query_args, [ 'post_status' => $this->post_status ] );
+
+		if ( $this->field !== 'ID' && ( ! $this->post_type || count( $this->post_type ) > 1 ) )
+			$this->field = 'ID';
 	}
 
 	/**

@@ -15,47 +15,25 @@ trait admin {
 	private $domain;
 
 	/**
-	 * @var WP_Domain\{$domain}\property
-	 */
-	private $property;
-
-	/**
 	 * Constructor
 	 *
 	 * @access private
-	 *
-	 * @uses   WPDW\_property()
-	 * @see    wp-domain-work/inc/functions.php
 	 *
 	 * @return  (void)
 	 */
 	private function __construct() {
 		$this->domain = explode( '\\', __CLASS__ )[1];
-		$this->property = \WPDW\_property( $this->domain );
 
-		$this->init();
-	}
-
-	/**
-	 * Initialize admin page
-	 * 
-	 * @access private
-	 *
-	 * @uses   WP_Domain\{$domain}\status
-	 */
-	private function init() {
 		global $pagenow;
 		if ( in_array( $pagenow, [ 'edit.php', 'post.php', 'post-new.php' ], true ) ) {
-			/**
-			 * Domain that registered as post_type
-			 */
 			$this->init_post_type( $pagenow );
 		} else if ( $pagenow === 'edit-tags.php' ) {
-			/**
-			 * Domain that registered as taxonomy
-			 */
 			$this->init_taxonomy( $pagenow );
 		}
+
+		/**
+		 * Handle stylesheet and scripts
+		 */
 		add_action( 'admin_enqueue_scripts', [ &$this, 'scripts_handler' ] );
 	}
 
@@ -114,6 +92,8 @@ trait admin {
 	}
 
 	/**
+	 * @todo
+	 *
 	 * @access private
 	 */
 	private function init_taxonomy( $pagenow ) {

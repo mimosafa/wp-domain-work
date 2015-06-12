@@ -1,7 +1,7 @@
 <?php
 namespace WPDW\Device\Asset;
 
-abstract class asset_abstract implements asset {
+abstract class asset_abstract {
 	use \mimosafa\Decoder { getArrayToHtmlString as getHtml; }
 
 	/**
@@ -29,52 +29,6 @@ abstract class asset_abstract implements asset {
 	 * @var string
 	 */
 	protected $delimiter = ', ';
-
-	/**
-	 * Constructor
-	 *
-	 * @param  WPDW\Device\Asset\verified $args
-	 * @return (void)
-	 */
-	public function __construct( verified $args ) {
-		foreach ( $args as $key => $val ) {
-			if ( property_exists( $this, $key ) && isset( $val ) )
-				$this->$key = $val;
-		}
-		if ( ! $this->multiple )
-			unset( $this->delimiter );
-		if ( $this->deps ) {
-			$property = \WPDW\_property( $args['domain'] );
-			foreach ( $this->deps as $asset => $param ) {
-				if ( ! isset( $property->$asset ) ) {
-					unset( $this->deps[$asset] );
-				}
-			}
-		}
-	}
-
-	/**
-	 * @access protected
-	 *
-	 * @param  WP_Post $post
-	 * @return boolean
-	 */
-	protected function check_dependency( \WP_Post $post ) {
-		if ( ! $this->deps )
-			return true;
-		$property = \WPDW\_property( $this->domain );
-		foreach ( $this->deps as $asset => $arg ) {
-			if ( ! is_array( $arg ) ) {
-				if ( filter_var( $arg, \FILTER_VALIDATE_BOOLEAN ) && ! $property->$asset->get( $post ) ) {
-					return false;
-					break;
-				}
-			} else {
-				//
-			}
-		}
-		return true;
-	}
 
 	/**
 	 * Array_walk callback function
@@ -109,7 +63,7 @@ abstract class asset_abstract implements asset {
 			/**
 			 * @var array $deps
 			 */
-			self::deps_filter( $arg );
+			self::_deps_filter( $arg );
 		elseif ( in_array( $key, [ 'domain', 'type', ], true ) ) :
 			/**
 			 * @var string $domain|$type
@@ -121,6 +75,8 @@ abstract class asset_abstract implements asset {
 	}
 
 	/**
+	 * @todo
+	 *
 	 * Asset dependency property filter
 	 *
 	 * @access private
@@ -128,21 +84,90 @@ abstract class asset_abstract implements asset {
 	 * @param  mixed &$arg
 	 * @return array|boolean
 	 */
-	private static function deps_filter( &$arg ) {
+	private static function _deps_filter( &$arg ) {
 		if ( ! is_array( $arg ) ) {
 			$arg = false;
-			return;
+		} else {
+			foreach ( $arg as $asset => &$param ) {
+				$bool = filter_var( $param, \FILTER_VALIDATE_BOOLEAN, \FILTER_NULL_ON_FAILURE );
+				if ( isset( $bool ) ) {
+					$param = $bool;
+				} else {
+					unset( $arg[$asset] );
+				}
+			}
+			if ( empty( $arg ) )
+				$arg = false;
 		}
-		foreach ( $arg as $asset => &$param ) {
-			$bool = filter_var( $param, \FILTER_VALIDATE_BOOLEAN, \FILTER_NULL_ON_FAILURE );
-			if ( isset( $bool ) ) {
-				$param = $bool;
-			} else {
-				unset( $arg[$asset] );
+	}
+
+	/**
+	 * Constructor
+	 *
+	 * @param  WPDW\Device\Asset\verified $args
+	 * @return (void)
+	 */
+	public function __construct( verified $args ) {
+		foreach ( $args as $key => $val ) {
+			if ( property_exists( $this, $key ) && isset( $val ) )
+				$this->$key = $val;
+		}
+		if ( ! $this->multiple )
+			unset( $this->delimiter );
+		if ( $this->deps ) {
+			$property = \WPDW\_property( $args['domain'] );
+			foreach ( $this->deps as $asset => $param ) {
+				if ( ! isset( $property->$asset ) ) {
+					unset( $this->deps[$asset] );
+				}
 			}
 		}
-		if ( empty( $arg ) )
-			$arg = false;
+	}
+
+	/**
+	 * Overloading method: __get
+	 * - Read(only) class property
+	 *
+	 * @access public
+	 */
+	public function __get( $var ) {
+		return property_exists( $this, $var ) ? $this->$var : null;
+	}
+
+	/**
+	 * If something wrong, $type is not exist.
+	 *
+	 * @access public
+	 *
+	 * @return boolean
+	 */
+	public function _has_no_problem() {
+		return isset( $this->type );
+	}
+
+	/**
+	 * @todo
+	 *
+	 * @access protected
+	 *
+	 * @param  WP_Post $post
+	 * @return boolean
+	 */
+	protected function check_dependency( \WP_Post $post ) {
+		if ( ! $this->deps )
+			return true;
+		$property = \WPDW\_property( $this->domain );
+		foreach ( $this->deps as $asset => $arg ) {
+			if ( ! is_array( $arg ) ) {
+				if ( filter_var( $arg, \FILTER_VALIDATE_BOOLEAN ) && ! $property->$asset->get( $post ) ) {
+					return false;
+					break;
+				}
+			} else {
+				//
+			}
+		}
+		return true;
 	}
 
 }

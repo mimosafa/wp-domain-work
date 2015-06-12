@@ -3,10 +3,16 @@ namespace WPDW\Device\Admin;
 
 class attribute_meta_box extends post {
 
+	const ATTR_BOX_ACTION_PREFIX = '_wpdw_admin_post_attribute_meta_box_';
+	const ATTR_BOX_FORM_CLASS    = 'wpdw-admin-post-attr-box-form';
+
 	/**
-	 * Action tag prefix
+	 * @var array
 	 */
-	const ATTR_BOX_ACTION_PREFIX = '_wpdw_admin_attribute_meta_box_';
+	protected static $defaults = [
+		'title'    => '',
+		'context'  => ''
+	];
 
 	/**
 	 * @var string
@@ -22,7 +28,7 @@ class attribute_meta_box extends post {
 	/**
 	 * @var array
 	 */
-	private $attr_forms = [];
+	private $attributes;
 
 	/**
 	 * Constructor
@@ -43,6 +49,15 @@ class attribute_meta_box extends post {
 			return;
 		parent::__construct( $domain );
 
+		$this->init();
+	}
+
+	/**
+	 * @access private
+	 *
+	 * @return (void)
+	 */
+	private function init() {
 		$attrFilter = function( $attr ) {
 			if ( in_array( $attr, self::$done_assets, true ) )
 				return false;
@@ -55,11 +70,13 @@ class attribute_meta_box extends post {
 		if ( ! $this->attributes = array_filter( [ 'post_parent', 'menu_order' ], $attrFilter ) )
 			return;
 
-		$this->init();
+		add_action( 'add_meta_boxes_' . $this->post_type, [ &$this, 'add_meta_box' ] );
 	}
 
 	/**
 	 * @access protected
+	 *
+	 * @see    WPDW\Device\Admin\post::prepare_arguments()
 	 *
 	 * @param  mixed  &$arg
 	 * @param  string $key
@@ -71,27 +88,6 @@ class attribute_meta_box extends post {
 		else :
 			parent::arguments_walker( $arg, $key );
 		endif;
-	}
-
-	/**
-	 * @access private
-	 *
-	 * @return (void)
-	 */
-	private function init() {
-		add_action( 'add_meta_boxes_' . $this->post_type, [ $this, 'add_meta_box' ] );
-	}
-
-	/**
-	 * @access public
-	 */
-	public function add( Array $args ) {
-		$args = array_merge( [ 'context' => '' ], $args );
-		$this->prepare_arguments( $args );
-		if ( ! isset( $args['asset'] ) || ! $args['asset'] )
-			return;
-
-		$this->attr_forms[] = $args;
 	}
 
 	/**
@@ -109,10 +105,10 @@ class attribute_meta_box extends post {
 
 		add_meta_box( $id, esc_html( $title ), [ &$this, 'attribute_meta_box' ], $this->post_type, 'side', 'core' );
 
-		if ( ! $this->attr_forms )
+		if ( ! $this->arguments )
 			return;
 
-		foreach ( $this->attr_forms as $args ) {
+		foreach ( $this->arguments as $args ) {
 			/**
 			 * @var string|array $asset
 			 * @var string $id
@@ -123,7 +119,9 @@ class attribute_meta_box extends post {
 			extract( $args );
 
 			add_action( self::ATTR_BOX_ACTION_PREFIX . $context, [ &$this, '_render_' . $id ] );
-			$args['_before_render'] = '<p><strong>' . esc_html( $title ) . '</strong></p>';
+			$args['_before_render']  = '<div class="' . self::ATTR_BOX_FORM_CLASS . '">';
+			$args['_before_render'] .= '<p><strong>' . esc_html( $title ) . '</strong></p>';
+			$args['_after_render']  = '</div>';
 
 			self::$forms[$id] = $args;
 		}
@@ -181,11 +179,13 @@ class attribute_meta_box extends post {
 				$attr .= ' readonly="readonly"';
 		}
 ?>
+<div class="<?php esc_attr_e( self::ATTR_BOX_FORM_CLASS ); ?>">
 <p><strong><?php _e( $label ) ?></strong></p>
 <p>
-  <label class="screen-reader-text" for="menu_order"><?php _e( $label ) ?></label>
-  <input name="menu_order" type="number" id="menu_order" min="0" value="<?php echo esc_attr( $post->menu_order ) ?>" <?php echo $attr; ?>/>
+	<label class="screen-reader-text" for="menu_order"><?php _e( $label ) ?></label>
+	<input name="menu_order" type="number" id="menu_order" min="0" value="<?php echo esc_attr( $post->menu_order ) ?>" <?php echo $attr; ?>/>
 </p>
+</div>
 <?php
 	}
 

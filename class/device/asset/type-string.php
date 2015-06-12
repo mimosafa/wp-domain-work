@@ -1,18 +1,14 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_string extends asset_simple {
-	use asset_trait, Model\meta_post_meta;
+class type_string extends asset_unit implements asset, writable {
+	use asset_trait;
 
 	/**
 	 * @var boolean
 	 */
 	protected $multibyte;
-	protected $paragraph = false; // @todo
-
-	/**
-	 * @var boolean
-	 */
+	protected $paragraph; // @todo
 	protected $trim = true; // @todo
 
 	/**
@@ -24,23 +20,7 @@ class type_string extends asset_simple {
 	/**
 	 * @var string Regexp
 	 */
-	protected $regexp = '';
-
-	/**
-	 * Constructor
-	 *
-	 * @access public
-	 *
-	 * @uses   WPDW\Device\Asset\asset_simple::__construct()
-	 *
-	 * @param  WPDW\Device\Asset\verified $args
-	 * @return (void)
-	 */
-	public function __construct( verified $args ) {
-		parent::__construct( $args );
-		if ( $this->min > $this->max )
-			$this->min = $this->max = 0;
-	}
+	protected $regexp;
 
 	/**
 	 * @access public
@@ -73,10 +53,26 @@ class type_string extends asset_simple {
 			/**
 			 * @var string $regexp Regexp
 			 */
-			$arg = @preg_match( $pattern, '' ) !== false ? $arg : '';
+			$arg = @preg_match( $pattern, '' ) !== false ? $arg : null;
 		else :
 			parent::arguments_walker( $arg, $key, $asset );
 		endif;
+	}
+
+	/**
+	 * Constructor
+	 *
+	 * @access public
+	 *
+	 * @uses   WPDW\Device\Asset\asset_simple::__construct()
+	 *
+	 * @param  WPDW\Device\Asset\verified $args
+	 * @return (void)
+	 */
+	public function __construct( verified $args ) {
+		parent::__construct( $args );
+		if ( $this->min > $this->max )
+			$this->min = $this->max = 0;
 	}
 
 	/**
@@ -110,6 +106,38 @@ class type_string extends asset_simple {
 	}
 
 	/**
+	 * @access public
+	 *
+	 * @param  string $name
+	 * @param  string $value
+	 */
+	public function single_admin_form_element_dom_array( $name, $value ) {
+		$name  = filter_var( $name );
+		$value = filter_var( $value );
+
+		if ( $this->paragraph ) {
+			return [
+				'element' => 'textarea',
+				'attribute' => [
+					'name' => esc_attr( $name ),
+					'class' => 'large-text'
+				],
+				'text' => esc_html( $value ),
+			];
+		} else {
+			return [
+				'element' => 'input',
+				'attribute' => [
+					'type' => 'text',
+					'name' => esc_attr( $name ),
+					'value' => esc_attr( $value ),
+					'class' => 'regular-text'
+				]
+			];
+		}
+	}
+
+	/**
 	 * Print value in list table column - Hooked on '_wpdw_{$name}_column'
 	 *
 	 * @access public
@@ -122,53 +150,6 @@ class type_string extends asset_simple {
 	 */
 	public function print_column( $value, $post_id ) {
 		return esc_html( $value );
-	}
-
-	/**
-	 * Get DOM array to render form html element
-	 *
-	 * @access public
-	 *
-	 * @see    mimosafa\Decoder
-	 *
-	 * @todo   multiple value
-	 *
-	 * @param  mixed  $value
-	 * @param  string $namespace
-	 * @return array
-	 */
-	public function admin_form_element_dom_array( $value, $namespace = '' ) {
-		$name  = $namespace ? sprintf( '%s[%s]', $namespace, $this->name ) : $this->name;
-		$name .= $this->multiple ? '[]' : '';
-		$value = (array) $value;
-
-		$domArray = [];
-		do {
-			$val = current( $value );
-			$val = $val !== false ? $val : '';
-			if ( ! $this->paragraph ) {
-				$domArray[] = [
-					'element' => 'input',
-					'attribute' => [
-						'type' => 'text',
-						'name' => esc_attr( $name ),
-						'value' => esc_attr( $val ),
-						'class' => 'regular-text'
-					]
-				];
-			} else {
-				$domArray[] = [
-					'element' => 'textarea',
-					'attribute' => [
-						'name' => esc_attr( $name ),
-						'class' => 'large-text'
-					],
-					'text' => esc_html( $val ),
-				];
-			}
-		} while ( next( $value ) !== false );
-
-		return $domArray;
 	}
 
 }

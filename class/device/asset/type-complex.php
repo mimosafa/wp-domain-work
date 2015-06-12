@@ -1,7 +1,7 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_complex extends asset_assets {
+class type_complex extends asset_assets implements asset, writable {
 	use asset_trait;
 
 	/**

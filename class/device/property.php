@@ -32,10 +32,10 @@ trait property {
 			$this->_assets_provision = new Asset\provision( $domain );
 			$this->_assets_provision->sort_assets( $this->assets );
 			array_walk( $this->assets, [ &$this->_assets_provision, 'prepare_assets' ] );
-			
+
 			$this->assets = array_filter( $this->assets );
 		}
-		#_var_dump( $this );
+		_var_dump( $this );
 	}
 
 	/**
@@ -60,6 +60,7 @@ trait property {
 	 * @access public
 	 *
 	 * @uses   WPDW\Device\Asset\provision::get_class_name()
+	 * @uses   WPDW\Device\Asset\asset_abstract::_has_no_problem()
 	 *
 	 * @param  string $name
 	 * @return boolean
@@ -69,8 +70,12 @@ trait property {
 			return true;
 		if ( $setting = $this->get_setting( $name ) ) {
 			$class = $this->_assets_provision->get_class_name( $setting['type'] );
-			$this->_assets_data[$name] = new $class( $setting );
-			return true;
+			$instance = new $class( $setting );
+			if ( $instance->_has_no_problem() ) {
+				$this->_assets_data[$name] = $instance;
+				return true;
+			}
+			unset( $this->assets[$name] );
 		}
 		return false;
 	}

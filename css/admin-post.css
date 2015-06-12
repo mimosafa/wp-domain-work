@@ -42,18 +42,18 @@
 /**
  * @see Class: WPDW\Device\Admin\edit-form-advanced
  */
-[id^="wpdw-div-"] {
+[id^="wpdw-admin-post-div-"] {
   margin-bottom: 20px;
   padding: 0 .25em;
 }
-#postdivrich + [id^="wpdw-div-"] {
+#postdivrich + [id^="wpdw-admin-post-div-"] {
   padding-top: 1em;
 }
-#titlediv > [id^="wpdw-div-"] {
+#titlediv > [id^="wpdw-admin-post-div-"] {
   margin-bottom: 10px;
 }
-#post > [id^="wpdw-div-"] > h3,
-#post-body-content [id^="wpdw-div-"] > h3 {
+#post > [id^="wpdw-admin-post-div-"] > h3,
+#post-body-content [id^="wpdw-admin-post-div-"] > h3 {
   color: #23282d;
   font-size: 16px;
   padding: 0;
@@ -82,4 +82,11 @@ input.regular-text {
 .form-table td > .form-table td {
   padding-top: 0;
   padding-bottom: 10px;
+}
+
+.wpdw-admin-form-prefix,
+.wpdw-admin-form-safix {
+  padding: 0 4px;
+  font-size: 13px;
+  color: #666;
 }

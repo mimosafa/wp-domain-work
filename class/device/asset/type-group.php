@@ -1,7 +1,7 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_group extends asset_assets {
+class type_group extends asset_assets implements asset, writable {
 	use asset_trait;
 
 	protected static function arguments_walker( &$arg, $key, $asset ) {

@@ -1,18 +1,18 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_datetime extends asset_simple {
-	use asset_trait, Model\meta_post_meta;
+class type_datetime extends asset_unit implements asset, writable {
+	use asset_trait;
 
 	protected $unit = 'datetime_local';
 
-	protected $input_format  = 'Y-m-d H:i:s';
-	protected $output_format = 'Y-m-d H:i';
+	protected $input_format;
+	protected $output_format;
 
-	protected $min = null;
-	protected $max = null;
+	protected $min;
+	protected $max;
 
-	protected $step = null;
+	protected $step;
 
 	/**
 	 * @access protected
@@ -64,11 +64,6 @@ class type_datetime extends asset_simple {
 
 	}
 
-	public function print_column( $value, $post_id ) {
-		// yet
-		return esc_html( $value );
-	}
-
 	/**
 	 * Get DOM array to render form html element
 	 *
@@ -102,6 +97,11 @@ class type_datetime extends asset_simple {
 		} while ( next( $value ) !== false );
 
 		return $domArray;
+	}
+
+	public function print_column( $value, $post_id ) {
+		// yet
+		return esc_html( $value );
 	}
 
 }

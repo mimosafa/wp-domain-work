@@ -1,6 +1,16 @@
 <?php
 namespace WPDW\Device\Asset;
 
+/**
+ * Verified arguments class
+ *
+ * @uses WPDW\Util\Pseudo_Array
+ */
+class verified extends \WPDW\Util\Pseudo_Array { /* Define only */ }
+
+/**
+ * Methods for arguments provision
+ */
 class provision {
 	use \WPDW\Util\Array_Function;
 
@@ -137,7 +147,7 @@ class provision {
 		$sets   = [];
 		$groups = [];
 		foreach ( $assets as $asset => $args ) {
-			if ( ! $this->is_valid_asset_name_string( $asset ) ) :
+			if ( ! self::is_valid_asset_name_string( $asset ) ) :
 				unset( $assets[$asset] );
 				continue;
 			elseif ( ! isset( $args['type'] ) ) :
@@ -169,7 +179,7 @@ class provision {
 	 * @param  string $asset
 	 * @return boolean
 	 */
-	public function is_valid_asset_name_string( $asset ) {
+	public static function is_valid_asset_name_string( $asset ) {
 		if ( ! $name = filter_var( $asset ) )
 			return false;
 		if ( in_array( $asset, self::$_excluded, true ) )
@@ -309,48 +319,6 @@ class provision {
 		}
 		if ( $args && $asset[0] === '_' )
 			$args['model'] = 'meta_post_meta';
-	}
-
-}
-
-/**
- * Verified arguments class
- */
-class verified implements \ArrayAccess, \IteratorAggregate {
-
-	/**
-	 * @var array
-	 */
-	private $arguments;
-
-	/**
-	 * Constructor
-	 */
-	public function __construct( Array $args ) {
-		$this->arguments = $args;
-	}
-
-	/**
-	 * ArrayAccess methods
-	 */
-	public function offsetSet( $offset, $value ) {
-		// Do nothing
-	}
-	public function offsetExists( $offset ) {
-		return isset( $this->arguments[$offset] );
-	}
-	public function offsetUnset( $offset ) {
-		// Do nothing
-	}
-	public function offsetGet($offset) {
-		return isset( $this->arguments[$offset] ) ? $this->arguments[$offset] : null;
-	}
-
-	/**
-	 * IteratorAggregate methods
-	 */
-	public function getIterator() {
-		return new \ArrayIterator( $this->arguments );
 	}
 
 }

@@ -1,29 +1,13 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_boolean extends asset_simple {
-	use asset_trait, Model\meta_post_meta;
+class type_boolean extends asset_unit implements asset, writable {
+	use asset_trait;
 
 	/**
 	 * @var string
 	 */
 	protected $display;
-
-	/**
-	 * Constructor
-	 *
-	 * @access public
-	 *
-	 * @uses   WPDW\Device\Asset\asset_simple::__construct()
-	 *
-	 * @param  WPDW\Device\Asset\verified $args
-	 * @return (void)
-	 */
-	public function __construct( verified $args ) {
-		parent::__construct( $args );
-		if ( $this->multiple )
-			$this->multiple = false;
-	}
 
 	/**
 	 * @access protected
@@ -47,28 +31,39 @@ class type_boolean extends asset_simple {
 	}
 
 	/**
+	 * Constructor
+	 *
+	 * @access public
+	 *
+	 * @uses   WPDW\Device\Asset\asset_simple::__construct()
+	 *
+	 * @param  WPDW\Device\Asset\verified $args
+	 * @return (void)
+	 */
+	public function __construct( verified $args ) {
+		parent::__construct( $args );
+		if ( $this->multiple )
+			$this->multiple = false;
+	}
+
+	/**
+	 * Overwrite WPDW\Device\Admin\asset_unit::filter()
+	 *
 	 * @access public
 	 *
 	 * @param  mixed $value
 	 * @return boolean|null
 	 */
-	public function filter_singular( $value ) {
+	public function filter( $value ) {
 		return filter_var( $value, \FILTER_VALIDATE_BOOLEAN, \FILTER_NULL_ON_FAILURE );
 	}
 
-	public function print_column( $value, $post_id ) {
-		$output = $this->display ?: $this->label;
-		return $value ? $output : '';
-	}
-
 	/**
-	 * Get DOM array to render form html element
+	 * Overwrite WPDW\Device\Admin\asset_unit::admin_form_element_dom_array()
 	 *
 	 * @access public
 	 *
 	 * @see    mimosafa\Decoder
-	 *
-	 * @todo   multiple value
 	 *
 	 * @param  mixed  $value
 	 * @param  string $namespace
@@ -95,6 +90,11 @@ class type_boolean extends asset_simple {
 		];
 
 		return [ $domArray ];
+	}
+
+	public function print_column( $value, $post_id ) {
+		$output = $this->display ?: $this->label;
+		return $value ? $output : '';
 	}
 
 }

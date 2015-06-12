@@ -6,20 +6,15 @@ class meta_boxes extends post {
 	/**
 	 * Meta box id prefix
 	 */
-	const BOX_ID_PREFIX  = 'wpdw-meta-box-';
+	const BOX_ID_PREFIX  = 'wpdw-admin-post-meta-box-';
 
 	/**
 	 * @var array
 	 */
-	private $meta_boxes = [];
-
-	/**
-	 * @var array
-	 */
-	private static $defaults = [
-		'title' => '',
+	protected static $defaults = [
+		'title'    => '',
 		'context'  => '',
-		'priority' => '',
+		'priority' => ''
 	];
 
 	/**
@@ -38,20 +33,6 @@ class meta_boxes extends post {
 
 		parent::__construct( $domain );
 		add_action( 'add_meta_boxes', [ &$this, 'add_meta_boxes' ], 10, 2 );
-	}
-
-	/**
-	 * @access public
-	 *
-	 * @param  array $args
-	 * @return (void)
-	 */
-	public function add( Array $args ) {
-		$args = array_merge( self::$defaults, $args );
-		$this->prepare_arguments( $args );
-		if ( ! isset( $args['asset'] ) || ! $args['asset'] )
-			return;
-		$this->meta_boxes[] = $args;
 	}
 
 	/**
@@ -78,10 +59,10 @@ class meta_boxes extends post {
 	 * @param  WP_Post $post
 	 */
 	public function add_meta_boxes( $post_type, \WP_Post $post ) {
-		if ( ! $this->meta_boxes )
+		if ( ! $this->arguments )
 			return;
 
-		foreach ( $this->meta_boxes as $args ) {
+		foreach ( $this->arguments as $args ) {
 			/**
 			 * @var string|array $asset
 			 * @var string $id

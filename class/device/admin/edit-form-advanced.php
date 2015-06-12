@@ -3,20 +3,13 @@ namespace WPDW\Device\Admin;
 
 class edit_form_advanced extends post {
 
-	const DIV_ID_PREFIX  = 'wpdw-div-';
+	const DIV_ID_PREFIX  = 'wpdw-admin-post-div-';
 
 	/**
 	 * @var array
 	 */
-	private $edit_forms = [];
-
-	/**
-	 * Default arguments
-	 * @var array
-	 */
-	private static $defaults = [
-		'title'    => '',
-		'context'  => '',
+	protected static $defaults = [
+		'context'  => ''
 	];
 
 	/**
@@ -38,19 +31,6 @@ class edit_form_advanced extends post {
 	}
 
 	/**
-	 * @access public
-	 */
-	public function add( Array $args ) {
-		$args = array_merge( self::$defaults, $args );
-		$this->prepare_arguments( $args );
-		if ( ! isset( $args['asset'] ) || ! $args['asset'] )
-			return;
-
-		$hook = 'edit_form_' . $args['context'];
-		$this->edit_forms[$hook][] = $args;
-	}
-
-	/**
 	 * @access protected
 	 *
 	 * @param  mixed  &$arg
@@ -59,6 +39,10 @@ class edit_form_advanced extends post {
 	 */
 	protected function arguments_walker( &$arg, $key ) {
 		if ( $key === 'context' ) :
+			/**
+			 * You know, these below texts added prefix 'edit_form_' will be action_hook in edit-form-advanced.php
+			 * @var string $context
+			 */
 			$arg = in_array( $arg, [ 'top', 'before_permalink', 'after_title', 'after_editor' ], true ) ? $arg : 'after_editor';
 		elseif ( $key === 'list_table' ) :
 			$arg = filter_var( $arg, \FILTER_VALIDATE_BOOLEAN );
@@ -71,26 +55,27 @@ class edit_form_advanced extends post {
 	 * @access public
 	 */
 	public function add_edit_forms( \WP_Post $post ) {
-		if ( ! $this->edit_forms = array_filter( $this->edit_forms ) )
+		if ( ! $this->arguments )
 			return;
 
-		foreach ( $this->edit_forms as $hook => $forms ) {
-			foreach ( $forms as $args ) {
-				/**
-				 * @var string|array $asset
-				 * @var string $id
-				 * @var string $title
-				 * @var string $context
-				 * @var string $description Optional
-				 */
-				extract( $args );
+		foreach ( $this->arguments as $args ) {
+			/**
+			 * @var string|array $asset
+			 * @var string $id
+			 * @var string $context
+			 * @var string $title       Optional
+			 * @var string $description Optional
+			 */
+			extract( $args );
 
-				add_action( $hook, [ &$this, '_render_' . $id ] );
-				$args['_before_render'] = '<div class="inside" id="' . self::DIV_ID_PREFIX . esc_attr( $id ) . '">';
-				$args['_after_render']  = '</div>';
+			add_action( 'edit_form_' . $context, [ &$this, '_render_' . $id ] );
 
-				self::$forms[$id] = $args;
-			}
+			$args['_before_render'] = '<div class="inside" id="' . self::DIV_ID_PREFIX . esc_attr( $id ) . '">';
+			if ( isset( $title ) )
+				$args['_before_render'] .= '<h3>' . esc_html( $title ) . '</h3>';
+			$args['_after_render']  = '</div>';
+
+			self::$forms[$id] = $args;
 		}
 	}
 

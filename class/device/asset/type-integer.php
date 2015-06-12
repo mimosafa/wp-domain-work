@@ -1,8 +1,8 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_integer extends asset_simple {
-	use asset_trait, Model\meta_post_meta;
+class type_integer extends asset_unit implements asset, writable {
+	use asset_trait;
 
 	/**
 	 * @var int|null
@@ -14,22 +14,6 @@ class type_integer extends asset_simple {
 	 * @var int
 	 */
 	protected $step; // @todo
-
-	/**
-	 * Constructor
-	 *
-	 * @access public
-	 *
-	 * @uses   WPDW\Device\Asset\asset_simple::__construct()
-	 *
-	 * @param  WPDW\Device\Asset\verified $args
-	 * @return (void)
-	 */
-	public function __construct( verified $args ) {
-		parent::__construct( $args );
-		if ( is_int( $this->min ) && is_int( $this->max) && $this->min > $this->max )
-			$this->min = $this->max = null;
-	}
 
 	/**
 	 * @access protected
@@ -67,6 +51,22 @@ class type_integer extends asset_simple {
 	}
 
 	/**
+	 * Constructor
+	 *
+	 * @access public
+	 *
+	 * @uses   WPDW\Device\Asset\asset_simple::__construct()
+	 *
+	 * @param  WPDW\Device\Asset\verified $args
+	 * @return (void)
+	 */
+	public function __construct( verified $args ) {
+		parent::__construct( $args );
+		if ( is_int( $this->min ) && is_int( $this->max) && $this->min > $this->max )
+			$this->min = $this->max = null;
+	}
+
+	/**
 	 * @access public
 	 *
 	 * @param  mixed $value
@@ -86,6 +86,33 @@ class type_integer extends asset_simple {
 	}
 
 	/**
+	 * @access public
+	 *
+	 * @param  string $name
+	 * @param  string $value
+	 */
+	public function single_admin_form_element_dom_array( $name, $value ) {
+		$name  = filter_var( $name );
+		$value = filter_var( $value );
+
+		$domArray = [
+			'element' => 'input',
+			'attribute' => [ 'type' => 'number', 'name' => esc_attr( $name ), 'value' => esc_attr( $value ), ]
+		];
+
+		if ( $this->min )
+			$domArray['attribute']['min'] = esc_attr( $this->min );
+		if ( $this->max )
+			$domArray['attribute']['max'] = esc_attr( $this->max );
+		if ( $this->step )
+			$domArray['attribute']['step'] = esc_attr( $this->step );
+
+		$this->_add_fixtures_admin_form_element_dom_array( $domArray );
+
+		return $domArray;
+	}
+
+	/**
 	 * Print value in list table column - Hooked on '_wpdw_{$name}_column'
 	 *
 	 * @access public
@@ -98,41 +125,6 @@ class type_integer extends asset_simple {
 	 */
 	public function print_column( $value, $post_id ) {
 		return esc_html( $value );
-	}
-
-	/**
-	 * Get DOM array to render form html element
-	 *
-	 * @access public
-	 *
-	 * @see    mimosafa\Decoder
-	 *
-	 * @todo   multiple value
-	 *
-	 * @param  mixed  $value
-	 * @param  string $namespace
-	 * @return array
-	 */
-	public function admin_form_element_dom_array( $value, $namespace = '' ) {
-		$name  = $namespace ? sprintf( '%s[%s]', $namespace, $this->name ) : $this->name;
-		$name .= $this->multiple ? '[]' : '';
-		$value = (array) $value;
-
-		$domArray = [];
-		do {
-			$val = current( $value );
-			$val = $val !== false ? $val : '';
-			$domArray[] = [
-				'element' => 'input',
-				'attribute' => [
-					'type' => 'number',
-					'name' => esc_attr( $name ),
-					'value' => esc_attr( $val ),
-				]
-			];
-		} while ( next( $value ) !== false );
-
-		return $domArray;
 	}
 
 }
