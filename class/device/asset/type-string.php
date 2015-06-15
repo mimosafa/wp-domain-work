@@ -1,52 +1,155 @@
 <?php
 namespace WPDW\Device\Asset;
 
-class type_string implements asset_interface {
-	use asset_methods, asset_vars, asset_models;
-
-	private $model = 'post_meta';
-	private $multibyte = true;
-	private $min_len = 0;
-	private $max_len = 0;
-	private $regexp = '';
+class type_string extends asset_unit implements asset, writable {
+	use asset_trait;
 
 	/**
-	 * @see WPDW\Device\property::prepare_assets()
+	 * @var boolean
+	 */
+	protected $multibyte;
+	protected $paragraph; // @todo
+	protected $trim = true; // @todo
+
+	/**
+	 * @var int
+	 */
+	protected $min;
+	protected $max;
+
+	/**
+	 * @var string Regexp
+	 */
+	protected $regexp;
+
+	/**
+	 * @access public
 	 *
-	 * @param  mixed  $arg
+	 * @uses   WPDW\Device\Asset\asset_simple::arguments_walker()
+	 *
+	 * @param  mixed &$arg
 	 * @param  string $key
 	 * @param  string $asset
 	 * @return (void)
 	 */
 	public static function arguments_walker( &$arg, $key, $asset ) {
-		if ( $key === 'multibyte' ) :
-			$arg = self::validate_boolean( $arg, true );
-		elseif ( $key === 'min_len' ) :
-			$arg = self::validate_integer( $arg, 0, 0 );
-		elseif ( $key === 'max_len' ) :
-			$arg = self::validate_integer( $arg, 0, 1 );
+		if ( in_array( $key, [ 'multibyte', 'paragraph', 'trim' ], true ) ) :
+			/**
+			 * @var boolean $multibyte|$paragraph
+			 */
+			$arg = filter_var( $arg, \FILTER_VALIDATE_BOOLEAN );
+		elseif ( in_array( $key, [ 'min', 'max' ], true ) ) :
+			/**
+			 * @var int $min|$max
+			 */
+			$options = [
+				'options' => [
+					'default' => 0,
+					'min_range' => 1
+				]
+			];
+			$arg = filter_var( $arg, \FILTER_VALIDATE_INT, $options );
 		elseif ( $key === 'regexp' && $arg ) :
-			$arg = @preg_match( $pattern, '' ) !== false ? $arg : '';
+			/**
+			 * @var string $regexp Regexp
+			 */
+			$arg = @preg_match( $pattern, '' ) !== false ? $arg : null;
 		else :
-			// Common
-			self::common_arguments( $arg, $key, $asset );
+			parent::arguments_walker( $arg, $key, $asset );
 		endif;
 	}
 
-	public function filter( $var ) {
+	/**
+	 * Constructor
+	 *
+	 * @access public
+	 *
+	 * @uses   WPDW\Device\Asset\asset_simple::__construct()
+	 *
+	 * @param  WPDW\Device\Asset\verified $args
+	 * @return (void)
+	 */
+	public function __construct( verified $args ) {
+		parent::__construct( $args );
+		if ( $this->min > $this->max )
+			$this->min = $this->max = 0;
+	}
+
+	/**
+	 * @access public
+	 *
+	 * @param  mixed $value
+	 * @return string|array|null
+	 */
+	public function filter_singular( $value ) {
+		// Regexp
 		if ( $this->regexp ) {
-			if ( ! preg_match( $this->regexp, $var ) )
+			if ( ! preg_match( $this->regexp, $value ) )
 				return null;
 		}
-		if ( $this->min_len < $this->max_len ) {
+
+		// Multi-Byte
+		if ( ! $this->multibyte && strlen( $value ) !== mb_strlen( $value ) )
+			return null;
+
+		// String length
+		if ( $this->min || $this->max ) {
 			$strlen = $this->multibyte ? 'mb_strlen' : 'strlen';
-			$len = $strlen( $var );
-			if ( $this->min_len && $len < $this->min_len )
+			$len = $strlen( $value );
+			if ( $this->min && $len < $this->min )
 				return null;
-			if ( $this->max_len && $len > $this->max_len )
+			if ( $this->max && $len > $this->max )
 				return null;
 		}
-		return $var;
+
+		return $value;
+	}
+
+	/**
+	 * @access public
+	 *
+	 * @param  string $name
+	 * @param  string $value
+	 */
+	public function single_admin_form_element_dom_array( $name, $value ) {
+		$name  = filter_var( $name );
+		$value = filter_var( $value );
+
+		if ( $this->paragraph ) {
+			return [
+				'element' => 'textarea',
+				'attribute' => [
+					'name' => esc_attr( $name ),
+					'class' => 'large-text'
+				],
+				'text' => esc_html( $value ),
+			];
+		} else {
+			return [
+				'element' => 'input',
+				'attribute' => [
+					'type' => 'text',
+					'name' => esc_attr( $name ),
+					'value' => esc_attr( $value ),
+					'class' => 'regular-text'
+				]
+			];
+		}
+	}
+
+	/**
+	 * Print value in list table column - Hooked on '_wpdw_{$name}_column'
+	 *
+	 * @access public
+	 *
+	 * @see    WPDW\Device\Admin\posts_column::column_callback()
+	 *
+	 * @param  mixed $value
+	 * @param  int   $post_id
+	 * @return string
+	 */
+	public function print_column( $value, $post_id ) {
+		return esc_html( $value );
 	}
 
 }

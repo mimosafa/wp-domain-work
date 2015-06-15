@@ -3,7 +3,6 @@ namespace WPDW\Device;
 
 trait status {
 	use \WPDW\Util\Singleton, Module\Methods;
-	use \WPDW\Util\Array_Function;
 
 	/**
 	 * @var array
@@ -21,20 +20,26 @@ trait status {
 			return;
 		array_walk( $this->statuses, [ $this, 'prepare_statuses' ] );
 		$this->statuses = array_filter( $this->statuses );
+
+		/**
+		 * Check current global post_type
+		 */
+		if ( explode( '\\', __CLASS__ )[1] !== \WPDW\_domain( self::get_post_type() ) )
+			return;
+		$this->init();
+
+		if ( is_admin() )
+			$this->init_status_labels();
 	}
 
 	/**
 	 * Initialize domain's(post_type's) post status
 	 * 
-	 * @access public
+	 * @access private
 	 * 
-	 * @see    WPDW\Device\admin::init()
 	 * @return (void)
 	 */
-	public function init() {
-		if ( ! $this->isDefined( 'statuses' ) )
-			return;
-
+	private function init() {
 		global $wp_post_statuses;
 		foreach ( $this->statuses as $status => $args ) {
 			if ( array_key_exists( $status, $wp_post_statuses ) ) {
@@ -44,20 +49,22 @@ trait status {
 				register_post_status( $status, $args );
 			}
 		}
+	}
 
-		/**
-		 * Check current global post_type
-		 */
-		if ( explode( '\\', __CLASS__ )[1] !== \WPDW\_domain( $this->get_post_type() ) )
-			return;
-
+	/**
+	 * Initialize post status labels in admin
+	 * 
+	 * @access private
+	 * 
+	 * @return (void)
+	 */
+	private function init_status_labels() {
 		if ( $this->status_labels ) {
 			foreach ( $this->status_labels as $status => $labels ) {
-				if ( $class = $this->get_class_name( $status ) ) {
+				if ( $class = $this->get_class_name( $status ) )
 					new $class( $labels );
-				} else {
+				else
 					Status\custom::add( $status, $labels );
-				}
 			}
 		}
 	}
@@ -74,6 +81,10 @@ trait status {
 	 * @return (void)
 	 */
 	private function prepare_statuses( &$arg, $status ) {
+		// Excluded status names (existing files @./status/)
+		static $excluded = [
+			'built_in', 'custom',
+		];
 		// WordPress built-in statuses
 		static $built_ins = [
 			'publish', 'future', 'draft', 'pending',
@@ -83,6 +94,8 @@ trait status {
 		if ( ! $arg || ! is_array( $arg ) ) :
 			$arg = null;
 		elseif ( preg_match( '/[^a-z0-9_]/', $status ) ) :
+			$arg = null;
+		elseif ( in_array( $status, $excluded, true ) ) :
 			$arg = null;
 		elseif ( in_array( $status, $built_ins, true ) && ! $this->get_class_name( $status ) ) :
 			$arg = null;
@@ -94,7 +107,7 @@ trait status {
 				$arg = filter_var_array( $arg, $this->get_filter_definition( 'custom' ) );
 				$labels_def = Status\custom::get_filter_definition();
 			}
-			$arg['labels'] = filter_var_array( $arg['labels'] ?: [], $labels_def, false );
+			$arg['labels'] = filter_var_array( $arg['labels'] ?: [], $labels_def );
 			if ( ! $label = $arg['label'] ?: $arg['labels']['name'] ?: null )
 				$arg = null;
 		endif;
@@ -108,14 +121,11 @@ trait status {
 		$count_string = sprintf( '%s <span class="count">(%%s)</span>', $label );
 		$arg['label_count'] = _n_noop( $count_string, $count_string );
 
-		$action = array_key_exists( 'action', $arg['labels'] ) ? $arg['labels']['action'] : null;
-		$defaults = $class
-			? $class::get_defaults( $label, $action )
-			: Status\custom::get_defaults( $label )
-		;
-
-		$this->status_labels[$status] = array_merge( $defaults, $arg['labels'] );
+		$labels = array_filter( $arg['labels'] );
 		unset( $arg['labels'] );
+		$action = array_key_exists( 'action', $labels ) ? $labels['action'] : null;
+		$defaults = $class ? $class::get_defaults( $label, $action ) : Status\custom::get_defaults( $label );
+		$this->status_labels[$status] = array_merge( $defaults, $labels );
 
 		$arg = array_filter( $arg, function( $var ) { return isset( $var ); } );
 	}
@@ -124,9 +134,10 @@ trait status {
 	 * Get current screen post_type
 	 *
 	 * @access private
+	 * 
 	 * @return string
 	 */
-	private function get_post_type() {
+	private static function get_post_type() {
 		if ( ! is_admin() ) {
 			global $wp_query;
 			return $wp_query->get( 'post_type' );

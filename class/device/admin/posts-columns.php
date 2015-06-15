@@ -6,6 +6,7 @@ class posts_columns {
 	/**
 	 * @var string
 	 */
+	private $domain;
 	private $post_type;
 
 	/**
@@ -38,8 +39,8 @@ class posts_columns {
 			return;
 		if ( ! $this->post_type = \WPDW\_alias( $domain ) )
 			return;
-		// property instance
-		$this->property = \WPDW\_property_object( $domain );
+
+		$this->property = \WPDW\_property( $domain );
 		$this->init();
 	}
 
@@ -68,7 +69,7 @@ class posts_columns {
 		if ( $args['label'] ) 
 			$label = $args['label'];
 		else if ( $setting = $this->property->get_setting( $name ) )
-			$label = $setting['label'] ?: ucwords( str_replace( '_', ' ', $name ) );
+			$label = $setting['label'];
 		if ( isset( $label ) ) {
 			$this->columns[$name] .= $label;
 			if ( $args['narrow'] )
@@ -123,26 +124,40 @@ class posts_columns {
 	/**
 	 * @access public
 	 *
+	 * @uses WPDW\Device\Asset\type_{$type}
+	 *
 	 * @param  string $column_name
 	 * @param  int    $post_id
 	 * @return (void)
 	 */
 	public function column_callback( $column_name, $post_id ) {
-		$data = $this->property->$column_name;
-		echo esc_html( $data->get( $post_id ) );
+		$assetInstance = $this->property->$column_name;
+		$value = $assetInstance->get( $post_id );
+
+		static $done = [];
+		if ( ! in_array( $column_name, $done, true ) ) {
+			/**
+			 * Add filter for printing in column only once
+			 *
+			 * @uses WPDW\Device\Asset\type_{$type}::print_column()
+			 */
+			add_filter( '_wpdw_admin_' . $column_name . '_column', [ $assetInstance, 'print_column' ], 10, 2 );
+			$done[] = $column_name;
+		}
+
+		echo apply_filters( '_wpdw_admin_' . $column_name . '_column', $value, $post_id );
 	}
 
 	/**
 	 * @access public
 	 */
 	public function columns_style() {
-		$styles = '';
 		if ( ! $this->columns )
 			return;
-		$customs = array_filter( array_keys( $this->columns ), function( $name ) {
-			return ! in_array( $name, self::$built_ins );
-		} );
-		if ( $customs ) {
+
+		$styles = '';
+		$callback = function( $var ) { return ! in_array( $var, self::$built_ins ); };
+		if ( $customs = array_filter( array_keys( $this->columns ), $callback ) ) {
 			array_walk( $customs, function( &$class ) { $class = '.column-' . $class; } );
 			$styles .= sprintf( "\t@media screen and (max-width: 782px) { %s { display: none; } }\n", implode( ', ', $customs ) );
 		}
@@ -150,12 +165,13 @@ class posts_columns {
 			foreach ( $this->narrow_columns as $name => $em )
 				$styles .= sprintf( "\tth.column-%s { width: %dem; }\n", $name, $em );
 		}
-		if ( $styles ) {
+		if ( ! $styles )
+			return;
+
 		echo <<<EOF
 <style type="text/css">
 {$styles}</style>\n
 EOF;
-		}
 	}
 
 }

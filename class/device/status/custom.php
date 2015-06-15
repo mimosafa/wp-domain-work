@@ -114,20 +114,17 @@ class custom {
 	jQuery( document ).ready( function( $ ) {
 		var customs = {$customs},
 		    statusNow = '{$statusNow}',
-		    labelNow  = '',
 		    \$opts = $();
 		$.each( customs, function( i, arr ) {
 			var opt = $( '<option />', { value: i, text: arr['name'] } );
 			if ( i === statusNow ) {
 				opt.attr( 'selected', 'selected' );
-				labelNow += arr['name'];
+				$( '#post-status-display' ).text( arr['name'] );
 				$( '#save-post' ).val( arr['action'] );
 			}
 			\$opts = \$opts.add( opt );
 		} );
 		$( 'select#post_status' ).append( \$opts );
-		if ( labelNow )
-			$( '#post-status-display' ).text( labelNow );
 	});
 </script>
 EOF;

@@ -16,11 +16,18 @@ class save_post {
 	private $nonce;
 
 	/**
+	 * @var array
+	 */
+	private static $default_forms = [
+		'post_title', 'post_name', 'menu_order', // ...and more
+	];
+
+	/**
 	 * Constructor
 	 *
 	 * @access protected
 	 *
-	 * @uses   WPDW\_property_object()
+	 * @uses   WPDW\_property()
 	 * @see    wp-domain-work/inc/functions.php
 	 *
 	 * @param  string $domain
@@ -28,13 +35,16 @@ class save_post {
 	public function __construct( $domain ) {
 		if ( ! $domain = filter_var( $domain ) )
 			return;
-		if ( ! $this->property = \WPDW\_property_object( $domain ) )
+		if ( ! $this->property = \WPDW\_property( $domain ) )
 			return;
-		$this->nonce = new \WPDW\WP\nonce( $domain );
-		$this->init();
-	}
 
-	public function init() {
+		/**
+		 * Nonce gen
+		 * - $domain must be the same as when rendering forms
+		 * @see WPDW\Device\Admin\template::__construct()
+		 */
+		$this->nonce = \WPDW\WP\nonce::getInstance( $domain );
+
 		add_action( 'save_post', [ &$this, 'save_post' ] );
 	}
 
@@ -43,29 +53,39 @@ class save_post {
 	 */
 	public function save_post( $post_id ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && \DOING_AUTOSAVE )
-			return $post_id;
+			return;
 		if ( ! $_POST )
-			return $post_id;
+			return;
 		if ( ! $settings = $this->property->get_setting() )
-			return $post_id;
+			return;
 
-		foreach ( $settings as $key => $arg ) {
+		foreach ( $settings as $key => $setting ) {
+			
+			if ( in_array( $key, self::$default_forms, true ) )
+				continue;
+
 			$nonce = $this->nonce->get_nonce( $key );
 			if ( ! array_key_exists( $nonce, $_POST ) )
 				continue;
-			if ( ! $this->nonce->check_admin_referer( $key ) )
-				continue;
-			if ( ! array_key_exists( $key, $_POST ) )
-				continue;
-			if ( ! $assetInstance = $this->property->$key )
-				continue;
-			if ( is_array( $_POST[$key] ) )
-				$value = filter_input( \INPUT_POST, $key, \FILTER_DEFAULT, \FILTER_FORCE_ARRAY );
-			else
-				$value = filter_input( \INPUT_POST, $key );
+
+			$this->nonce->check_admin_referer( $key );
+
+			/**
+			 * Asset instance
+			 */
+			$assetInstance = $this->property->$key;
+
+			/**
+			 * Prepare input value
+			 */
+			if ( isset( $setting['assets'] ) || $setting['multiple'] ) {
+				$value = filter_input( \INPUT_POST, $key, \FILTER_DEFAULT, \FILTER_REQUIRE_ARRAY );
+			} else {
+				$value = filter_input( \INPUT_POST, $key, \FILTER_CALLBACK, [ 'options' => [ $assetInstance, 'filter_input' ] ] );
+			}
+
 			$assetInstance->update( $post_id, $value );
 		}
-
 	}
 
 }

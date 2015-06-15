@@ -6,16 +6,14 @@ namespace WPDW\Device\Admin;
  * - Used @ WPDW\Device\Admin\meta_boxes class
  *
  * @uses mimosafa\Decoder
- * @uses WPDW\WP\nonce
  */
 class template {
 	use \mimosafa\Decoder;
 
 	/**
-	 * Form elements id prefix
 	 * @var string
 	 */
-	private $form_id_prefix = 'wp-domain-work-form-';
+	private $form_id_prefix;
 
 	/**
 	 * @var WPDW\WP\nonce
@@ -25,46 +23,41 @@ class template {
 	/**
 	 * Constructor
 	 *
+	 * @uses   WPDW\Device\Admin\post::FORM_ID_PREFIX
+	 * @uses   WPDW\WP\nonce
+	 *
 	 * @param  string $context
 	 * @return (void)
 	 */
 	public function __construct( $domain ) {
-		if ( ! is_string( $domain ) || ! $domain )
+		if ( ! $domain = filter_var( $domain ) )
 			return;
-		$this->form_id_prefix .= $domain . '-';
+
+		$this->form_id_prefix = post::FORM_ID_PREFIX . $domain . '-';
+
 		/**
 		 * Nonce gen
 		 * - $domain must be the same as when saving
 		 * @see WPDW\Device\Admin\save_post::__construct()
 		 */
-		$this->nonce = new \WPDW\WP\nonce( $domain );
+		$this->nonce = \WPDW\WP\nonce::getInstance( $domain );
 	}
 
 	/**
 	 * @access public
-	 *
-	 * @param  array $args
-	 * @return (void)
-	 */
-	public function output( Array $args ) {
-		if ( $args['type'] === 'posts' ) {
-			//
-		} else {
-			$this->output_form( $args );
-		}
-	}
-
-	/**
-	 * @access private
 	 *
 	 * @uses   mimosafa\Decoder::getArrayToHtmlString()
 	 *
 	 * @param  array $args
 	 * @return (void)
 	 */
-	private function output_form( Array $args ) {
+	public function output( Array $args ) {
+		/*
+		echo '<pre>'; var_dump( $args ); echo '<pre>';
+		return;
+		*/
 		if ( $dom_array = $this->generate_dom_array( $args ) )
-			echo $this->getArrayToHtmlString( $dom_array );
+			echo html_entity_decode( $this->getArrayToHtmlString( $dom_array ) );
 	}
 
 	/**
@@ -78,134 +71,328 @@ class template {
 	 * @return array
 	 */
 	private function generate_dom_array( Array $args ) {
-
-		static $name = '';
-		static $id   = '';
-		static $table  = [];
-
-		/**
-		 * @var string
-		 */
-		$type = $args['type'];
-
-		/**
-		 * Return array
-		 * @var array
-		 */
+		// Return array
 		$return = [];
 
-		if ( array_key_exists( 'assets', $args ) ) {
+		// Static vars
+		static $fieldset = [];
+		#static $table = [];
+		static $non_separate_nonce_for_block = false;
+		static $non_separate_nonce_for_inline = false;
+		static $name = '';
 
-			if ( $type === 'group' && empty( $table ) ) {
-				$table = [
-					'element' => 'table',
-					'attribute' => [ 'class' => 'form-table' ],
-					'children' => [
-						[ 'element' => 'tbody', 'children' => [] ]
-					]
-				];
-				$tr_wrapper =& $table['children'][0]['children'];
+		if ( isset( $args['assets'] ) ) {
+			if ( isset( $args['admin_form_style'] ) )
+				$form_style = filter_var( $args['admin_form_style'] );
+			else
+				$form_style = 'block';
+		}
 
-				foreach ( $args['assets'] as $child_args ) {
-					$id = $this->form_id_prefix . $child_args['name'];
-					$label = $child_args['label'] ?: ucwords( str_replace( '_', ' ', $child_args['name'] ) );
-					if ( $child_dom = $this->generate_dom_array( $child_args ) ) {
-						$tr_wrapper[] = [
-							'element'  => 'tr',
-							'children' => [
-								[
-									'element'  => 'th',
-									'children' => [
-										[
-											'element'   => 'label',
-											'attribute' => [ 'for' => esc_attr( $id ) ],
-											'text'      => esc_html( $label )
-										]
-									]
-								], [
-									'element'  => 'td',
-									'children' => $child_dom
-								]
-							]
-						];
-					}
-					$name = $id = ''; // init vars
-				}
+		/**
+		 * Generate DOM array
+		 */
+		if ( ! isset( $form_style ) ) { // Single form (Has non assets)
 
-				if ( ! empty( $tr_wrapper ) ) {
-					$return[] = $table;
-				}
-				$table = [];
+			if ( $dom = $this->single_form_dom_array( $name, $args ) ) {
+				if ( empty( $fieldset ) )
+					$dom = [ [ 'element' => 'fieldset', 'children' => $dom ] ];
+				$return = $dom;
+				if ( ! $non_separate_nonce_for_block && ! $non_separate_nonce_for_inline )
+					$this->nonce_dom_array( $return, $args['name'] );
 			}
 
-		} else {
+		} else if ( $form_style === 'inline' ) { // Inline forms (Has assets)
 
-			$name = $name ?: $args['name'];
-			$id = $id ?: $this->form_id_prefix . $name;
+			$fieldset = [
+				'element' => 'fieldset',
+				'children' => [],
+			];
+			$dom =& $fieldset['children'];
 
-			$method = $type . '_dom_array';
-			$dom = method_exists( __CLASS__, $method ) ? $this->$method( $id, $name, $args ) : [];
-			if ( $args['readonly'] )
-				$dom['attribute']['readonly'] = 'readonly';
+			// Cache vars
+			$name_cache = $name;
 
-			$return[] = $dom;
-			$this->nonce_dom_array( $return, $args['name'] );
+			$non_separate_nonce_for_inline = true;
+
+			$this->form_inline_dom_array( $dom, $name, $args );
+			if ( ! empty( $dom ) ) {
+				if ( ! $non_separate_nonce_for_block )
+					$this->nonce_dom_array( $dom, $args['name'] );
+				$return[] = $fieldset;
+			}
+
+			// Reset vars
+			$name = $name_cache;
+			$non_separate_nonce_for_inline = false;
+			$fieldset = [];
+
+		} else { // Block forms (Has assets)
+
+			$table = /*$table ?:*/ [
+				'element' => 'table',
+				'attribute' => [ 'class' => 'form-table' ],
+				'children' => [
+					[ 'element' => 'tbody', 'children' => [] ]
+				]
+			];
+			$dom =& $table['children'][0]['children'];
+
+			// Cache vars
+			$name_cache = $name;
+
+			$non_separate_nonce_for_block = $args['type'] !== '_plural_assets';
+
+			$this->form_table_dom_array( $dom, $name, $args );
+			if ( ! empty( $dom ) ) {
+				$return[] = $table;
+				if ( isset( $args['name'] ) )
+					$this->nonce_dom_array( $return, $args['name'] );
+			}
+
+			// Reset vars
+			$name = $name_cache;
+			if ( $non_separate_nonce_for_block )
+				$non_separate_nonce_for_block = ! $non_separate_nonce_for_block;
 
 		}
+
 		return $return;
 	}
 
 	/**
-	 * Type: string - Generate DOM array method
+	 * Single form DOM array
 	 *
-	 * @access private
+	 * @access public
 	 *
-	 * @param  string $id
-	 * @param  string $name
+	 * @param  string $nameAttr
 	 * @param  array  $args
 	 * @return array
 	 */
-	private function string_dom_array( $id, $name, Array $args ) {
-		$attr = [
-			'type'  => 'text',
-			'id'    => esc_attr( $id ),
-			'name'  => esc_attr( $name ),
-			'class' => 'regular-text',
-		];
-
-		if ( isset( $args['value'] ) )
-			$attr['value'] = esc_attr( $args['value'] );
-		if ( $args['max_len'] ) {
-			$attr['maxlength'] = esc_attr( $args['max_len'] );
-		}
-		return [ 'element' => 'input', 'attribute' => $attr ];
+	public function single_form_dom_array( $nameAttr, Array $args ) {
+		$method = $args['type'] . '_dom_array';
+		if ( method_exists( __CLASS__, $method ) )
+			return $this->$method( $nameAttr, $args );
 	}
 
 	/**
-	 * Type: integer - Generate DOM array method
+	 * @access private
+	 *
+	 * @param  array  &$dom
+	 * @param  string &$nameAttr
+	 * @param  array  $args
+	 * @return (void)
+	 */
+	private function form_inline_dom_array( Array &$dom, &$nameAttr, Array $args ) {
+		extract( $args );
+		$nameAttr_cache = $nameAttr;
+		$nameAttr = $nameAttr ? $nameAttr . sprintf( '[%s]', $name ) : $name;
+		if ( $multiple )
+			$nameAttr .= '[]';
+
+		foreach ( $assets as $asset_args ) {
+			if ( $asset_dom = $this->generate_dom_array( $asset_args ) )
+				$dom[] = $asset_dom[0];
+		}
+	}
+
+	/**
+	 * @access private
+	 *
+	 * @param  array  &$dom
+	 * @param  string &$nameAttr
+	 * @param  array  $args
+	 * @return (void)
+	 */
+	private function form_table_dom_array( Array &$dom, &$nameAttr, Array $args ) {
+		extract( $args );
+		if ( ! isset( $assets ) )
+			return;
+		if ( isset( $name ) )
+			$nameAttr = $nameAttr ? $nameAttr . sprintf( '[%s]', $name ) : $name;
+
+		//
+
+		foreach ( $assets as $asset_args ) {
+			if ( $asset_dom = $this->generate_dom_array( $asset_args ) ) {
+				$id = $this->form_id_prefix;
+				if ( in_array( $asset_args['type'], [ 'set', 'group' ], true ) )
+					$id .= $asset_args['assets'][0]['name'];
+				else
+					$id .= $asset_args['name'];
+
+				$dom[] = [
+					'element'  => 'tr',
+					'children' => [
+						[
+							'element'  => 'th',
+							'children' => [
+								[
+									'element' => 'label',
+									'attribute' => [ 'for' => esc_attr( $id ) ],
+									'text' => esc_html( $asset_args['label'] )
+								]
+							]
+						], [
+							'element'  => 'td',
+							'children' => $asset_dom
+						]
+					]
+				];
+			}
+		}
+	}
+
+	/**
+	 * Type: string - Generate DOM array
 	 *
 	 * @access private
 	 *
-	 * @param  string $id
-	 * @param  string $name
+	 * @param  array  &$dom
+	 * @param  string $nameAttr
 	 * @param  array  $args
-	 * @return array
+	 * @return (void)
 	 */
-	private function integer_dom_array( $id, $name, Array $args ) {
-		$attr = [
-			'type' => 'number',
-			'id'   => esc_attr( $id ),
-			'name' => esc_attr( $name ),
-		];
+	private function string_dom_array( $nameAttr, Array $args ) {
+		if ( $args['paragraph'] )
+			return $this->textarea_dom_array( $nameAttr, $args );
 
-		if ( isset( $args['value'] ) )
-			$attr['value'] = esc_attr( $args['value'] );
-		if ( isset( $args['min'] ) )
-			$attr['min'] = esc_attr( $args['min'] );
-		if ( isset( $args['max'] ) )
-			$attr['max'] = esc_attr( $args['max'] );
-		//$attr['class'] = 'small-text';
-		return [ 'element' => 'input', 'attribute' => $attr ];
+		extract( $args );
+		$nameAttr = $nameAttr ? $nameAttr . sprintf( '[%s]', $name ) : $name;
+		if ( $multiple )
+			$nameAttr .= '[]';
+		$value = $value ?: [ null ];
+
+		$dom = [];
+		$n = 0;
+		foreach ( (array) $value as $val ) {
+			$id = $this->form_id_prefix;
+			$id .= ! $n ? $name : $name . '-' . $n;
+			$attr = [
+				'type' => 'text',
+				'name' => esc_attr( $nameAttr ),
+				'value' => esc_attr( $val ),
+				'id' => $id,
+				'class' => 'regular-text'
+			];
+			if ( $max )
+				$attr['maxlength'] = esc_attr( $args['max'] );
+			if ( $args['readonly'] )
+				$attr['readonly'] = 'readonly';
+
+			$dom[] = [ 'element' => 'input', 'attribute' => $attr ];
+			$n++;
+		}
+		return $dom;
+	}
+
+	private function textarea_dom_array( $nameAttr, Array $args ) {}
+
+	/**
+	 * Type: integer - Generate DOM array
+	 *
+	 * @access private
+	 *
+	 * @param  array  &$dom
+	 * @param  string $nameAttr
+	 * @param  array  $args
+	 * @return (void)
+	 */
+	private function integer_dom_array( $nameAttr, Array $args ) {
+		extract( $args );
+		$nameAttr = $nameAttr ? $nameAttr . sprintf( '[%s]', $name ) : $name;
+		if ( $multiple )
+			$nameAttr .= '[]';
+		$value = $value ?: [ null ];
+
+		$dom = [];
+		$n = 0;
+		foreach ( (array) $value as $val ) {
+			$id = $this->form_id_prefix;
+			$id .= ! $n ? $name : $name . '-' . $n;
+			$attr = [
+				'type' => 'number',
+				'name' => esc_attr( $nameAttr ),
+				'value' => esc_attr( $val ),
+				'id' => $id
+			];
+			if ( $min )
+				$attr['min'] = esc_attr( $args['min'] );
+			if ( $max )
+				$attr['max'] = esc_attr( $args['max'] );
+			if ( $step )
+				$attr['step'] = esc_attr( $args['step'] );
+			if ( $args['readonly'] )
+				$attr['readonly'] = 'readonly';
+
+			$dom[] = [ 'element' => 'input', 'attribute' => $attr ];
+			$n++;
+		}
+		return $dom;
+	}
+
+	/**
+	 * Type: datetime - Generate DOM array
+	 *
+	 * @access private
+	 *
+	 * @param  array  &$dom
+	 * @param  string $nameAttr
+	 * @param  array  $args
+	 * @return (void)
+	 */
+	private function datetime_dom_array( $nameAttr, Array $args ) {
+		extract( $args );
+		$nameAttr = $nameAttr ? $nameAttr . sprintf( '[%s]', $name ) : $name;
+		if ( $multiple )
+			$nameAttr .= '[]';
+		$value = $value ?: [ null ];
+
+		$dom = [];
+		$n = 0;
+		foreach ( (array) $value as $val ) {
+			$id = $this->form_id_prefix;
+			$id .= ! $n ? $name : $name . '-' . $n;
+			$attr = [
+				'type' => esc_attr( $unit ),
+				'name' => esc_attr( $nameAttr ),
+				'value' => esc_attr( $val ),
+				'id' => $id
+			];
+			if ( $step )
+				$attr['step'] = esc_attr( $args['step'] );
+			if ( $args['readonly'] )
+				$attr['readonly'] = 'readonly';
+
+			$dom[] = [ 'element' => 'input', 'attribute' => $attr ];
+			$n++;
+		}
+		return $dom;
+	}
+
+	private function boolean_dom_array( $nameAttr, Array $args ) {
+		extract( $args );
+		$nameAttr = $nameAttr ? $nameAttr . sprintf( '[%s]', $name ) : $name;
+		$id = $this->form_id_prefix . $name;
+
+		$attr = [
+			'type' => 'checkbox',
+			'name' => esc_attr( $nameAttr ),
+			'value' => 1,
+			'id' => $id
+		];
+		if ( $value )
+			$attr['checked'] = 'checked';
+
+		return [
+			[
+				'element' => 'label',
+				'children' => [
+					[ 'element' => 'input', 'attribute' => $attr ],
+					[ 'element' => 'span', 'text' => esc_attr( $display ?: $description ?: $label ) ]
+				],
+				'attribute' => [ 'class' => 'wpdw-checkbox']
+			]
+		];
 	}
 
 	/**

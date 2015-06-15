@@ -108,6 +108,7 @@ class Domains {
 	 * @param  array  $files
 	 */
 	private function init_class_loader( $domain, Array $files ) {
+		$domain = str_replace( '-', '_', $domain );
 		foreach ( $files as $file ) {
 			$path = self::add_path_prefix( $file );
 			if ( is_readable( $path ) ) {

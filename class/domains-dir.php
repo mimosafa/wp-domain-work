@@ -213,15 +213,22 @@ class Domains_Dir {
 
 				$domain = $fileinfo->getFilename(); // Directory name is used as the domain name
 				$file   = self::remove_path_prefix( $fileinfo->getPathname() );
+
 				$overwrite = array_key_exists( $domain, $this->domains );
+
+				$domainNS = str_replace( '-', '_', $domain );
+				static $domainNSs = [];
+
 				$property  = [];
 				$error = '';
 				$notice = '';
 
-				if ( preg_match( '/^[^a-z]|[^a-z0-9_\-]/', $domain ) || strlen( $domain ) > 20 ) {
+				if ( preg_match( '/^[^a-z]|[^a-z0-9_\-]/', $domain ) || strlen( $domain ) > 20 ) :
 					$error = 'Invalid Domain Name';
-				} else if ( in_array( $domain, $reserved, true ) ) :
+				elseif ( in_array( $domain, $reserved, true ) ) :
 					$error = 'Domain Name is Reserved Word';
+				elseif ( ! in_array( $domain, $domainNSs, true ) && in_array( $domainNS, $domainNSs, true ) ) :
+					$error = 'Similar name domain exists.';
 				elseif ( ! $property_file = $this->return_readable_file_path( $fileinfo, 'property.php' ) ) :
 					$error = 'File Not Exist';
 				/**
@@ -261,10 +268,13 @@ class Domains_Dir {
 					} );
 				endif;
 
-				if ( ! $error )
+				if ( ! $error ) {
 					$has++;
-				else
+					$domainNSs[] = $domainNS;
+				} else {
 					$property['errors'] = [ $file => $error ];
+				}
+
 				if ( $notice )
 					$property['notices'] = [ $file => $notice ];
 

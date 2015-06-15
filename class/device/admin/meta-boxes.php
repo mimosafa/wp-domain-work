@@ -1,155 +1,73 @@
 <?php
 namespace WPDW\Device\Admin;
 
-class meta_boxes {
+class meta_boxes extends post {
 
 	/**
 	 * Meta box id prefix
 	 */
-	const BOX_ID_PREFIX = 'wp-domain-work-meta-box-';
+	const BOX_ID_PREFIX  = 'wpdw-admin-post-meta-box-';
 
 	/**
 	 * @var array
 	 */
-	private $meta_boxes = [];
-
-	/**
-	 * @var  WP_Domain\{$domain}\property
-	 */
-	private $property;
-
-	/**
-	 * @var WPDW\Device\Admin\template
-	 */
-	private $template;
-
-	// private $save_post = [];
-
-	/**
-	 * Default arguments, also function as array sorter.
-	 * @var array
-	 */
-	private static $_defaults = [
-		'id'       => null,
-		'title'    => null,
-		'callback' => null,
-		'screen'   => null,
-		'context'  => 'advanced',
-		'priority' => 'default'
+	protected static $defaults = [
+		'title'    => '',
+		'context'  => '',
+		'priority' => ''
 	];
 
 	/**
-	 * Constructor
-	 *
+	 * @access protected
+	 */
+	protected function init() {
+		add_action( 'add_meta_boxes', [ &$this, 'add_meta_boxes' ], 10, 2 );
+	}
+
+	/**
 	 * @access protected
 	 *
-	 * @uses   WPDW\_property_object()
-	 * @see    wp-domain-work/inc/functions.php
-	 *
-	 * @param  string $domain
-	 */
-	public function __construct( $domain ) {
-		if ( ! $domain = filter_var( $domain ) )
-			return;
-		// property instance
-		$this->property = \WPDW\_property_object( $domain );
-		// template instance
-		$this->template = new template( $domain );
-
-		self::$_defaults['callback'] = [ &$this, 'print_html' ];
-		add_action( 'add_meta_boxes', [ &$this, 'add_meta_boxes' ] );
-	}
-
-	/**
-	 * @access public
-	 * @param  array $args {
-	 *     @see WPDW\Device\admin::get_filter_definition()
-	 *
-	 *     @type string        $id  If $asset key exists, Optional
-	 *     @type string        $title
-	 *     @type null|callable $callback
-	 *     @type string        $screen
-	 *     @type string        $context
-	 *     @type string        $priority
-	 *     @type string|array  $asset  If $callback is callable, Optional
-	 *     @type string        $description  Optional
-	 * }
+	 * @param  mixed  &$arg
+	 * @param  string $key
 	 * @return (void)
 	 */
-	public function add( Array $args ) {
-		$args = array_merge( self::$_defaults, $args );
-		if ( ! $args['id'] )
-			$args['id'] = implode( '-', (array) $args['asset'] );
-		if ( ! $args['title'] )
-			$args['title'] = ucwords( str_replace( [ '-', '_' ], [ ' / ', ' ' ], $args['id'] ) );
-		$callback_args = array_splice( $args, 6 );
-		extract( $args );
-		$this->meta_boxes[] = [ self::BOX_ID_PREFIX . $id, $title, $callback, $screen, $context, $priority, $callback_args ];
+	protected function arguments_walker( &$arg, $key ) {
+		if ( $key === 'context' ) :
+			$arg = in_array( $arg, [ 'normal', 'advanced', 'side' ], true ) ? $arg : 'advanced';
+		elseif ( $key === 'priority' ) :
+			$arg = in_array( $arg, [ 'high', 'core', 'default', 'low' ], true ) ? $arg : 'default';
+		else :
+			parent::arguments_walker( $arg, $key );
+		endif;
 	}
 
 	/**
 	 * @access public
-	 */
-	public function add_meta_boxes() {
-		if ( $this->meta_boxes ) {
-			foreach ( $this->meta_boxes as $args ) {
-				/**
-				 * @var array $args {
-				 *     @see  http://codex.wordpress.org/Function_Reference/add_meta_box
-				 *
-				 *     @type string   $id
-				 *     @type string   $title
-				 *     @type callable $callback
-				 *     @type string   $screen
-				 *     @type string   $context
-				 *     @type string   $priority
-				 *     @type array    $callback_args {
-				 *
-				 *         @type string|array $asset Callable string ( OR strings array )
-				 *                                   by WP_Domain\{$domain}\property::get()
-				 *
-				 *         @type string       $description Optional.
-				 *
-				 *         ...and so on
-				 *     }
-				 * }
-				 */
-				call_user_func_array( 'add_meta_box', $args );
-			}
-		}
-	}
-
-	/**
-	 * Print meta box
-	 * 
+	 *
+	 * @param  string  $post_type
 	 * @param  WP_Post $post
-	 * @param  array $metabox {
-	 *     @type string       $domain
-	 *     @type string|array $asset
-	 *     @type string       $description (Optional)
-	 * }
-	 * @return (void)
 	 */
-	public function print_html( $post, $metabox ) {
-		if ( ! $this->property )
+	public function add_meta_boxes( $post_type, \WP_Post $post ) {
+		if ( ! $this->arguments )
 			return;
 
-		// asset
-		$asset  = $metabox['args']['asset'];
+		foreach ( $this->arguments as $args ) {
+			/**
+			 * @var string|array $asset
+			 * @var string $id
+			 * @var string $title
+			 * @var string $context
+			 * @var string $priority
+			 * @var string $description Optional
+			 */
+			extract( $args );
 
-		if ( is_array( $asset ) ) {
-			$args = [ 'type' => 'group', 'assets' => [] ];
-			foreach ( $asset as $a )
-				$args['assets'][] = $this->property->$a->get_vars( $post );
-		} else {
-			$args = $this->property->$asset->get_vars( $post );
+			$callback = [ &$this, '_render_' . $id ];
+			add_meta_box( self::BOX_ID_PREFIX . $id, $title, $callback, $post_type, $context, $priority );
+
+			self::$forms[$id] = $args;
 		}
 
-		// description
-		if ( array_key_exists( 'description', $metabox['args'] ) )
-			$args = array_merge( $args, [ 'description' => $metabox['args']['description'] ] );
-
-		$this->template->output( $args );
 	}
 
 }

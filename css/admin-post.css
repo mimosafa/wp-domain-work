@@ -1,0 +1,92 @@
+@charset utf8;
+
+/**
+ * table style in meta box
+ */
+#side-sortables .form-table {
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+}
+#side-sortables .form-table tr {
+  display: block;
+  width: auto;
+}
+#side-sortables .form-table td,
+#side-sortables .form-table th {
+  display: block;
+  width: auto;
+  vertical-align: middle;
+}
+#side-sortables .form-table span.description {
+  padding: 4px 0 0;
+  line-height: 1.4em;
+}
+#side-sortables .form-table th {
+  padding-top: 10px;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+#side-sortables .form-table td {
+  padding-top: 8px;
+  padding-right: 0;
+  padding-left: 0;
+}
+#side-sortables .form-table input.regular-text {
+  width: 100%;
+}
+#side-sortables .form-table label {
+  font-size: 13px;
+}
+
+/**
+ * @see Class: WPDW\Device\Admin\edit-form-advanced
+ */
+[id^="wpdw-admin-post-div-"] {
+  margin-bottom: 20px;
+  padding: 0 .25em;
+}
+#postdivrich + [id^="wpdw-admin-post-div-"] {
+  padding-top: 1em;
+}
+#titlediv > [id^="wpdw-admin-post-div-"] {
+  margin-bottom: 10px;
+}
+#post > [id^="wpdw-admin-post-div-"] > h3,
+#post-body-content [id^="wpdw-admin-post-div-"] > h3 {
+  color: #23282d;
+  font-size: 16px;
+  padding: 0;
+  margin: 1em 0 .25em;
+}
+
+/**
+ * Form parts
+ * @see Class: WPDW\Device\Admin\template::$form_id_prefix
+ */
+/*[id^="wp-domain-work-form-"] {*/
+input.regular-text {
+  max-width: 100%;
+}
+.wpdw-checkbox {
+  padding-left: .5em;
+}
+.wpdw-checkbox:first-child {
+  padding-left: 0;
+}
+.wpdw-checkbox > input[disabled] + span {
+  color: #eee;
+}
+
+.form-table td > .form-table th,
+.form-table td > .form-table td {
+  padding-top: 0;
+  padding-bottom: 10px;
+}
+
+.wpdw-admin-form-prefix,
+.wpdw-admin-form-safix {
+  padding: 0 4px;
+  font-size: 13px;
+  color: #666;
+}
