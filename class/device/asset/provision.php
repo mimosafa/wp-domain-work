@@ -57,10 +57,17 @@ class provision {
 	 * Required & Default arguments on basis of asset
 	 */
 	private static $_asset_args = [
+		/**
+		 * Menu order
+		 */
 		'menu_order' => [
 			'required' => [ 'type' => 'integer', 'model' => 'post_attribute', 'multiple' => false, 'min' => 0, ],
 			'default'  => [ 'label' => 'Order' ]
 		],
+
+		/**
+		 * Post parent
+		 */
 		'post_parent' => [
 			'required' => [ 'type' => 'post', 'model' => 'post_attribute', 'field' => 'ID', 'multiple' => false, ],
 		],
@@ -70,35 +77,70 @@ class provision {
 	 * Required & Default arguments on basis of type
 	 */
 	private static $_type_args = [
+		/**
+		 * String
+		 */
 		'string' => [
 			'default' => [ 'model' => 'post_meta', 'multibyte' => true, ]
 		],
+
+		/**
+		 * Integer
+		 */
 		'integer' => [
 			'default' => [ 'model' => 'post_meta' ]
 		],
+
+		/**
+		 * Boolean
+		 */
 		'boolean' => [
 			'required' => [ 'multiple' => false ],
 			'default'  => [ 'model' => 'post_meta', ]
 		],
+
+		/**
+		 * Datetime
+		 */
 		'datetime' => [
 			'required' => [ 'type' => 'datetime', 'unit' => 'datetime_local', ],
 			'default'  => [ 'model' => 'post_meta', 'input_format' => 'Y-m-d H:i:s', 'output_format' => 'Y-m-d H:i', ]
 		],
+
+		/**
+		 * Date
+		 */
 		'date' => [
 			'required' => [ 'type' => 'datetime', 'unit' => 'date', ],
 			'default'  => [ 'model' => 'post_meta', 'input_format' => 'Y-m-d', 'output_format' => 'Y-m-d', ]
 		],
+
+		/**
+		 * Time
+		 */
 		'time' => [
 			'required' => [ 'type' => 'datetime', 'unit' => 'time', ],
 			'default'  => [ 'model' => 'post_meta', 'input_format' => 'H:i', 'output_format' => 'H:i', ]
 		],
+
+		/**
+		 * List
+		 */
 		'list' => [
 			'default' => [ 'model' => 'post_meta' ]
 		],
+
+		/**
+		 * Post children
+		 */
 		'post_children' => [
 			'required' => [ 'type' => 'post', 'model' => 'post', 'context' => 'post_children', ],
 			'default'  => [ 'multiple' => true, 'query_args' => [ 'orderby' => 'menu_order', 'order' => 'ASC' ] ]
 		],
+
+		/**
+		 * Complex meta data
+		 */
 		'complex' => [
 			'required' => [ 'model' => 'structured_post_meta' ],
 		],

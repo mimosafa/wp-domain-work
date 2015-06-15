@@ -20,26 +20,6 @@ class type_complex extends asset_assets implements asset, writable {
 	protected $key_asset;
 
 	/**
-	 * @access public
-	 */
-	public function filter_input( $value ) {
-		//
-	}
-
-	/**
-	 * @access protected
-	 *
-	 * @param  WP_Post $post
-	 * @param  array   $args
-	 * @return (void)
-	 */
-	protected function update_assets( \WP_Post $post, Array $values ) {
-		//
-	}
-
-	public function print_column( $value, $post_id ) {}
-
-	/**
 	 * Array_walk callback function
 	 *
 	 * @see    WPDW\Device\asset_trait::prepare_arguments()
@@ -85,5 +65,25 @@ class type_complex extends asset_assets implements asset, writable {
 	protected static function is_met_requirements( Array $args ) {
 		return parent::is_met_requirements( $args ) && isset( $args['model'] );
 	}
+
+	/**
+	 * @access public
+	 */
+	public function filter_input( $value ) {
+		//
+	}
+
+	/**
+	 * @access protected
+	 *
+	 * @param  WP_Post $post
+	 * @param  array   $args
+	 * @return (void)
+	 */
+	protected function update_assets( \WP_Post $post, Array $values ) {
+		//
+	}
+
+	public function print_column( $value, $post_id ) {}
 
 }

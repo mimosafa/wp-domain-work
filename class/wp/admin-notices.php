@@ -36,7 +36,7 @@ class admin_notices {
 		foreach ( self::$notices as $notice ) {
 			$message = '<strong>' . strtoupper( __( $notice['context'] ) ) . ': </strong> ' . __( $notice['message'] );
 			echo <<<EOF
-<div class="message {$notice['context']}">
+<div class="message {$notice['context']} notice is-dismissible">
 	<p>$message</p>
 </div>
 EOF;
